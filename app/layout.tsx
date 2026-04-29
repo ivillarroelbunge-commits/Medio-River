@@ -31,7 +31,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <AppStateProvider>
           <Suspense fallback={null}>{children}</Suspense>
         </AppStateProvider>
-        {process.env.NODE_ENV === "production" && <Analytics />}
+        <Analytics />
       </body>
     </html>
   )
