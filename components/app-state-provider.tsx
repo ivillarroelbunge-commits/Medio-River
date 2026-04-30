@@ -20,6 +20,15 @@ import type { AppUser, DailyTrivia, Match, NewsArticle, SquadPlayer, TriviaQuest
 import { createClient as createSupabaseBrowserClient } from "@/lib/supabase/client"
 import { fetchNewsArticles, mapNewsRowToArticle, NEWS_SELECT } from "@/lib/supabase/news"
 import { mapProfileToAppUser, type ProfileRow } from "@/lib/supabase/profiles"
+import {
+  DAILY_TRIVIAS_SELECT,
+  fetchTriviaState,
+  getTriviaTableMissingMessage,
+  mapTriviaResultRow,
+  TRIVIA_QUESTIONS_SELECT,
+  TRIVIA_RESULTS_SELECT,
+  type TriviaResultRow,
+} from "@/lib/supabase/trivia"
 
 interface RegisterInput {
   name: string
@@ -77,12 +86,12 @@ interface AppStateContextValue {
   deleteNews: (id: string) => Promise<ProfileActionResult>
   updateMatch: (match: Match) => void
   updateSquadPlayer: (player: SquadPlayer) => void
-  saveTriviaQuestion: (question: TriviaQuestion) => void
-  createTriviaQuestion: (question: Omit<TriviaQuestion, "id">) => void
-  deleteTriviaQuestion: (id: string) => void
-  saveDailyTrivia: (dailyTrivia: DailyTrivia) => void
+  saveTriviaQuestion: (question: TriviaQuestion) => Promise<ProfileActionResult>
+  createTriviaQuestion: (question: Omit<TriviaQuestion, "id">) => Promise<ProfileActionResult>
+  deleteTriviaQuestion: (id: string) => Promise<ProfileActionResult>
+  saveDailyTrivia: (dailyTrivia: DailyTrivia) => Promise<ProfileActionResult>
   updateUserRole: (userId: string, role: UserRole) => Promise<ProfileActionResult>
-  addTriviaResult: (score: number, totalQuestions: number, dailyKey?: string) => void
+  addTriviaResult: (score: number, totalQuestions: number, dailyKey?: string) => Promise<ProfileActionResult>
   getUserResults: (userId: string) => TriviaResult[]
   getUserTotalScore: (userId: string) => number
   ranking: Array<{ user: AppUser; totalScore: number; gamesPlayed: number }>
@@ -228,6 +237,27 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     }))
   }
 
+  async function loadTriviaData() {
+    const { questions, dailyTrivias, results, errors } = await fetchTriviaState(supabase)
+
+    const tableError = errors.questions ?? errors.dailyTrivias
+    if (tableError) {
+      console.warn(getTriviaTableMissingMessage(tableError.message) ?? "No se pudo cargar la trivia desde Supabase.")
+      return
+    }
+
+    if (errors.results) {
+      console.warn(errors.results.message || "No se pudieron cargar los resultados de trivia.")
+    }
+
+    setLocalState((previous) => ({
+      ...previous,
+      triviaQuestions: questions && questions.length > 0 ? questions : previous.triviaQuestions,
+      dailyTrivias: dailyTrivias ?? previous.dailyTrivias,
+      triviaResults: results ?? previous.triviaResults,
+    }))
+  }
+
   useEffect(() => {
     let active = true
 
@@ -277,7 +307,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         setIsHydrated(true)
       }
 
-      void Promise.all([refreshAuthState(), loadNews()]).catch((error) => {
+      void Promise.all([refreshAuthState(), loadNews(), loadTriviaData()]).catch((error) => {
         console.error("No se pudieron sincronizar los datos remotos.", error)
       })
     }
@@ -285,7 +315,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(() => {
-      void refreshAuthState().catch((error) => {
+      void Promise.all([refreshAuthState(), loadTriviaData()]).catch((error) => {
         console.error("No se pudo actualizar la sesión.", error)
       })
     })
@@ -314,6 +344,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
           gamesPlayed: results.length,
         }
       })
+      .filter((entry) => entry.gamesPlayed > 0)
       .sort((a, b) => {
         if (b.totalScore !== a.totalScore) return b.totalScore - a.totalScore
         if (b.gamesPlayed !== a.gamesPlayed) return b.gamesPlayed - a.gamesPlayed
@@ -347,7 +378,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         }
       }
 
-      await refreshAuthState()
+      await Promise.all([refreshAuthState(), loadTriviaData()])
       return { ok: true, redirectTo: "/perfil" }
     },
     async register(input) {
@@ -370,7 +401,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         }
       }
 
-      await refreshAuthState()
+      await Promise.all([refreshAuthState(), loadTriviaData()])
 
       return {
         ok: true,
@@ -538,12 +569,31 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         squadPlayers: previous.squadPlayers.map((item) => (item.id === player.id ? player : item)),
       }))
     },
-    saveTriviaQuestion(question) {
+    async saveTriviaQuestion(question) {
       const normalizedQuestion: TriviaQuestion = {
         ...question,
         question: question.question.trim(),
         options: question.options.map((option) => option.trim()),
         explanation: question.explanation?.trim() || undefined,
+      }
+
+      const { data, error } = await supabase
+        .from("trivia_questions")
+        .upsert({
+          id: normalizedQuestion.id,
+          question: normalizedQuestion.question,
+          options: normalizedQuestion.options,
+          correct_index: normalizedQuestion.correctIndex,
+          explanation: normalizedQuestion.explanation ?? null,
+        }, { onConflict: "id" })
+        .select(TRIVIA_QUESTIONS_SELECT)
+        .single()
+
+      if (error) {
+        return {
+          ok: false,
+          error: getTriviaTableMissingMessage(error.message) ?? "No se pudo guardar la pregunta.",
+        }
       }
 
       setLocalState((previous) => ({
@@ -552,8 +602,11 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
           ? previous.triviaQuestions.map((item) => (item.id === normalizedQuestion.id ? normalizedQuestion : item))
           : [normalizedQuestion, ...previous.triviaQuestions],
       }))
+
+      if (!data) return { ok: true }
+      return { ok: true }
     },
-    createTriviaQuestion(question) {
+    async createTriviaQuestion(question) {
       const normalizedQuestion: TriviaQuestion = {
         id: createTriviaQuestionId(),
         question: question.question.trim(),
@@ -562,12 +615,43 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         explanation: question.explanation?.trim() || undefined,
       }
 
+      const { error } = await supabase
+        .from("trivia_questions")
+        .insert({
+          id: normalizedQuestion.id,
+          question: normalizedQuestion.question,
+          options: normalizedQuestion.options,
+          correct_index: normalizedQuestion.correctIndex,
+          explanation: normalizedQuestion.explanation ?? null,
+        })
+
+      if (error) {
+        return {
+          ok: false,
+          error: getTriviaTableMissingMessage(error.message) ?? "No se pudo crear la pregunta.",
+        }
+      }
+
       setLocalState((previous) => ({
         ...previous,
         triviaQuestions: [normalizedQuestion, ...previous.triviaQuestions],
       }))
+
+      return { ok: true }
     },
-    deleteTriviaQuestion(id) {
+    async deleteTriviaQuestion(id) {
+      const { error } = await supabase
+        .from("trivia_questions")
+        .delete()
+        .eq("id", id)
+
+      if (error) {
+        return {
+          ok: false,
+          error: getTriviaTableMissingMessage(error.message) ?? "No se pudo eliminar la pregunta.",
+        }
+      }
+
       setLocalState((previous) => ({
         ...previous,
         triviaQuestions: previous.triviaQuestions.filter((question) => question.id !== id),
@@ -576,11 +660,29 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
           questionIds: dailyTrivia.questionIds.filter((questionId) => questionId !== id),
         })),
       }))
+
+      return { ok: true }
     },
-    saveDailyTrivia(dailyTrivia) {
+    async saveDailyTrivia(dailyTrivia) {
       const normalizedDailyTrivia: DailyTrivia = {
         dailyKey: dailyTrivia.dailyKey,
         questionIds: Array.from(new Set(dailyTrivia.questionIds)).slice(0, 5),
+      }
+
+      const { error } = await supabase
+        .from("daily_trivias")
+        .upsert({
+          daily_key: normalizedDailyTrivia.dailyKey,
+          question_ids: normalizedDailyTrivia.questionIds,
+        }, { onConflict: "daily_key" })
+        .select(DAILY_TRIVIAS_SELECT)
+        .single()
+
+      if (error) {
+        return {
+          ok: false,
+          error: getTriviaTableMissingMessage(error.message) ?? "No se pudo guardar la trivia diaria.",
+        }
       }
 
       setLocalState((previous) => ({
@@ -589,6 +691,8 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
           ? previous.dailyTrivias.map((item) => (item.dailyKey === normalizedDailyTrivia.dailyKey ? normalizedDailyTrivia : item))
           : [...previous.dailyTrivias, normalizedDailyTrivia],
       }))
+
+      return { ok: true }
     },
     async updateUserRole(userId, role) {
       if (currentUser && currentUser.id === userId && currentUser.role !== role) {
@@ -612,21 +716,56 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       await refreshAuthState()
       return { ok: true }
     },
-    addTriviaResult(score, totalQuestions, dailyKey) {
-      if (!currentUser) return
-      if (dailyKey && localState.triviaResults.some((result) => result.userId === currentUser.id && result.dailyKey === dailyKey)) return
+    async addTriviaResult(score, totalQuestions, dailyKey) {
+      if (!currentUser) return { ok: false, error: "Tenés que iniciar sesión para guardar el resultado." }
+      const resultDailyKey = dailyKey ?? new Date().toISOString().slice(0, 10)
+      if (localState.triviaResults.some((result) => result.userId === currentUser.id && result.dailyKey === resultDailyKey)) {
+        return { ok: false, error: "Ya jugaste la trivia de hoy." }
+      }
       const result: TriviaResult = {
         id: createTriviaResultId(),
         userId: currentUser.id,
         score,
         totalQuestions,
         playedAt: new Date().toISOString(),
-        dailyKey,
+        dailyKey: resultDailyKey,
       }
+
+      const { data, error } = await supabase
+        .from("trivia_results")
+        .insert({
+          id: result.id,
+          user_id: result.userId,
+          daily_key: resultDailyKey,
+          score: result.score,
+          total_questions: result.totalQuestions,
+          played_at: result.playedAt,
+        })
+        .select(TRIVIA_RESULTS_SELECT)
+        .single<TriviaResultRow>()
+
+      if (error) {
+        const duplicateAttempt = error.code === "23505" || error.message.toLowerCase().includes("duplicate key")
+        await loadTriviaData().catch(() => undefined)
+
+        return {
+          ok: false,
+          error: duplicateAttempt
+            ? "Ya jugaste la trivia de hoy."
+            : getTriviaTableMissingMessage(error.message) ?? "No se pudo guardar el resultado.",
+        }
+      }
+
+      const savedResult = data ? mapTriviaResultRow(data) : result
       setLocalState((previous) => ({
         ...previous,
-        triviaResults: [result, ...previous.triviaResults],
+        triviaResults: [
+          savedResult,
+          ...previous.triviaResults.filter((item) => !(item.userId === savedResult.userId && item.dailyKey === savedResult.dailyKey)),
+        ],
       }))
+
+      return { ok: true }
     },
     getUserResults(userId) {
       return localState.triviaResults

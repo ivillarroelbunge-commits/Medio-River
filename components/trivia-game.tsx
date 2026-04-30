@@ -41,6 +41,8 @@ export function TriviaGame() {
   const [selected, setSelected] = useState<number | null>(null)
   const [revealed, setRevealed] = useState(false)
   const [score, setScore] = useState(0)
+  const [saveError, setSaveError] = useState<string | null>(null)
+  const [isSaving, setIsSaving] = useState(false)
 
   const total = dailyQuestions.length
   const question = dailyQuestions[current]
@@ -53,6 +55,7 @@ export function TriviaGame() {
     setSelected(null)
     setRevealed(false)
     setScore(0)
+    setSaveError(null)
   }
 
   const choose = (index: number) => {
@@ -73,9 +76,19 @@ export function TriviaGame() {
     )
   }
 
-  const next = () => {
+  const next = async () => {
     if (current + 1 >= total) {
-      if (currentUser) addTriviaResult(score, total, dailyKey)
+      if (currentUser) {
+        setIsSaving(true)
+        setSaveError(null)
+        const result = await addTriviaResult(score, total, dailyKey)
+        setIsSaving(false)
+
+        if (!result.ok) {
+          setSaveError(result.error ?? "No se pudo guardar el resultado.")
+          return
+        }
+      }
       setPhase("finished")
       return
     }
@@ -195,8 +208,11 @@ export function TriviaGame() {
         })}
       </ul>
       {revealed && question.explanation && <p className="mt-5 rounded-xl border border-border bg-muted/40 p-4 text-sm text-muted-foreground">{question.explanation}</p>}
+      {saveError && <p className="mt-5 rounded-xl border border-primary/25 bg-primary/10 p-4 text-sm font-semibold text-primary">{saveError}</p>}
       <div className="mt-5 flex justify-end md:mt-6">
-        <Button onClick={next} disabled={!revealed} size="lg" className="w-full rounded-full px-8 sm:w-auto">{current + 1 >= total ? "Guardar resultado" : "Siguiente"}</Button>
+        <Button onClick={next} disabled={!revealed || isSaving} size="lg" className="w-full rounded-full px-8 sm:w-auto">
+          {isSaving ? "Guardando..." : current + 1 >= total ? "Guardar resultado" : "Siguiente"}
+        </Button>
       </div>
       </div>
     </div>

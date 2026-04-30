@@ -14,12 +14,6 @@ export interface StoredAppState {
 
 export const STORAGE_KEY = "medio-river-state-v1"
 
-const seedResults: TriviaResult[] = [
-  { id: "seed-1", userId: "user-admin", score: 9, totalQuestions: triviaQuestions.length, playedAt: "2026-04-20T20:00:00-03:00" },
-  { id: "seed-2", userId: "user-editor", score: 7, totalQuestions: triviaQuestions.length, playedAt: "2026-04-22T20:00:00-03:00" },
-  { id: "seed-3", userId: "user-demo", score: 8, totalQuestions: triviaQuestions.length, playedAt: "2026-04-24T20:00:00-03:00" },
-]
-
 export function createInitialState(): StoredAppState {
   return {
     users: demoUsers,
@@ -29,7 +23,7 @@ export function createInitialState(): StoredAppState {
     squadPlayers,
     triviaQuestions,
     dailyTrivias: [],
-    triviaResults: seedResults,
+    triviaResults: [],
   }
 }
 
