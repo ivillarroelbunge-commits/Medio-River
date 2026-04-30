@@ -355,7 +355,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         email: input.email.trim(),
         password: input.password,
         options: {
-          emailRedirectTo: getAuthCallbackUrl("/perfil"),
+          emailRedirectTo: getAuthCallbackUrl("/cuenta-confirmada"),
           data: {
             name: input.name.trim(),
           },
@@ -374,7 +374,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
 
       return {
         ok: true,
-        redirectTo: data.session ? "/perfil" : "/iniciar-sesion",
+        redirectTo: data.session ? "/perfil" : `/confirmar-cuenta?email=${encodeURIComponent(input.email.trim())}`,
       }
     },
     async loginWithProvider(provider) {
