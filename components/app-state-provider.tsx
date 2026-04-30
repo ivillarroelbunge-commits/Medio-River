@@ -7,7 +7,7 @@ import {
   useMemo,
   useState,
 } from "react"
-import type { User } from "@supabase/supabase-js"
+import type { Provider, User } from "@supabase/supabase-js"
 import {
   createInitialState,
   createNewsArticleId,
@@ -25,6 +25,7 @@ interface RegisterInput {
   name: string
   email: string
   password: string
+  captchaToken?: string
 }
 
 interface NewsInput {
@@ -67,8 +68,9 @@ interface AppStateContextValue {
   triviaQuestions: TriviaQuestion[]
   dailyTrivias: DailyTrivia[]
   triviaResults: TriviaResult[]
-  login: (email: string, password: string) => Promise<AuthActionResult>
+  login: (email: string, password: string, captchaToken?: string) => Promise<AuthActionResult>
   register: (input: RegisterInput) => Promise<AuthActionResult>
+  loginWithProvider: (provider: Extract<Provider, "google" | "x">) => Promise<AuthActionResult>
   logout: () => Promise<void>
   updateProfile: (input: { name: string; avatar?: string }) => Promise<ProfileActionResult>
   saveNews: (input: NewsInput) => Promise<ProfileActionResult>
@@ -143,6 +145,13 @@ function getProfilePayload(user: User) {
         ? user.user_metadata.avatar_url.trim()
         : null,
   }
+}
+
+function getAuthCallbackUrl(next = "/perfil") {
+  if (typeof window === "undefined") return undefined
+  const callbackUrl = new URL("/auth/callback", window.location.origin)
+  callbackUrl.searchParams.set("next", next)
+  return callbackUrl.toString()
 }
 
 export function AppStateProvider({ children }: { children: React.ReactNode }) {
@@ -322,10 +331,13 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     triviaQuestions: localState.triviaQuestions,
     dailyTrivias: localState.dailyTrivias,
     triviaResults: localState.triviaResults,
-    async login(email, password) {
+    async login(email, password, captchaToken) {
       const { error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password,
+        options: {
+          captchaToken,
+        },
       })
 
       if (error) {
@@ -343,9 +355,11 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         email: input.email.trim(),
         password: input.password,
         options: {
+          emailRedirectTo: getAuthCallbackUrl("/perfil"),
           data: {
             name: input.name.trim(),
           },
+          captchaToken: input.captchaToken,
         },
       })
 
@@ -362,6 +376,23 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         ok: true,
         redirectTo: data.session ? "/perfil" : "/iniciar-sesion",
       }
+    },
+    async loginWithProvider(provider) {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: getAuthCallbackUrl("/perfil"),
+        },
+      })
+
+      if (error) {
+        return {
+          ok: false,
+          error: error.message || `No se pudo iniciar sesión con ${provider}.`,
+        }
+      }
+
+      return { ok: true }
     },
     async logout() {
       await supabase.auth.signOut()
