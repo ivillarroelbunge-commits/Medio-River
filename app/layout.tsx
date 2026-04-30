@@ -27,6 +27,13 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="es" className="bg-background">
+      <head>
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7693484030474244"
+          crossOrigin="anonymous"
+        />
+      </head>
       <body className="font-sans antialiased">
         <AppStateProvider>
           <Suspense fallback={null}>{children}</Suspense>
