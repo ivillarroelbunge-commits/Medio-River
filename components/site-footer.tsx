@@ -52,7 +52,11 @@ export function SiteFooter() {
 
         <div className="mt-10 flex flex-col items-start justify-between gap-3 border-t border-secondary-foreground/10 pt-6 text-xs text-secondary-foreground/60 sm:flex-row sm:items-center">
           <p>© {new Date().getFullYear()} Medio River. Todos los derechos reservados.</p>
-          <p>{contactEmail}</p>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+            <Link href="/terminosdeservicio" className="hover:text-primary">Términos de servicio</Link>
+            <Link href="/politicadeprivacidad" className="hover:text-primary">Política de privacidad</Link>
+            <p>{contactEmail}</p>
+          </div>
         </div>
       </div>
     </footer>
