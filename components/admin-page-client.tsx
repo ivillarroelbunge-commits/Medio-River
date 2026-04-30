@@ -28,6 +28,7 @@ export function AdminPageClient() {
     matches,
     news,
     squadPlayers,
+    triviaResults,
     triviaQuestions,
     users,
     createTriviaQuestion,
@@ -73,6 +74,14 @@ export function AdminPageClient() {
   const triviaQuestionById = useMemo(
     () => new Map(triviaQuestions.map((question) => [question.id, question])),
     [triviaQuestions],
+  )
+  const usedTriviaQuestionIds = useMemo(
+    () => new Set(dailyTrivias.flatMap((dailyTrivia) => dailyTrivia.questionIds)),
+    [dailyTrivias],
+  )
+  const lockedTriviaDays = useMemo(
+    () => new Set(triviaResults.map((result) => result.dailyKey).filter((dailyKey): dailyKey is string => Boolean(dailyKey))),
+    [triviaResults],
   )
 
   const newsCategoryOptions = useMemo(() => getUniqueNewsOptions(news.map((article) => article.category)), [news])
@@ -340,8 +349,13 @@ export function AdminPageClient() {
               {creatingTriviaQuestion && (
                 <TriviaQuestionForm
                   onCancel={() => setCreatingTriviaQuestion(false)}
-                  onSave={(question) => {
-                    createTriviaQuestion(question)
+                  onSave={async (question) => {
+                    setError(null)
+                    const result = await createTriviaQuestion(question)
+                    if (!result.ok) {
+                      setError(result.error ?? "No se pudo crear la pregunta.")
+                      return
+                    }
                     setCreatingTriviaQuestion(false)
                   }}
                 />
@@ -351,14 +365,31 @@ export function AdminPageClient() {
                 <div key={question.id} className={`space-y-3 rounded-2xl border p-3 md:p-4 ${editingTriviaQuestion?.id === question.id ? "border-primary/40 bg-primary/5" : "border-border bg-card"}`}>
                   <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                     <div className="min-w-0">
-                      <p className="font-semibold text-foreground">{question.question}</p>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="font-semibold text-foreground">{question.question}</p>
+                        {usedTriviaQuestionIds.has(question.id) && (
+                          <Badge variant="outline" className="rounded-full border-primary/25 bg-primary/10 text-primary">
+                            Usada
+                          </Badge>
+                        )}
+                      </div>
                       <p className="mt-1 text-sm text-muted-foreground">Correcta: {question.options[question.correctIndex] ?? "Sin definir"}</p>
                     </div>
                     <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
                       <Button type="button" variant="outline" className="rounded-full" onClick={() => setEditingTriviaQuestion(editingTriviaQuestion?.id === question.id ? null : question)}>
                         {editingTriviaQuestion?.id === question.id ? "Cerrar" : "Editar"}
                       </Button>
-                      <Button type="button" variant="destructive" className="rounded-full" onClick={() => deleteTriviaQuestion(question.id)}>
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        className="rounded-full"
+                        disabled={usedTriviaQuestionIds.has(question.id)}
+                        onClick={async () => {
+                          setError(null)
+                          const result = await deleteTriviaQuestion(question.id)
+                          if (!result.ok) setError(result.error ?? "No se pudo eliminar la pregunta.")
+                        }}
+                      >
                         Eliminar
                       </Button>
                     </div>
@@ -367,8 +398,13 @@ export function AdminPageClient() {
                     <TriviaQuestionForm
                       question={editingTriviaQuestion}
                       onCancel={() => setEditingTriviaQuestion(null)}
-                      onSave={(updatedQuestion) => {
-                        saveTriviaQuestion({ ...updatedQuestion, id: question.id })
+                      onSave={async (updatedQuestion) => {
+                        setError(null)
+                        const result = await saveTriviaQuestion({ ...updatedQuestion, id: question.id })
+                        if (!result.ok) {
+                          setError(result.error ?? "No se pudo guardar la pregunta.")
+                          return
+                        }
                         setEditingTriviaQuestion(null)
                       }}
                     />
@@ -401,20 +437,26 @@ export function AdminPageClient() {
                   .map((questionId) => triviaQuestionById.get(questionId))
                   .filter((question): question is TriviaQuestion => Boolean(question)) ?? []
                 const isActive = activeTriviaDay === day.dailyKey
+                const isLocked = lockedTriviaDays.has(day.dailyKey)
 
                 return (
-                  <article key={day.dailyKey} className={`space-y-3 rounded-2xl border p-3 md:p-4 ${day.trivia ? "border-primary/30 bg-primary/5" : "border-border bg-card"}`}>
+                  <article key={day.dailyKey} className={`space-y-3 rounded-2xl border p-3 md:p-4 ${isLocked ? "border-zinc-900/20 bg-zinc-900/[0.03]" : day.trivia ? "border-primary/30 bg-primary/5" : "border-border bg-card"}`}>
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                       <div>
                         <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">{day.weekday}</p>
                         <h4 className="font-display text-lg font-extrabold">{day.label}</h4>
                       </div>
                       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                        {isLocked && (
+                          <Badge variant="outline" className="rounded-full border-zinc-900/15 bg-zinc-900 text-white">
+                            Con participantes
+                          </Badge>
+                        )}
                         <Badge variant="outline" className={`rounded-full ${day.trivia ? "border-primary/30 bg-primary text-primary-foreground" : "border-border bg-muted text-muted-foreground"}`}>
                           {day.trivia ? "Programada" : "Sin programar"}
                         </Badge>
                         <Button type="button" variant={day.trivia ? "outline" : "default"} className="rounded-full" onClick={() => setActiveTriviaDay(isActive ? null : day.dailyKey)}>
-                          {isActive ? "Cerrar" : day.trivia ? "Editar" : "Programar"}
+                          {isActive ? "Cerrar" : isLocked ? "Ver preguntas" : day.trivia ? "Editar" : "Programar"}
                         </Button>
                       </div>
                     </div>
@@ -433,10 +475,17 @@ export function AdminPageClient() {
                       <DailyTriviaForm
                         dailyKey={day.dailyKey}
                         dailyTrivia={day.trivia ?? null}
+                        isLocked={isLocked}
                         questions={triviaQuestions}
+                        usedQuestionIds={usedTriviaQuestionIds}
                         onCancel={() => setActiveTriviaDay(null)}
-                        onSave={(dailyTrivia) => {
-                          saveDailyTrivia(dailyTrivia)
+                        onSave={async (dailyTrivia) => {
+                          setError(null)
+                          const result = await saveDailyTrivia(dailyTrivia)
+                          if (!result.ok) {
+                            setError(result.error ?? "No se pudo guardar la trivia diaria.")
+                            return
+                          }
                           setActiveTriviaDay(null)
                         }}
                       />
@@ -578,17 +627,35 @@ function TriviaQuestionForm({
 function DailyTriviaForm({
   dailyKey,
   dailyTrivia,
+  isLocked,
   onCancel,
   onSave,
   questions,
+  usedQuestionIds,
 }: {
   dailyKey: string
   dailyTrivia: DailyTrivia | null
+  isLocked: boolean
   onCancel: () => void
   onSave: (dailyTrivia: DailyTrivia) => void
   questions: TriviaQuestion[]
+  usedQuestionIds: Set<string>
 }) {
   const [formError, setFormError] = useState<string | null>(null)
+  const orderedQuestions = useMemo(
+    () => questions.slice().sort((a, b) => {
+      const aSelected = dailyTrivia?.questionIds.includes(a.id) ? 0 : 1
+      const bSelected = dailyTrivia?.questionIds.includes(b.id) ? 0 : 1
+      if (aSelected !== bSelected) return aSelected - bSelected
+
+      const aUsed = usedQuestionIds.has(a.id) ? 1 : 0
+      const bUsed = usedQuestionIds.has(b.id) ? 1 : 0
+      if (aUsed !== bUsed) return aUsed - bUsed
+
+      return a.question.localeCompare(b.question)
+    }),
+    [dailyTrivia?.questionIds, questions, usedQuestionIds],
+  )
 
   return (
     <form
@@ -610,6 +677,11 @@ function DailyTriviaForm({
         onSave({ dailyKey, questionIds: uniqueQuestionIds })
       }}
     >
+      {isLocked && (
+        <p className="rounded-xl border border-zinc-900/15 bg-zinc-900 px-3 py-2 text-sm font-semibold text-white">
+          Esta trivia ya tiene participantes: no se puede cambiar la selección de preguntas. Sí podés corregir redacción o respuesta correcta editando cada pregunta desde el banco.
+        </p>
+      )}
       <div className="rounded-xl border border-border bg-card px-3 py-2 text-sm">
         <span className="font-semibold text-foreground">Fecha: </span>
         <span className="text-muted-foreground">{dailyKey}</span>
@@ -621,12 +693,13 @@ function DailyTriviaForm({
             <select
               name={`question-${index}`}
               defaultValue={dailyTrivia?.questionIds[index] ?? ""}
+              disabled={isLocked}
               className="h-10 w-full rounded-xl border border-input bg-background px-3 text-sm font-normal"
             >
               <option value="">Elegir pregunta</option>
-              {questions.map((question) => (
+              {orderedQuestions.map((question) => (
                 <option key={question.id} value={question.id}>
-                  {question.question}
+                  {usedQuestionIds.has(question.id) ? "[USADA] " : ""}{question.question}
                 </option>
               ))}
             </select>
@@ -635,7 +708,7 @@ function DailyTriviaForm({
       </div>
       {formError && <p className="rounded-xl border border-primary/20 bg-primary/5 px-3 py-2 text-sm text-primary">{formError}</p>}
       <div className="flex flex-col gap-2 sm:flex-row">
-        <Button type="submit" className="rounded-full">{dailyTrivia ? "Actualizar trivia" : "Programar trivia"}</Button>
+        <Button type="submit" className="rounded-full" disabled={isLocked}>{dailyTrivia ? "Actualizar trivia" : "Programar trivia"}</Button>
         <Button type="button" variant="outline" className="rounded-full" onClick={onCancel}>Cancelar</Button>
       </div>
     </form>
