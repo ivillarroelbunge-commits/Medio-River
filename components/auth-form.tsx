@@ -17,7 +17,7 @@ export function LoginForm() {
 
   return (
     <form
-      className="space-y-5 rounded-2xl border border-border bg-card p-6 shadow-sm"
+      className="space-y-4 rounded-2xl border border-border bg-card p-4 shadow-sm md:space-y-5 md:p-6"
       onSubmit={async (event) => {
         event.preventDefault()
         setError(null)
@@ -71,7 +71,7 @@ export function RegisterForm() {
 
   return (
     <form
-      className="space-y-5 rounded-2xl border border-border bg-card p-6 shadow-sm"
+      className="space-y-4 rounded-2xl border border-border bg-card p-4 shadow-sm md:space-y-5 md:p-6"
       onSubmit={async (event) => {
         event.preventDefault()
         setError(null)

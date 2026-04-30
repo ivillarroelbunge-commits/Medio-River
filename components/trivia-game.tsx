@@ -140,33 +140,33 @@ export function TriviaGame() {
   }
 
   return (
-    <div className="overflow-hidden rounded-[2rem] border border-border bg-card shadow-xl">
-      <div className="relative bg-secondary px-6 py-6 text-secondary-foreground md:px-8">
+    <div className="overflow-hidden rounded-[1.5rem] border border-border bg-card shadow-xl md:rounded-[2rem]">
+      <div className="relative bg-secondary px-4 py-5 text-secondary-foreground md:px-8 md:py-6">
         <div className="absolute inset-0 opacity-20 [background-image:linear-gradient(115deg,transparent_0%,transparent_45%,white_46%,white_49%,transparent_50%,transparent_100%)]" />
         <div className="relative flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.22em] text-white/60">Trivia diaria · {dailyKey}</p>
-            <h2 className="mt-1 font-display text-2xl font-extrabold md:text-3xl">Pregunta {current + 1} de {total}</h2>
+            <h2 className="mt-1 font-display text-xl font-extrabold md:text-3xl">Pregunta {current + 1} de {total}</h2>
           </div>
-          <div className="rounded-2xl bg-white/10 px-4 py-3 text-right ring-1 ring-white/15">
+          <div className="rounded-2xl bg-white/10 px-3 py-2 text-right ring-1 ring-white/15 md:px-4 md:py-3">
             <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/55">Aciertos</p>
-            <p className="font-display text-3xl font-extrabold">{score}</p>
+            <p className="font-display text-2xl font-extrabold md:text-3xl">{score}</p>
           </div>
         </div>
       </div>
 
-      <div className="px-6 py-6 md:px-8 md:py-8">
+      <div className="px-4 py-5 md:px-8 md:py-8">
       <div className="h-3 w-full overflow-hidden rounded-full bg-muted shadow-inner">
         <div className="h-full rounded-full bg-gradient-to-r from-primary via-red-500 to-black transition-all duration-500" style={{ width: `${progress}%` }} />
       </div>
-      <div className="mt-6 rounded-[1.5rem] border border-border bg-muted/25 p-5 md:p-6">
+      <div className="mt-5 rounded-[1.25rem] border border-border bg-muted/25 p-4 md:mt-6 md:rounded-[1.5rem] md:p-6">
         <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.14em] text-primary">
           <Flame className="h-3.5 w-3.5" />
           A todo o nada
         </div>
-        <h2 className="font-display text-2xl font-extrabold leading-tight md:text-3xl">{question.question}</h2>
+        <h2 className="font-display text-xl font-extrabold leading-tight md:text-3xl">{question.question}</h2>
       </div>
-      <ul className="mt-5 grid gap-3 sm:grid-cols-2">
+      <ul className="mt-4 grid gap-2.5 sm:grid-cols-2 md:mt-5 md:gap-3">
         {question.options.map((option, index) => {
           const isCorrect = index === question.correctIndex
           const isSelected = index === selected
@@ -183,9 +183,9 @@ export function TriviaGame() {
           }
           return (
             <li key={index}>
-              <button type="button" onClick={() => choose(index)} disabled={revealed} className={cn("flex min-h-20 w-full items-center justify-between gap-3 rounded-2xl border-2 px-4 py-4 text-left text-sm font-semibold transition-all hover:-translate-y-0.5 hover:shadow-md disabled:hover:translate-y-0 disabled:hover:shadow-none", stateClass)}>
+              <button type="button" onClick={() => choose(index)} disabled={revealed} className={cn("flex min-h-16 w-full items-center justify-between gap-3 rounded-2xl border-2 px-3 py-3 text-left text-sm font-semibold transition-all hover:-translate-y-0.5 hover:shadow-md disabled:hover:translate-y-0 disabled:hover:shadow-none md:min-h-20 md:px-4 md:py-4", stateClass)}>
                 <span className="flex items-center gap-3">
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-muted text-xs font-extrabold text-foreground">{String.fromCharCode(65 + index)}</span>
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-muted text-xs font-extrabold text-foreground md:h-9 md:w-9">{String.fromCharCode(65 + index)}</span>
                   {option}
                 </span>
                 {icon}
@@ -195,8 +195,8 @@ export function TriviaGame() {
         })}
       </ul>
       {revealed && question.explanation && <p className="mt-5 rounded-xl border border-border bg-muted/40 p-4 text-sm text-muted-foreground">{question.explanation}</p>}
-      <div className="mt-6 flex justify-end">
-        <Button onClick={next} disabled={!revealed} size="lg" className="rounded-full px-8">{current + 1 >= total ? "Guardar resultado" : "Siguiente"}</Button>
+      <div className="mt-5 flex justify-end md:mt-6">
+        <Button onClick={next} disabled={!revealed} size="lg" className="w-full rounded-full px-8 sm:w-auto">{current + 1 >= total ? "Guardar resultado" : "Siguiente"}</Button>
       </div>
       </div>
     </div>
@@ -215,13 +215,13 @@ function GameHero({
   title: string
 }) {
   return (
-    <div className="relative overflow-hidden rounded-[2rem] border border-border bg-card p-8 text-center shadow-xl md:p-12">
+    <div className="relative overflow-hidden rounded-[1.5rem] border border-border bg-card p-5 text-center shadow-xl md:rounded-[2rem] md:p-12">
       <div className="absolute inset-x-8 top-0 h-1 rounded-b-full bg-gradient-to-r from-transparent via-primary to-transparent" />
       <div className="absolute -right-16 -top-20 h-52 w-52 rounded-full bg-primary/10 blur-3xl" />
       <div className="relative">
         <div className="mx-auto flex h-18 w-18 items-center justify-center rounded-3xl bg-primary text-primary-foreground shadow-lg shadow-primary/20">{icon}</div>
         <p className="mt-5 text-xs font-bold uppercase tracking-[0.2em] text-primary">{eyebrow}</p>
-        <h2 className="mt-3 font-display text-3xl font-extrabold md:text-4xl">{title}</h2>
+        <h2 className="mt-3 font-display text-2xl font-extrabold leading-tight md:text-4xl">{title}</h2>
         {children}
       </div>
     </div>
@@ -245,18 +245,18 @@ function RankingBlocks({
   globalRanking: Array<{ user: { id: string; name: string }; totalScore: number; gamesPlayed: number }>
 }) {
   return (
-    <div className="grid gap-6 lg:grid-cols-2">
-      <div className="overflow-hidden rounded-[2rem] border border-border bg-card shadow-sm">
-        <div className="flex items-center justify-between bg-secondary px-5 py-4 text-secondary-foreground">
-          <h3 className="font-display text-xl font-extrabold">Ranking diario</h3>
+    <div className="grid gap-4 md:gap-6 lg:grid-cols-2">
+      <div className="overflow-hidden rounded-[1.5rem] border border-border bg-card shadow-sm md:rounded-[2rem]">
+        <div className="flex items-center justify-between bg-secondary px-4 py-3 text-secondary-foreground md:px-5 md:py-4">
+          <h3 className="font-display text-lg font-extrabold md:text-xl">Ranking diario</h3>
           <Medal className="h-5 w-5 text-primary" />
         </div>
-        <div className="p-5">
-        <div className="mt-4 space-y-2">
+        <div className="p-4 md:p-5">
+        <div className="space-y-2 md:mt-4">
           {dailyRanking.length === 0 ? (
             <p className="rounded-xl border border-dashed border-border p-4 text-sm text-muted-foreground">Todavía nadie jugó hoy.</p>
           ) : dailyRanking.slice(0, 10).map((entry, index) => (
-            <div key={entry.user.id} className="flex items-center justify-between rounded-xl border border-border bg-background px-4 py-3 text-sm">
+            <div key={entry.user.id} className="flex items-center justify-between gap-3 rounded-xl border border-border bg-background px-3 py-2.5 text-sm md:px-4 md:py-3">
               <span className="font-semibold">{index + 1}. {entry.user.name}</span>
               <span className="font-semibold text-primary">{entry.score}/{entry.totalQuestions}</span>
             </div>
@@ -265,15 +265,15 @@ function RankingBlocks({
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-[2rem] border border-border bg-card shadow-sm">
-        <div className="flex items-center justify-between bg-primary px-5 py-4 text-primary-foreground">
-          <h3 className="font-display text-xl font-extrabold">Ranking general</h3>
+      <div className="overflow-hidden rounded-[1.5rem] border border-border bg-card shadow-sm md:rounded-[2rem]">
+        <div className="flex items-center justify-between bg-primary px-4 py-3 text-primary-foreground md:px-5 md:py-4">
+          <h3 className="font-display text-lg font-extrabold md:text-xl">Ranking general</h3>
           <Trophy className="h-5 w-5" />
         </div>
-        <div className="p-5">
-        <div className="mt-4 space-y-2">
+        <div className="p-4 md:p-5">
+        <div className="space-y-2 md:mt-4">
           {globalRanking.slice(0, 10).map((entry, index) => (
-            <div key={entry.user.id} className="flex items-center justify-between rounded-xl border border-border bg-background px-4 py-3 text-sm">
+            <div key={entry.user.id} className="flex items-center justify-between gap-3 rounded-xl border border-border bg-background px-3 py-2.5 text-sm md:px-4 md:py-3">
               <span className="font-semibold">{index + 1}. {entry.user.name}</span>
               <span className="font-semibold text-primary">{entry.totalScore} pts</span>
             </div>

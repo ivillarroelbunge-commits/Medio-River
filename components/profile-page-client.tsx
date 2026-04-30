@@ -39,14 +39,14 @@ export function ProfilePageClient() {
   })
 
   return (
-    <div className="space-y-6">
-      <section className="overflow-hidden rounded-[2rem] border border-border bg-card shadow-sm">
-        <div className="relative min-h-40 bg-[radial-gradient(circle_at_20%_20%,rgba(220,38,38,0.38),transparent_32%),linear-gradient(135deg,#0b0b0d,#1b1b20_55%,#991b1b)] px-6 py-7 text-white md:px-8">
+    <div className="space-y-5 md:space-y-6">
+      <section className="overflow-hidden rounded-[1.5rem] border border-border bg-card shadow-sm md:rounded-[2rem]">
+        <div className="relative min-h-36 bg-[radial-gradient(circle_at_20%_20%,rgba(220,38,38,0.38),transparent_32%),linear-gradient(135deg,#0b0b0d,#1b1b20_55%,#991b1b)] px-5 py-6 text-white md:min-h-40 md:px-8 md:py-7">
           <div className="absolute inset-0 opacity-25 [background-image:linear-gradient(120deg,transparent_0%,transparent_46%,white_47%,white_50%,transparent_51%,transparent_100%)]" />
           <div className="relative flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.24em] text-white/70">Mi cuenta</p>
-              <h1 className="mt-2 font-display text-4xl font-extrabold tracking-tight md:text-5xl">{currentUser.name}</h1>
+              <h1 className="mt-2 break-words font-display text-[2rem] font-extrabold tracking-tight leading-none md:text-5xl">{currentUser.name}</h1>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-white/76">{getRoleDescription(currentUser.role)}</p>
             </div>
             <Badge variant="outline" className="w-fit rounded-full border-white/20 bg-white/10 px-4 py-1.5 text-white">
@@ -55,15 +55,15 @@ export function ProfilePageClient() {
           </div>
         </div>
 
-        <div className="grid gap-6 p-6 md:p-8 xl:grid-cols-[0.85fr_1.15fr]">
+        <div className="grid gap-5 p-4 md:gap-6 md:p-8 xl:grid-cols-[0.85fr_1.15fr]">
           <div className="space-y-5">
-            <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
-              <div className="relative h-32 w-32 shrink-0 overflow-hidden rounded-[1.75rem] bg-primary/10 text-primary ring-1 ring-border">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center md:gap-5">
+              <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-[1.35rem] bg-primary/10 text-primary ring-1 ring-border md:h-32 md:w-32 md:rounded-[1.75rem]">
                 {avatar ? <img src={avatar} alt={name} className="h-full w-full object-cover" /> : <div className="flex h-full w-full items-center justify-center text-5xl font-extrabold">{name.charAt(0)}</div>}
               </div>
               <div className="min-w-0">
                 <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Perfil</p>
-                <h2 className="mt-1 truncate font-display text-3xl font-extrabold">{currentUser.name}</h2>
+                <h2 className="mt-1 break-words font-display text-2xl font-extrabold md:truncate md:text-3xl">{currentUser.name}</h2>
                 <div className="mt-3 space-y-2 text-sm text-muted-foreground">
                   <InfoLine icon={<Mail className="h-4 w-4" />} text={currentUser.email} />
                   <InfoLine icon={<CalendarDays className="h-4 w-4" />} text={`Miembro desde ${memberSince}`} />
@@ -72,7 +72,7 @@ export function ProfilePageClient() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-2 md:gap-3">
               <Metric label="Puntaje total" value={String(totalScore)} />
               <Metric label="Ranking global" value={`#${position || "-"}`} />
               <Metric label="Partidas" value={String(results.length)} />
@@ -82,7 +82,7 @@ export function ProfilePageClient() {
 
           <div className="space-y-5">
             <form
-              className="space-y-4 rounded-2xl border border-border bg-muted/30 p-4"
+              className="space-y-4 rounded-2xl border border-border bg-muted/30 p-3 md:p-4"
               onSubmit={async (event) => {
                 event.preventDefault()
                 setError(null)
@@ -125,7 +125,7 @@ export function ProfilePageClient() {
                 />
               </div>
               {error && <p className="rounded-xl border border-primary/20 bg-primary/5 px-3 py-2 text-sm text-primary">{error}</p>}
-              <Button type="submit" className="h-10 rounded-full" disabled={isSaving}>
+              <Button type="submit" className="h-10 w-full rounded-full sm:w-auto" disabled={isSaving}>
                 {isSaving ? "Guardando..." : "Guardar perfil"}
               </Button>
             </form>
@@ -169,7 +169,7 @@ export function ProfilePageClient() {
           </section>
         )}
 
-        <section id="resultados" className="space-y-6 rounded-2xl border border-border bg-card p-6 shadow-sm">
+        <section id="resultados" className="space-y-5 rounded-2xl border border-border bg-card p-4 shadow-sm md:space-y-6 md:p-6">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Trivia</p>
           <h2 className="mt-1 font-display text-2xl font-extrabold">Historial y ranking</h2>
@@ -180,12 +180,12 @@ export function ProfilePageClient() {
             <p className="rounded-2xl border border-dashed border-border p-5 text-sm text-muted-foreground">Todavía no jugaste ninguna trivia.</p>
           ) : (
             results.map((result) => (
-              <div key={result.id} className="flex items-center justify-between rounded-2xl border border-border px-4 py-3">
+              <div key={result.id} className="flex items-center justify-between gap-3 rounded-2xl border border-border px-3 py-3 md:px-4">
                 <div>
                   <p className="font-semibold text-foreground">{result.dailyKey ? `Trivia diaria · ${result.dailyKey}` : "Partida jugada"}</p>
                   <p className="text-sm text-muted-foreground">{new Date(result.playedAt).toLocaleString("es-AR")}</p>
                 </div>
-                <p className="font-display text-2xl font-extrabold text-primary">{result.score}/{result.totalQuestions}</p>
+                <p className="shrink-0 font-display text-xl font-extrabold text-primary md:text-2xl">{result.score}/{result.totalQuestions}</p>
               </div>
             ))
           )}
@@ -222,9 +222,9 @@ function InfoLine({ icon, text }: { icon: React.ReactNode; text: string }) {
 
 function Metric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-border bg-background p-4">
+    <div className="rounded-2xl border border-border bg-background p-3 md:p-4">
       <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground">{label}</p>
-      <p className="mt-2 font-display text-3xl font-extrabold text-foreground">{value}</p>
+      <p className="mt-2 font-display text-2xl font-extrabold text-foreground md:text-3xl">{value}</p>
     </div>
   )
 }

@@ -45,7 +45,7 @@ export function EditorNewsForm({
 
   return (
     <form
-      className="space-y-4 rounded-2xl border border-border bg-card p-6 shadow-sm"
+      className="space-y-4 rounded-2xl border border-border bg-card p-4 shadow-sm md:p-6"
       onSubmit={(event) => {
         event.preventDefault()
         const formData = new FormData(event.currentTarget)
@@ -149,7 +149,7 @@ export function EditorNewsForm({
         />
       </div>
       {image && <img src={image} alt="Preview" className="h-40 w-full rounded-2xl object-cover" />}
-      <Button type="submit" className="rounded-full">{submitLabel}</Button>
+      <Button type="submit" className="w-full rounded-full sm:w-auto">{submitLabel}</Button>
     </form>
   )
 }
@@ -208,7 +208,7 @@ function RichTextEditor({ value, onChange }: { value: string; onChange: (value: 
         ref={editorRef}
         id="news-content"
         contentEditable
-        className="min-h-72 px-4 py-3 text-base leading-8 outline-none empty:before:text-muted-foreground empty:before:content-['Escribí_la_noticia...'] [&_a]:font-semibold [&_a]:text-primary [&_a]:underline [&_h2]:mb-2 [&_h2]:mt-5 [&_h2]:text-2xl [&_h2]:font-extrabold [&_h3]:mb-2 [&_h3]:mt-4 [&_h3]:text-xl [&_h3]:font-bold [&_p]:mb-4"
+        className="min-h-56 px-3 py-3 text-sm leading-7 outline-none empty:before:text-muted-foreground empty:before:content-['Escribí_la_noticia...'] md:min-h-72 md:px-4 md:text-base md:leading-8 [&_a]:font-semibold [&_a]:text-primary [&_a]:underline [&_h2]:mb-2 [&_h2]:mt-5 [&_h2]:text-xl [&_h2]:font-extrabold md:[&_h2]:text-2xl [&_h3]:mb-2 [&_h3]:mt-4 [&_h3]:text-lg [&_h3]:font-bold md:[&_h3]:text-xl [&_p]:mb-4"
         dangerouslySetInnerHTML={{ __html: value }}
         onInput={(event) => onChange(event.currentTarget.innerHTML)}
         onBlur={(event) => onChange(sanitizeNewsContentHtml(event.currentTarget.innerHTML))}

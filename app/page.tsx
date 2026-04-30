@@ -21,11 +21,11 @@ export default function HomePage() {
     <div className="flex min-h-dvh flex-col">
       <SiteHeader />
       <main className="flex-1">
-        <div className="container-prose space-y-10 py-8 md:py-12">
+        <div className="container-prose space-y-7 py-5 md:space-y-10 md:py-12">
           {isHydrated ? (
             <NewsCarousel items={featured} />
           ) : (
-            <div className="min-h-[20rem] animate-pulse rounded-[2rem] bg-muted md:min-h-[28rem] lg:min-h-[30rem]" />
+            <div className="min-h-[17rem] animate-pulse rounded-[1.5rem] bg-muted md:min-h-[28rem] md:rounded-[2rem] lg:min-h-[30rem]" />
           )}
 
           {isHydrated && nextMatch && (
@@ -39,7 +39,7 @@ export default function HomePage() {
             <div className="flex items-end justify-between gap-4">
               <div>
                 <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Cobertura</p>
-                <h2 className="mt-1 font-display text-2xl font-extrabold tracking-tight md:text-3xl">Últimas noticias</h2>
+                <h2 className="mt-1 font-display text-[1.65rem] font-extrabold tracking-tight md:text-3xl">Últimas noticias</h2>
               </div>
               <Link href="/noticias" className="group hidden items-center gap-1 text-sm font-semibold text-primary hover:underline sm:inline-flex">
                 Ver todas
@@ -56,9 +56,9 @@ export default function HomePage() {
                 ))}
               </ul>
             ) : (
-              <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 md:mt-6 md:gap-6 lg:grid-cols-3">
                 {Array.from({ length: 6 }, (_, index) => (
-                  <div key={index} className="h-[25rem] animate-pulse rounded-[1.65rem] bg-muted" />
+                  <div key={index} className="h-[20rem] animate-pulse rounded-[1.4rem] bg-muted md:h-[25rem] md:rounded-[1.65rem]" />
                 ))}
               </div>
             )}

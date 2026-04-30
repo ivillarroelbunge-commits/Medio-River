@@ -25,22 +25,22 @@ export default function PlantelPage() {
       <SiteHeader />
       <main className="flex-1">
         <div className="border-b border-border bg-gradient-to-b from-muted/70 to-background">
-          <div className="container-prose py-8 md:py-10">
-            <header className="space-y-6">
+          <div className="container-prose py-6 md:py-10">
+            <header className="space-y-5 md:space-y-6">
               <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
                 <div>
                   <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Plantel</p>
-                  <h1 className="font-display text-4xl font-extrabold tracking-tight text-foreground md:text-5xl">Plantel profesional</h1>
-                  <p className="mt-3 max-w-2xl text-base leading-relaxed text-muted-foreground">
+                  <h1 className="font-display text-[2.15rem] font-extrabold tracking-tight text-foreground md:text-5xl">Plantel profesional</h1>
+                  <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground md:mt-3 md:text-base">
                     Plantel profesional de River para el Torneo Apertura 2026.
                   </p>
                 </div>
-                <Link href="/plantel/arma-tu-equipo" className="inline-flex w-fit items-center justify-center rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90">
+                <Link href="/plantel/arma-tu-equipo" className="inline-flex w-full items-center justify-center rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90 sm:w-fit">
                   Arma tu equipo
                 </Link>
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
                 <StatCard label="Total de jugadores" value={String(squadPlayers.length)} icon={<Users className="h-5 w-5" />} />
                 <StatCard label="Edad promedio" value={averageAge.toLocaleString("es-AR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} suffix="años" icon={<CalendarDays className="h-5 w-5" />} />
                 <StatCard label="Extranjeros" value={String(foreignCount)} icon={<Globe2 className="h-5 w-5" />} />
@@ -50,7 +50,7 @@ export default function PlantelPage() {
           </div>
         </div>
 
-        <div className="container-prose space-y-10 py-8 md:py-10">
+        <div className="container-prose space-y-8 py-6 md:space-y-10 md:py-10">
           <SquadSection title="ARQUEROS" players={grouped.Arqueros} />
           <SquadSection title="DEFENSORES" players={grouped.Defensores} />
           <SquadSection title="MEDIOCAMPISTAS" players={grouped.Mediocampistas} />
@@ -64,16 +64,16 @@ export default function PlantelPage() {
 
 function StatCard({ label, value, suffix, icon }: { label: string; value: string; suffix?: string; icon: ReactNode }) {
   return (
-    <div className="rounded-2xl border border-border bg-card/95 p-5 shadow-sm">
+    <div className="rounded-2xl border border-border bg-card/95 p-3.5 shadow-sm md:p-5">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground">{label}</p>
-          <p className="mt-2 font-display text-3xl font-extrabold leading-none text-foreground">
+          <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-muted-foreground md:text-[11px] md:tracking-[0.16em]">{label}</p>
+          <p className="mt-2 font-display text-2xl font-extrabold leading-none text-foreground md:text-3xl">
             {value}
             {suffix && <span className="ml-1 text-sm font-bold text-muted-foreground">{suffix}</span>}
           </p>
         </div>
-        <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+        <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary md:h-10 md:w-10">
           {icon}
         </span>
       </div>

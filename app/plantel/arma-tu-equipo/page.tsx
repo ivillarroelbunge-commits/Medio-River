@@ -7,7 +7,7 @@ export default function ArmaTuEquipoPage() {
     <div className="flex min-h-dvh flex-col">
       <SiteHeader />
       <main className="flex-1">
-        <div className="container-prose py-8 md:py-10">
+        <div className="container-prose py-5 md:py-10">
           <TeamBuilderPageClient />
         </div>
       </main>

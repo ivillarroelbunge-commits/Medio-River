@@ -46,21 +46,21 @@ export function Scoreboard({ match, variant = "hero" }: ScoreboardProps) {
           className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-primary/25 blur-3xl"
         />
 
-        <div className="relative grid gap-6 p-5 md:grid-cols-[1fr_auto] md:items-center md:gap-8 md:p-6">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-3">
-              <TeamCrest team={homeTeam} size="md" />
-              <span className="font-display text-lg font-extrabold tracking-wider text-secondary-foreground/80">
+        <div className="relative grid gap-4 p-4 md:grid-cols-[1fr_auto] md:items-center md:gap-8 md:p-6">
+          <div className="flex min-w-0 items-center gap-3 md:gap-4">
+            <div className="flex shrink-0 items-center gap-2 md:gap-3">
+              <TeamCrest team={homeTeam} size="sm" className="md:h-12 md:w-12" />
+              <span className="font-display text-base font-extrabold tracking-wider text-secondary-foreground/80 md:text-lg">
                 VS
               </span>
-              <TeamCrest team={awayTeam} size="md" />
+              <TeamCrest team={awayTeam} size="sm" className="md:h-12 md:w-12" />
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-secondary-foreground/70">
                 <span className="h-1 w-6 rounded-full bg-primary" aria-hidden="true" />
                 Próximo partido
               </div>
-              <h2 className="mt-1 truncate font-display text-xl font-extrabold md:text-2xl">
+              <h2 className="mt-1 font-display text-lg font-extrabold leading-tight md:truncate md:text-2xl">
                 {homeTeam} vs. {awayTeam}
               </h2>
               <p className="mt-0.5 text-xs uppercase tracking-wider text-secondary-foreground/60">
@@ -70,7 +70,7 @@ export function Scoreboard({ match, variant = "hero" }: ScoreboardProps) {
           </div>
 
           <div className="flex flex-col gap-3">
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs md:gap-x-4 md:text-sm">
               <InfoInline
                 icon={<Calendar className="h-3.5 w-3.5" />}
                 value={formatWeekdayDate(match.date)}

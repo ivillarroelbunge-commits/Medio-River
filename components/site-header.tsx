@@ -32,7 +32,7 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/75">
-      <div className="container-prose flex h-16 items-center justify-between gap-4">
+      <div className="container-prose flex h-14 items-center justify-between gap-3 md:h-16 md:gap-4">
         <Logo />
 
         <nav aria-label="Navegación principal" className="hidden items-center gap-1 md:flex">
@@ -57,7 +57,7 @@ export function SiteHeader() {
           type="button"
           onClick={() => setOpen((value) => !value)}
           aria-label={open ? "Cerrar menú" : "Abrir menú"}
-          className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-border text-foreground md:hidden"
+          className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border text-foreground md:hidden"
         >
           {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
@@ -65,14 +65,14 @@ export function SiteHeader() {
 
       {open && (
         <div className="border-t border-border bg-background md:hidden">
-          <nav className="container-prose flex flex-col gap-1 py-3">
+          <nav className="container-prose flex max-h-[calc(100dvh-3.5rem)] flex-col gap-1 overflow-y-auto py-3">
             {navItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
                 onClick={() => setOpen(false)}
                 className={cn(
-                  "rounded-md px-3 py-3 text-base font-medium",
+                  "rounded-md px-3 py-2.5 text-sm font-medium",
                   isActive(item.href) ? "bg-accent text-primary" : "text-foreground hover:bg-muted",
                 )}
               >
@@ -81,8 +81,8 @@ export function SiteHeader() {
             ))}
             {!mounted || !isHydrated || !currentUser ? (
               <>
-                <Link href="/iniciar-sesion" onClick={() => setOpen(false)} className="rounded-md px-3 py-3 text-base font-medium text-foreground hover:bg-muted">Iniciar sesión</Link>
-                <Link href="/registrarse" onClick={() => setOpen(false)} className="rounded-md bg-primary px-3 py-3 text-base font-medium text-primary-foreground">Registrarse</Link>
+                <Link href="/iniciar-sesion" onClick={() => setOpen(false)} className="rounded-md px-3 py-2.5 text-sm font-medium text-foreground hover:bg-muted">Iniciar sesión</Link>
+                <Link href="/registrarse" onClick={() => setOpen(false)} className="rounded-md bg-primary px-3 py-2.5 text-sm font-medium text-primary-foreground">Registrarse</Link>
               </>
             ) : (
               <>
@@ -90,20 +90,20 @@ export function SiteHeader() {
                   <p className="font-semibold text-foreground">{currentUser.name}</p>
                   <p className="text-sm text-muted-foreground">{getRoleLabel(currentUser.role)}</p>
                 </div>
-                <Link href="/perfil" onClick={() => setOpen(false)} className="rounded-md px-3 py-3 text-base font-medium text-foreground hover:bg-muted">Mi perfil</Link>
+                <Link href="/perfil" onClick={() => setOpen(false)} className="rounded-md px-3 py-2.5 text-sm font-medium text-foreground hover:bg-muted">Mi perfil</Link>
                 {currentUser.role === "editor" && (
-                  <Link href="/editor/crear-noticia" onClick={() => setOpen(false)} className="flex items-center gap-2 rounded-md px-3 py-3 text-base font-medium text-foreground hover:bg-muted">
+                  <Link href="/editor/crear-noticia" onClick={() => setOpen(false)} className="flex items-center gap-2 rounded-md px-3 py-2.5 text-sm font-medium text-foreground hover:bg-muted">
                     <FilePenLine className="h-4 w-4 text-primary" />
                     Panel editor
                   </Link>
                 )}
                 {currentUser.role === "admin" && (
-                  <Link href="/admin" onClick={() => setOpen(false)} className="flex items-center gap-2 rounded-md px-3 py-3 text-base font-medium text-foreground hover:bg-muted">
+                  <Link href="/admin" onClick={() => setOpen(false)} className="flex items-center gap-2 rounded-md px-3 py-2.5 text-sm font-medium text-foreground hover:bg-muted">
                     <ShieldCheck className="h-4 w-4 text-primary" />
                     Panel admin
                   </Link>
                 )}
-                <button type="button" onClick={async () => { await logout(); setOpen(false) }} className="rounded-md px-3 py-3 text-left text-base font-medium text-foreground hover:bg-muted">Cerrar sesión</button>
+                <button type="button" onClick={async () => { await logout(); setOpen(false) }} className="rounded-md px-3 py-2.5 text-left text-sm font-medium text-foreground hover:bg-muted">Cerrar sesión</button>
               </>
             )}
           </nav>

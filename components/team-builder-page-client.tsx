@@ -80,23 +80,23 @@ export function TeamBuilderPageClient() {
   }
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
-      <section className="order-2 space-y-4 rounded-[2rem] border border-zinc-200 bg-gradient-to-br from-zinc-950 via-zinc-900 to-red-950 p-4 text-white shadow-xl shadow-black/10 md:p-5 xl:order-1">
+    <div className="grid gap-4 md:gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+      <section className="order-2 space-y-4 rounded-[1.5rem] border border-zinc-200 bg-gradient-to-br from-zinc-950 via-zinc-900 to-red-950 p-3 text-white shadow-xl shadow-black/10 md:rounded-[2rem] md:p-5 xl:order-1">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <p className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] text-white/70">
+            <p className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[0.65rem] font-bold uppercase tracking-[0.16em] text-white/70 md:text-xs md:tracking-[0.2em]">
               <Sparkles className="h-3.5 w-3.5 text-primary" />
               Pizarra táctica
             </p>
-            <h1 className="mt-3 font-display text-3xl font-extrabold tracking-tight md:text-4xl">Arma tu equipo</h1>
+            <h1 className="mt-3 font-display text-2xl font-extrabold tracking-tight md:text-4xl">Arma tu equipo</h1>
             <p className="mt-1 text-sm text-white/60">{completedCount}/11 jugadores elegidos · Formación {formation}</p>
           </div>
-          <div className="flex flex-wrap items-center justify-end gap-2">
+          <div className="flex w-full flex-wrap items-center gap-2 md:w-auto md:justify-end">
             <button
               type="button"
               onClick={downloadTeamImage}
               disabled={isExporting}
-              className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-zinc-950 shadow-lg shadow-black/20 transition hover:-translate-y-0.5 hover:bg-primary hover:text-primary-foreground disabled:cursor-wait disabled:opacity-70"
+              className="inline-flex flex-1 items-center justify-center gap-2 rounded-full bg-white px-3 py-2 text-[0.68rem] font-black uppercase tracking-[0.1em] text-zinc-950 shadow-lg shadow-black/20 transition hover:-translate-y-0.5 hover:bg-primary hover:text-primary-foreground disabled:cursor-wait disabled:opacity-70 sm:flex-none md:px-4 md:text-xs md:tracking-[0.12em]"
             >
               <Download className="h-4 w-4" />
               {isExporting ? "Generando..." : "Descargar PNG"}
@@ -108,18 +108,18 @@ export function TeamBuilderPageClient() {
                 setAssignments({})
                 setSelectedSlot(null)
               }}
-              className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-white shadow-lg shadow-black/10 transition hover:-translate-y-0.5 hover:bg-white hover:text-zinc-950 disabled:cursor-not-allowed disabled:opacity-40"
+              className="inline-flex flex-1 items-center justify-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-2 text-[0.68rem] font-black uppercase tracking-[0.1em] text-white shadow-lg shadow-black/10 transition hover:-translate-y-0.5 hover:bg-white hover:text-zinc-950 disabled:cursor-not-allowed disabled:opacity-40 sm:flex-none md:px-4 md:text-xs md:tracking-[0.12em]"
             >
               <RotateCcw className="h-4 w-4" />
               Limpiar
             </button>
-            <div className="inline-flex flex-wrap gap-1 rounded-full border border-white/10 bg-white/10 p-1 shadow-sm backdrop-blur">
+            <div className="flex w-full gap-1 overflow-x-auto rounded-full border border-white/10 bg-white/10 p-1 shadow-sm backdrop-blur md:inline-flex md:w-auto md:flex-wrap md:overflow-visible">
               {formationOptions.map((option) => (
                 <button
                   key={option}
                   type="button"
                   onClick={() => handleFormationChange(option)}
-                  className={`rounded-full px-3 py-1.5 text-xs font-bold transition ${option === formation ? "bg-primary text-primary-foreground shadow-sm" : "text-white/62 hover:bg-white/10 hover:text-white"}`}
+                  className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-bold transition ${option === formation ? "bg-primary text-primary-foreground shadow-sm" : "text-white/62 hover:bg-white/10 hover:text-white"}`}
                 >
                   {option}
                 </button>
@@ -128,10 +128,10 @@ export function TeamBuilderPageClient() {
           </div>
         </div>
 
-        <div className="relative mx-auto w-full max-w-[620px] overflow-hidden rounded-[1.75rem] border border-white/15 bg-[#061f0f] p-2 shadow-2xl shadow-black/35 md:p-3">
+        <div className="relative mx-auto w-full max-w-[620px] overflow-hidden rounded-[1.25rem] border border-white/15 bg-[#061f0f] p-1.5 shadow-2xl shadow-black/35 md:rounded-[1.75rem] md:p-3">
           <div className="pointer-events-none absolute inset-x-8 top-0 h-24 rounded-full bg-primary/25 blur-3xl" />
           <div
-            className="relative aspect-[10/13] overflow-hidden rounded-[1.35rem] border-[3px] border-white/95"
+            className="relative aspect-[10/13] overflow-hidden rounded-[1rem] border-2 border-white/95 md:rounded-[1.35rem] md:border-[3px]"
             style={{
               backgroundImage:
                 "radial-gradient(circle at 50% 18%, rgba(255,255,255,0.16), transparent 16%), linear-gradient(90deg, rgba(255,255,255,0.09) 1px, transparent 1px), repeating-linear-gradient(90deg, #10842b 0 12.5%, #0a7425 12.5% 25%)",
@@ -166,11 +166,11 @@ export function TeamBuilderPageClient() {
                   {player ? (
                     <SelectedPlayerMarker player={player} active={isActive} />
                   ) : (
-                    <div className="space-y-1.5">
-                      <div className={`mx-auto flex h-11 w-11 items-center justify-center rounded-full border-2 border-white text-[11px] font-extrabold text-white shadow-lg shadow-black/25 transition ${isActive ? "bg-zinc-950 ring-4 ring-primary/35" : "bg-primary"}`}>
+                    <div className="space-y-1 md:space-y-1.5">
+                      <div className={`mx-auto flex h-8 w-8 items-center justify-center rounded-full border-2 border-white text-[9px] font-extrabold text-white shadow-lg shadow-black/25 transition md:h-11 md:w-11 md:text-[11px] ${isActive ? "bg-zinc-950 ring-4 ring-primary/35" : "bg-primary"}`}>
                         {slot.code}
                       </div>
-                      <p className="rounded-full bg-black/45 px-2 py-0.5 text-[10px] font-bold uppercase text-white shadow-sm">{slot.role}</p>
+                      <p className="rounded-full bg-black/45 px-1.5 py-0.5 text-[8px] font-bold uppercase text-white shadow-sm md:px-2 md:text-[10px]">{slot.role}</p>
                     </div>
                   )}
                 </button>
@@ -180,17 +180,17 @@ export function TeamBuilderPageClient() {
         </div>
       </section>
 
-      <aside ref={selectorRef} className="order-1 space-y-4 rounded-[1.75rem] border border-border bg-card p-5 shadow-sm xl:sticky xl:top-24 xl:order-2 xl:flex xl:max-h-[calc(100dvh-7rem)] xl:flex-col xl:overflow-hidden">
+      <aside ref={selectorRef} className="order-1 space-y-3 rounded-[1.5rem] border border-border bg-card p-4 shadow-sm md:space-y-4 md:rounded-[1.75rem] md:p-5 xl:sticky xl:top-24 xl:order-2 xl:flex xl:max-h-[calc(100dvh-7rem)] xl:flex-col xl:overflow-hidden">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Seleccionar jugador</p>
-          <h2 className="mt-1 font-display text-2xl font-extrabold">
+          <h2 className="mt-1 font-display text-xl font-extrabold md:text-2xl">
             {selectedSlotData ? `${selectedSlotData.code} · ${selectedSlotData.role}` : "Elegí una posición"}
           </h2>
         </div>
 
         <div className="rounded-2xl border border-border bg-muted/25 p-2">
           <p className="mb-2 px-1 text-[10px] font-black uppercase tracking-[0.16em] text-muted-foreground">Posiciones</p>
-          <div className="grid grid-cols-4 gap-1.5">
+          <div className="grid grid-cols-6 gap-1.5 xl:grid-cols-4">
             {slots.map((slot) => {
               const isActive = selectedSlot === slot.id
               const player = squadPlayers.find((item) => item.id === assignments[slot.id])
@@ -199,7 +199,7 @@ export function TeamBuilderPageClient() {
                   key={slot.id}
                   type="button"
                   onClick={() => setSelectedSlot(slot.id)}
-                  className={`rounded-xl px-2 py-2 text-center text-[11px] font-black transition ${isActive ? "bg-primary text-primary-foreground shadow-sm" : player ? "bg-zinc-950 text-white hover:bg-zinc-800" : "bg-background text-muted-foreground hover:text-foreground"}`}
+                  className={`rounded-xl px-2 py-2 text-center text-[10px] font-black transition md:text-[11px] ${isActive ? "bg-primary text-primary-foreground shadow-sm" : player ? "bg-zinc-950 text-white hover:bg-zinc-800" : "bg-background text-muted-foreground hover:text-foreground"}`}
                   title={player?.name ?? slot.role}
                 >
                   {slot.code}
@@ -234,7 +234,7 @@ export function TeamBuilderPageClient() {
           </div>
         )}
 
-        <div className="max-h-[31rem] space-y-2 overflow-y-auto pr-1 xl:min-h-0 xl:flex-1">
+        <div className="max-h-[18rem] space-y-2 overflow-y-auto pr-1 md:max-h-[24rem] xl:min-h-0 xl:max-h-[31rem] xl:flex-1">
           {selectedSlotData ? (
             availablePlayers.map((player) => (
               <button
@@ -248,9 +248,9 @@ export function TeamBuilderPageClient() {
                     return next
                   })
                 }}
-                className="flex w-full items-center gap-3 rounded-2xl border border-border bg-background/70 px-3 py-2.5 text-left transition hover:-translate-y-0.5 hover:border-primary/40 hover:bg-muted/40 hover:shadow-sm"
+                className="flex w-full items-center gap-3 rounded-2xl border border-border bg-background/70 px-3 py-2 text-left transition hover:-translate-y-0.5 hover:border-primary/40 hover:bg-muted/40 hover:shadow-sm md:py-2.5"
               >
-                <div className="h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-muted">
+                <div className="h-10 w-10 shrink-0 overflow-hidden rounded-xl bg-muted md:h-12 md:w-12">
                   {player.image ? (
                     <img src={player.image} alt={player.name} className="h-full w-full object-cover object-top" />
                   ) : (
@@ -259,8 +259,8 @@ export function TeamBuilderPageClient() {
                 </div>
                 <div className="min-w-0">
                   <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-primary">#{player.number}</p>
-                  <p className="truncate font-semibold text-foreground">{player.name}</p>
-                  <p className="text-sm text-muted-foreground">{player.position}</p>
+                  <p className="truncate text-sm font-semibold text-foreground md:text-base">{player.name}</p>
+                  <p className="truncate text-xs text-muted-foreground md:text-sm">{player.position}</p>
                 </div>
               </button>
             ))
@@ -277,17 +277,17 @@ export function TeamBuilderPageClient() {
 
 function SelectedPlayerMarker({ player, active }: { player: SquadPlayer; active: boolean }) {
   return (
-    <div className="w-[96px]">
-      <div className={`mx-auto h-14 w-14 overflow-hidden rounded-full border-[3px] bg-white shadow-xl shadow-black/30 ${active ? "border-primary ring-4 ring-primary/35" : "border-white"}`}>
+    <div className="w-[64px] md:w-[96px]">
+      <div className={`mx-auto h-10 w-10 overflow-hidden rounded-full border-2 bg-white shadow-xl shadow-black/30 md:h-14 md:w-14 md:border-[3px] ${active ? "border-primary ring-4 ring-primary/35" : "border-white"}`}>
         {player.image ? (
           <img src={player.image} alt={player.name} className="h-full w-full object-cover object-top" />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-primary text-sm font-bold text-primary-foreground">{player.number}</div>
         )}
       </div>
-      <div className="mt-1 rounded-xl border border-white/40 bg-zinc-950/90 px-1.5 py-1.5 text-center text-white shadow-lg shadow-black/25 backdrop-blur">
-        <p className="text-[10px] font-black leading-none text-primary">#{player.number}</p>
-        <p className="mt-0.5 truncate text-[10px] font-extrabold leading-none">{shortPlayerName(player.name)}</p>
+      <div className="mt-1 rounded-lg border border-white/40 bg-zinc-950/90 px-1 py-1 text-center text-white shadow-lg shadow-black/25 backdrop-blur md:rounded-xl md:px-1.5 md:py-1.5">
+        <p className="text-[8px] font-black leading-none text-primary md:text-[10px]">#{player.number}</p>
+        <p className="mt-0.5 truncate text-[8px] font-extrabold leading-none md:text-[10px]">{shortPlayerName(player.name)}</p>
       </div>
     </div>
   )

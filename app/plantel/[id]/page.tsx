@@ -36,9 +36,9 @@ export default function PlayerProfilePage() {
       <div className="flex min-h-dvh flex-col">
         <SiteHeader />
         <main className="flex-1">
-          <div className="container-prose py-10">
-            <div className="rounded-2xl border border-border bg-card p-8 text-center shadow-sm">
-              <h1 className="font-display text-3xl font-extrabold">Jugador no encontrado</h1>
+          <div className="container-prose py-6 md:py-10">
+            <div className="rounded-2xl border border-border bg-card p-5 text-center shadow-sm md:p-8">
+              <h1 className="font-display text-2xl font-extrabold md:text-3xl">Jugador no encontrado</h1>
               <Link href="/plantel" className="mt-4 inline-flex text-sm font-semibold text-primary hover:underline">
                 Volver al plantel
               </Link>
@@ -59,20 +59,20 @@ export default function PlayerProfilePage() {
     <div className="flex min-h-dvh flex-col">
       <SiteHeader />
       <main className="flex-1 bg-gradient-to-b from-muted/50 to-background">
-        <div className="container-prose space-y-8 py-8 md:py-10">
+        <div className="container-prose space-y-5 py-5 md:space-y-8 md:py-10">
           <Link href="/plantel" className="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:underline">
             <ArrowLeft className="h-4 w-4" />
             Volver al plantel
           </Link>
 
-          <section className="relative overflow-hidden rounded-[2rem] border border-border bg-card shadow-xl">
+          <section className="relative overflow-hidden rounded-[1.5rem] border border-border bg-card shadow-xl md:rounded-[2rem]">
             <div className="absolute inset-x-0 top-0 h-2 bg-gradient-to-r from-primary via-secondary to-primary" />
             <div className="grid gap-0 lg:grid-cols-[0.8fr_1.2fr]">
-              <div className="relative min-h-[24rem] overflow-hidden bg-secondary p-6 text-secondary-foreground md:p-8">
+              <div className="relative min-h-[20rem] overflow-hidden bg-secondary p-4 text-secondary-foreground md:min-h-[24rem] md:p-8">
                 <div className="absolute -left-16 -top-20 h-60 w-60 rounded-full bg-primary/50 blur-3xl" />
                 <div className="absolute -bottom-24 right-4 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
                 <div className="absolute inset-0 opacity-15 [background-image:linear-gradient(115deg,transparent_0%,transparent_44%,white_45%,white_48%,transparent_49%,transparent_100%)]" />
-                <div className="relative flex h-full flex-col justify-between gap-8">
+                <div className="relative flex h-full flex-col justify-between gap-5 md:gap-8">
                   <div className="flex flex-wrap gap-2">
                     {player.fromAcademy && (
                       <span className="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-xs font-bold uppercase tracking-[0.12em] text-primary-foreground">
@@ -86,20 +86,20 @@ export default function PlayerProfilePage() {
                   </div>
 
                   <div className="mx-auto flex flex-col items-center">
-                    <div className="relative h-72 w-64 overflow-hidden rounded-[2.2rem] border border-white/15 bg-white shadow-2xl shadow-black/30">
+                    <div className="relative h-56 w-48 overflow-hidden rounded-[1.75rem] border border-white/15 bg-white shadow-2xl shadow-black/30 md:h-72 md:w-64 md:rounded-[2.2rem]">
                       <PlayerPhoto player={player} />
                     </div>
-                    <div className="-mt-8 rounded-2xl bg-primary px-5 py-3 text-center shadow-xl">
+                    <div className="-mt-7 rounded-2xl bg-primary px-4 py-2.5 text-center shadow-xl md:-mt-8 md:px-5 md:py-3">
                       <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/70">Dorsal</p>
-                      <p className="font-display text-4xl font-extrabold leading-none text-primary-foreground">#{player.number}</p>
+                      <p className="font-display text-3xl font-extrabold leading-none text-primary-foreground md:text-4xl">#{player.number}</p>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="relative p-6 md:p-8">
+              <div className="relative p-4 md:p-8">
                 <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">#{player.number} · {player.position}</p>
-                <h1 className="mt-2 font-display text-4xl font-extrabold tracking-tight text-foreground md:text-6xl">{player.name}</h1>
+                <h1 className="mt-2 font-display text-[2.1rem] font-extrabold tracking-tight leading-none text-foreground md:text-6xl">{player.name}</h1>
                 <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
                   Perfil del jugador con estadísticas de temporada, vista total y desglose por torneo.
                 </p>
@@ -120,19 +120,19 @@ export default function PlayerProfilePage() {
             </div>
           </section>
 
-          <section className="rounded-[2rem] border border-border bg-card p-5 shadow-sm md:p-6">
+          <section className="rounded-[1.5rem] border border-border bg-card p-4 shadow-sm md:rounded-[2rem] md:p-6">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div>
                 <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Estadísticas</p>
                 <h2 className="font-display text-2xl font-extrabold">Temporada 2026</h2>
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="-mx-1 flex gap-2 overflow-x-auto px-1 md:mx-0 md:flex-wrap md:overflow-visible md:px-0">
                 {statTabs.map((tab) => (
                   <button
                     key={tab}
                     type="button"
                     onClick={() => setActiveTab(tab)}
-                    className={`rounded-full px-4 py-2 text-sm font-semibold transition ${activeTab === tab ? "bg-primary text-primary-foreground" : "border border-border text-muted-foreground hover:text-foreground"}`}
+                    className={`shrink-0 rounded-full px-3 py-2 text-xs font-semibold transition md:px-4 md:text-sm ${activeTab === tab ? "bg-primary text-primary-foreground" : "border border-border text-muted-foreground hover:text-foreground"}`}
                   >
                     {playerStatsCompetitionLabels[tab]}
                   </button>

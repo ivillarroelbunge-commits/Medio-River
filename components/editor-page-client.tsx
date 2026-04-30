@@ -22,11 +22,11 @@ export function EditorPageClient() {
   const competitionOptions = useMemo(() => getUniqueNewsOptions(news.map((article) => article.competition)), [news])
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-6 shadow-sm lg:flex-row lg:items-start lg:justify-between">
+    <div className="space-y-5 md:space-y-6">
+      <div className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-4 shadow-sm md:p-6 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Panel editor</p>
-          <h1 className="mt-1 font-display text-3xl font-extrabold">
+          <h1 className="mt-1 font-display text-2xl font-extrabold md:text-3xl">
             {mode === "create" ? "Crear noticia" : mode === "edit" ? "Editar noticia" : "Panel de noticias"}
           </h1>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
@@ -39,7 +39,7 @@ export function EditorPageClient() {
           )}
         </div>
         <div className="flex flex-wrap gap-3">
-          <Button asChild variant="outline" className="rounded-full">
+          <Button asChild variant="outline" className="w-full rounded-full sm:w-auto">
             <Link href="/noticias">
               <LayoutList className="h-4 w-4" />
               Ver noticias
@@ -72,13 +72,13 @@ export function EditorPageClient() {
       )}
       {error && <p className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-primary">{error}</p>}
 
-      <section className="space-y-3 rounded-2xl border border-border bg-card p-5 shadow-sm">
-        <div className="flex items-center justify-between gap-3">
+      <section className="space-y-3 rounded-2xl border border-border bg-card p-4 shadow-sm md:p-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="font-display text-2xl font-extrabold">Noticias editables</h2>
+            <h2 className="font-display text-xl font-extrabold md:text-2xl">Noticias editables</h2>
             <p className="text-sm text-muted-foreground">Seleccioná una noticia existente para modificarla.</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row">
             {mode !== "list" && (
               <Button type="button" variant="outline" className="rounded-full" onClick={() => {
                 setEditing(null)
@@ -98,12 +98,12 @@ export function EditorPageClient() {
         </div>
 
         {news.map((article) => (
-          <div key={article.id} className="flex flex-col gap-3 rounded-2xl border border-border p-4 md:flex-row md:items-center md:justify-between">
+          <div key={article.id} className="flex flex-col gap-3 rounded-2xl border border-border p-3 md:flex-row md:items-center md:justify-between md:p-4">
             <div>
               <p className="font-semibold text-foreground">{article.title}</p>
               <p className="text-sm text-muted-foreground">{article.category} · {article.competition ?? "Sin competencia"}</p>
             </div>
-            <Button type="button" variant="outline" className="rounded-full" onClick={() => {
+            <Button type="button" variant="outline" className="w-full rounded-full sm:w-auto" onClick={() => {
               setEditing(article)
               setMode("edit")
             }}>

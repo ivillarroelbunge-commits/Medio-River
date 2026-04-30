@@ -12,7 +12,7 @@ export function Logo({ className, invert = false }: LogoProps) {
       href="/"
       aria-label="Medio River — Inicio"
       className={cn(
-        "group inline-flex items-center gap-2 font-display text-lg font-extrabold tracking-tight",
+        "group inline-flex items-center gap-2 font-display text-base font-extrabold tracking-tight md:text-lg",
         className,
       )}
     >
@@ -20,7 +20,7 @@ export function Logo({ className, invert = false }: LogoProps) {
         src="/logoMR.jpeg"
         alt=""
         aria-hidden="true"
-        className="h-10 w-10 rounded-full object-cover ring-1 ring-border transition-transform group-hover:scale-105"
+        className="h-9 w-9 rounded-full object-cover ring-1 ring-border transition-transform group-hover:scale-105 md:h-10 md:w-10"
       />
       <span className="flex items-baseline">
         <span className={cn(invert ? "text-background" : "text-foreground")}>

@@ -49,13 +49,13 @@ export default function MatchDetailPage() {
     return (
       <div className="flex min-h-dvh flex-col">
         <SiteHeader />
-        <main className="container-prose flex-1 py-10">
+        <main className="container-prose flex-1 py-6 md:py-10">
           <Link href="/fixture?tab=resultados#resultados-previos" className="inline-flex items-center gap-2 text-sm font-semibold text-primary">
             <ArrowLeft className="h-4 w-4" />
             Volver al fixture
           </Link>
-          <section className="mt-8 rounded-3xl border border-border bg-card p-8 text-center shadow-sm">
-            <h1 className="font-display text-3xl font-extrabold">Partido no encontrado</h1>
+          <section className="mt-6 rounded-2xl border border-border bg-card p-5 text-center shadow-sm md:mt-8 md:rounded-3xl md:p-8">
+            <h1 className="font-display text-2xl font-extrabold md:text-3xl">Partido no encontrado</h1>
             <p className="mt-2 text-muted-foreground">Ese resultado no está cargado en el fixture.</p>
           </section>
         </main>
@@ -76,14 +76,14 @@ export default function MatchDetailPage() {
     <div className="flex min-h-dvh flex-col bg-muted/20">
       <SiteHeader />
       <main className="flex-1">
-        <div className="container-prose space-y-6 py-8 md:py-10">
+        <div className="container-prose space-y-5 py-5 md:space-y-6 md:py-10">
           <Link href="/fixture?tab=resultados#resultados-previos" className="inline-flex items-center gap-2 text-sm font-semibold text-primary">
             <ArrowLeft className="h-4 w-4" />
             Volver al fixture
           </Link>
 
-          <section className="overflow-hidden rounded-[2rem] border border-border bg-card shadow-sm">
-            <div className="border-b border-border bg-gradient-to-br from-zinc-950 via-zinc-900 to-primary px-5 py-6 text-white md:px-8">
+          <section className="overflow-hidden rounded-[1.5rem] border border-border bg-card shadow-sm md:rounded-[2rem]">
+            <div className="border-b border-border bg-gradient-to-br from-zinc-950 via-zinc-900 to-primary px-4 py-5 text-white md:px-8 md:py-6">
               <div className="flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-white/70">
                 <span>{match.competition}</span>
                 <span>·</span>
@@ -92,14 +92,14 @@ export default function MatchDetailPage() {
                 <span>{formatTime(match.date)} hs</span>
               </div>
 
-              <div className="mt-6 grid grid-cols-[1fr_auto_1fr] items-start gap-3 md:gap-8">
+              <div className="mt-5 grid grid-cols-[1fr_auto_1fr] items-start gap-2 md:mt-6 md:gap-8">
                 <TeamBlock team={homeTeam} goals={homeGoals} />
-                <div className="rounded-3xl border border-white/15 bg-white/10 px-4 py-3 text-center shadow-2xl backdrop-blur md:px-7 md:py-5">
-                  <p className="font-display text-4xl font-black leading-none md:text-6xl">
+                <div className="rounded-2xl border border-white/15 bg-white/10 px-3 py-3 text-center shadow-2xl backdrop-blur md:rounded-3xl md:px-7 md:py-5">
+                  <p className="font-display text-3xl font-black leading-none md:text-6xl">
                     {homeScore ?? "-"} <span className="text-white/40">-</span> {awayScore ?? "-"}
                   </p>
                   <p className="mt-2 text-[0.65rem] font-bold uppercase tracking-[0.2em] text-white/65">Final</p>
-                  <div className="mt-4 space-y-2 border-t border-white/15 pt-4 text-left text-[0.68rem] font-semibold leading-tight text-white/78 md:text-xs">
+                  <div className="mt-3 space-y-2 border-t border-white/15 pt-3 text-left text-[0.62rem] font-semibold leading-tight text-white/78 md:mt-4 md:pt-4 md:text-xs">
                     <ScoreMeta icon={<MapPin className="h-3.5 w-3.5" />} label="Estadio" value={match.stadium} />
                     <ScoreMeta icon={<Flag className="h-3.5 w-3.5" />} label="Árbitro" value={detail?.referee ?? match.referee ?? "Sin dato"} />
                   </div>
@@ -109,7 +109,7 @@ export default function MatchDetailPage() {
             </div>
           </section>
 
-          <section className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]">
+          <section className="grid items-start gap-4 md:gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]">
             <MatchCard ref={formationsCardRef} title="Formaciones">
               <div className="grid gap-6 lg:grid-cols-2">
                 <LineupPanel title="River Plate" lineup={detail?.lineups.river} tone="river" />
@@ -148,12 +148,12 @@ export default function MatchDetailPage() {
 
 function TeamBlock({ team, goals, align = "left" }: { team: string; goals: MatchGoal[]; align?: "left" | "right" }) {
   return (
-    <div className={cn("flex min-w-0 flex-col items-center gap-2", align === "right" && "text-right")}>
-      <div className="rounded-full bg-white p-2 shadow-xl">
-        <TeamCrest team={team} size="lg" />
+    <div className={cn("flex min-w-0 flex-col items-center gap-1.5 md:gap-2", align === "right" && "text-right")}>
+      <div className="rounded-full bg-white p-1.5 shadow-xl md:p-2">
+        <TeamCrest team={team} size="md" className="md:h-16 md:w-16" />
       </div>
       <h1 className="line-clamp-2 font-display text-base font-extrabold leading-tight md:text-2xl">{team}</h1>
-      <div className="mt-1 min-h-10 space-y-1 text-center text-[0.68rem] font-semibold leading-tight text-white/80 md:text-xs">
+      <div className="mt-1 min-h-8 space-y-1 text-center text-[0.6rem] font-semibold leading-tight text-white/80 md:min-h-10 md:text-xs">
         {goals.length > 0 ? (
           goals.map((goal, index) => <GoalMini key={`${goal.minute}-${goal.player}-${index}`} goal={goal} />)
         ) : (
@@ -194,10 +194,10 @@ function MatchCard({
   ref?: React.Ref<HTMLElement>
 }) {
   return (
-    <section ref={ref} style={style} className={cn("rounded-[1.75rem] border border-border bg-card p-5 shadow-sm", className)}>
+    <section ref={ref} style={style} className={cn("rounded-[1.5rem] border border-border bg-card p-4 shadow-sm md:rounded-[1.75rem] md:p-5", className)}>
       <div className="mb-4 flex items-center gap-2">
         {icon && <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground">{icon}</span>}
-        <h2 className="font-display text-2xl font-extrabold uppercase tracking-tight">{title}</h2>
+        <h2 className="font-display text-xl font-extrabold uppercase tracking-tight md:text-2xl">{title}</h2>
       </div>
       <div className={bodyClassName}>
         {children}
@@ -263,7 +263,7 @@ function LineupPanel({ title, lineup, tone }: { title: string; lineup?: MatchLin
       <h3 className="font-display text-xl font-extrabold text-foreground">{title}</h3>
 
       {lineup ? (
-        <div className="rounded-2xl border border-border bg-background p-5">
+        <div className="rounded-2xl border border-border bg-background p-4 md:p-5">
           <PlayerList title="Titulares" players={lineup.starters} tone={tone} />
           <div className="mt-7">
             <p className="text-sm text-muted-foreground">Entrenador</p>
@@ -284,8 +284,8 @@ function PlayerList({ title, players, tone, compact = false }: { title: string; 
 
   return (
     <div>
-      <h4 className="mb-4 text-base font-extrabold text-foreground">{title}</h4>
-      <div className="space-y-3">
+      <h4 className="mb-3 text-base font-extrabold text-foreground md:mb-4">{title}</h4>
+      <div className="space-y-2.5 md:space-y-3">
         {orderedPlayers.map((player) => (
           <PlayerRow key={player} player={player} tone={tone} compact={compact} />
         ))}
@@ -311,7 +311,7 @@ function PlayerRow({ player, tone, compact }: { player: string; tone: "river" | 
       >
         {number}
       </span>
-      <span className={cn("text-base font-medium", compact ? "text-muted-foreground" : "text-foreground")}>{name}</span>
+      <span className={cn("text-sm font-medium md:text-base", compact ? "text-muted-foreground" : "text-foreground")}>{name}</span>
     </div>
   )
 }

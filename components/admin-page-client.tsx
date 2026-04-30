@@ -87,17 +87,17 @@ export function AdminPageClient() {
   }
 
   return (
-    <div className="space-y-8">
-      <section className="space-y-5 rounded-[2rem] border border-border bg-card p-6 shadow-sm">
+    <div className="space-y-6 md:space-y-8">
+      <section className="space-y-4 rounded-[1.5rem] border border-border bg-card p-4 shadow-sm md:space-y-5 md:rounded-[2rem] md:p-6">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Panel admin</p>
-          <h1 className="mt-1 font-display text-3xl font-extrabold">Centro de gestión</h1>
+          <h1 className="mt-1 font-display text-2xl font-extrabold md:text-3xl">Centro de gestión</h1>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
             Desde acá el administrador edita noticias, usuarios, jugadores y partidos de River.
           </p>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+        <div className="grid grid-cols-2 gap-2 md:gap-3 xl:grid-cols-5">
           <StatCard icon={<FilePenLine className="h-4 w-4 text-primary" />} label="Noticias" value={String(counts.news)} />
           <StatCard icon={<Users className="h-4 w-4 text-primary" />} label="Usuarios" value={String(counts.users)} />
           <StatCard icon={<ShieldCheck className="h-4 w-4 text-primary" />} label="Jugadores" value={String(counts.players)} />
@@ -105,7 +105,7 @@ export function AdminPageClient() {
           <StatCard icon={<ShieldQuestion className="h-4 w-4 text-primary" />} label="Preguntas" value={String(counts.triviaQuestions)} />
         </div>
 
-        <div className="flex flex-wrap gap-2 border-t border-border pt-5">
+        <div className="-mx-1 flex gap-2 overflow-x-auto border-t border-border px-1 pt-4 md:mx-0 md:flex-wrap md:overflow-visible md:px-0 md:pt-5">
           {sections.map((section) => {
             const Icon = section.icon
             return (
@@ -116,7 +116,7 @@ export function AdminPageClient() {
                   setActive(section.key)
                   setError(null)
                 }}
-                className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition ${active === section.key ? "bg-primary text-primary-foreground" : "border border-border text-muted-foreground hover:text-foreground"}`}
+                className={`inline-flex shrink-0 items-center gap-2 rounded-full px-3 py-2 text-xs font-semibold transition md:px-4 md:text-sm ${active === section.key ? "bg-primary text-primary-foreground" : "border border-border text-muted-foreground hover:text-foreground"}`}
               >
                 <Icon className="h-4 w-4" />
                 {section.label}
@@ -129,10 +129,10 @@ export function AdminPageClient() {
       {error && <p className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-primary">{error}</p>}
 
       {active === "noticias" && (
-        <section className="space-y-4 rounded-2xl border border-border bg-card p-5 shadow-sm">
-          <div className="flex flex-wrap items-center justify-between gap-3">
+        <section className="space-y-4 rounded-2xl border border-border bg-card p-4 shadow-sm md:p-5">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="font-display text-2xl font-extrabold">Noticias</h2>
+              <h2 className="font-display text-xl font-extrabold md:text-2xl">Noticias</h2>
               <p className="text-sm text-muted-foreground">Editar o eliminar notas publicadas.</p>
             </div>
             {editingNews && <Badge variant="outline" className="rounded-full">Editando: {editingNews.title}</Badge>}
@@ -140,12 +140,12 @@ export function AdminPageClient() {
 
           {news.map((article) => (
             <div key={article.id} className="space-y-3">
-              <div className={`flex flex-col gap-3 rounded-2xl border p-4 md:flex-row md:items-center md:justify-between ${editingNews?.id === article.id ? "border-primary/40 bg-primary/5" : "border-border"}`}>
+              <div className={`flex flex-col gap-3 rounded-2xl border p-3 md:flex-row md:items-center md:justify-between md:p-4 ${editingNews?.id === article.id ? "border-primary/40 bg-primary/5" : "border-border"}`}>
                 <div>
                   <p className="font-semibold text-foreground">{article.title}</p>
                   <p className="text-sm text-muted-foreground">{article.category} · {article.competition ?? "Sin competencia"}</p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-col gap-2 sm:flex-row">
                   <Button type="button" variant="outline" className="rounded-full" onClick={() => setEditingNews(editingNews?.id === article.id ? null : article)}>
                     {editingNews?.id === article.id ? "Cerrar" : "Editar"}
                   </Button>
@@ -193,10 +193,10 @@ export function AdminPageClient() {
       )}
 
       {active === "usuarios" && (
-        <section className="space-y-3 rounded-2xl border border-border bg-card p-5 shadow-sm">
-          <h2 className="font-display text-2xl font-extrabold">Usuarios</h2>
+        <section className="space-y-3 rounded-2xl border border-border bg-card p-4 shadow-sm md:p-5">
+          <h2 className="font-display text-xl font-extrabold md:text-2xl">Usuarios</h2>
           {orderedUsers.map((user) => (
-            <div key={user.id} className="flex flex-col gap-3 rounded-2xl border border-border p-4 md:flex-row md:items-center md:justify-between">
+            <div key={user.id} className="flex flex-col gap-3 rounded-2xl border border-border p-3 md:flex-row md:items-center md:justify-between md:p-4">
               <div>
                 <div className="flex flex-wrap items-center gap-2">
                   <p className="font-semibold text-foreground">{user.name}</p>
@@ -221,7 +221,7 @@ export function AdminPageClient() {
                   if (!result.ok) setError(result.error ?? "No se pudo actualizar el rol.")
                 }}
                 disabled={pendingUserId === user.id || currentUser?.id === user.id}
-                className="h-10 rounded-full border border-input bg-background px-4 text-sm disabled:opacity-60"
+                className="h-10 w-full rounded-full border border-input bg-background px-4 text-sm disabled:opacity-60 md:w-auto"
               >
                 {roles.map((role) => (
                   <option key={role} value={role}>{getRoleLabel(role)}</option>
@@ -233,21 +233,21 @@ export function AdminPageClient() {
       )}
 
       {active === "jugadores" && (
-        <section className="space-y-4 rounded-2xl border border-border bg-card p-5 shadow-sm">
+        <section className="space-y-4 rounded-2xl border border-border bg-card p-4 shadow-sm md:p-5">
           <div>
-            <h2 className="font-display text-2xl font-extrabold">Jugadores</h2>
+            <h2 className="font-display text-xl font-extrabold md:text-2xl">Jugadores</h2>
             <p className="text-sm text-muted-foreground">Modificar datos del plantel que se ven en Plantel y Arma tu equipo.</p>
           </div>
 
           <div className="grid gap-3 md:grid-cols-2">
             {squadPlayers.map((player) => (
-              <div key={player.id} className={`space-y-3 rounded-2xl border p-4 ${editingPlayer?.id === player.id ? "border-primary/40 bg-primary/5 md:col-span-2" : "border-border"}`}>
-                <div className="flex items-center justify-between gap-3">
+              <div key={player.id} className={`space-y-3 rounded-2xl border p-3 md:p-4 ${editingPlayer?.id === player.id ? "border-primary/40 bg-primary/5 md:col-span-2" : "border-border"}`}>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="min-w-0">
                     <p className="truncate font-semibold text-foreground">#{player.number} · {player.name}</p>
                     <p className="text-sm text-muted-foreground">{player.line} · {player.position}</p>
                   </div>
-                  <Button type="button" variant="outline" className="rounded-full" onClick={() => setEditingPlayer(editingPlayer?.id === player.id ? null : player)}>
+                  <Button type="button" variant="outline" className="w-full rounded-full sm:w-auto" onClick={() => setEditingPlayer(editingPlayer?.id === player.id ? null : player)}>
                     {editingPlayer?.id === player.id ? "Cerrar" : "Editar"}
                   </Button>
                 </div>
@@ -264,21 +264,21 @@ export function AdminPageClient() {
       )}
 
       {active === "partidos" && (
-        <section className="space-y-4 rounded-2xl border border-border bg-card p-5 shadow-sm">
+        <section className="space-y-4 rounded-2xl border border-border bg-card p-4 shadow-sm md:p-5">
           <div>
-            <h2 className="font-display text-2xl font-extrabold">Partidos de River</h2>
+            <h2 className="font-display text-xl font-extrabold md:text-2xl">Partidos de River</h2>
             <p className="text-sm text-muted-foreground">Modificar fixture, resultados, estadio y TV.</p>
           </div>
 
           <div className="space-y-3">
             {sortedMatches.map((match) => (
               <div key={match.id} className="space-y-3">
-                <div className={`flex flex-col gap-3 rounded-2xl border p-4 md:flex-row md:items-center md:justify-between ${editingMatch?.id === match.id ? "border-primary/40 bg-primary/5" : "border-border"}`}>
+                <div className={`flex flex-col gap-3 rounded-2xl border p-3 md:flex-row md:items-center md:justify-between md:p-4 ${editingMatch?.id === match.id ? "border-primary/40 bg-primary/5" : "border-border"}`}>
                   <div>
                     <p className="font-semibold text-foreground">{match.isHome ? "River Plate" : match.opponent} vs. {match.isHome ? match.opponent : "River Plate"}</p>
                     <p className="text-sm text-muted-foreground">{match.competition} · {new Date(match.date).toLocaleString("es-AR")} · {match.status === "played" ? `${match.riverScore ?? 0}-${match.opponentScore ?? 0}` : "Próximo"}</p>
                   </div>
-                  <Button type="button" variant="outline" className="rounded-full" onClick={() => setEditingMatch(editingMatch?.id === match.id ? null : match)}>
+                  <Button type="button" variant="outline" className="w-full rounded-full sm:w-auto" onClick={() => setEditingMatch(editingMatch?.id === match.id ? null : match)}>
                     {editingMatch?.id === match.id ? "Cerrar" : "Editar"}
                   </Button>
                 </div>
@@ -297,21 +297,21 @@ export function AdminPageClient() {
       )}
 
       {active === "trivia" && (
-        <section className="space-y-6 rounded-2xl border border-border bg-card p-5 shadow-sm">
-          <div className="flex flex-wrap items-center justify-between gap-3">
+        <section className="space-y-5 rounded-2xl border border-border bg-card p-4 shadow-sm md:space-y-6 md:p-5">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="font-display text-2xl font-extrabold">Trivia diaria</h2>
+              <h2 className="font-display text-xl font-extrabold md:text-2xl">Trivia diaria</h2>
               <p className="text-sm text-muted-foreground">Primero cargá preguntas. Después armá la trivia de cada día con 5 preguntas.</p>
             </div>
           </div>
 
-          <div className="space-y-4 rounded-2xl border border-border bg-background p-4">
-            <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="space-y-4 rounded-2xl border border-border bg-background p-3 md:p-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h3 className="font-display text-xl font-extrabold">Banco de preguntas</h3>
+                <h3 className="font-display text-lg font-extrabold md:text-xl">Banco de preguntas</h3>
                 <p className="text-sm text-muted-foreground">{triviaQuestions.length} preguntas cargadas. La respuesta correcta se marca con el círculo de cada opción.</p>
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-col gap-2 sm:flex-row">
                 <Button
                   type="button"
                   variant="outline"
@@ -348,13 +348,13 @@ export function AdminPageClient() {
               )}
 
               {triviaQuestions.map((question) => (
-                <div key={question.id} className={`space-y-3 rounded-2xl border p-4 ${editingTriviaQuestion?.id === question.id ? "border-primary/40 bg-primary/5" : "border-border bg-card"}`}>
+                <div key={question.id} className={`space-y-3 rounded-2xl border p-3 md:p-4 ${editingTriviaQuestion?.id === question.id ? "border-primary/40 bg-primary/5" : "border-border bg-card"}`}>
                   <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                     <div className="min-w-0">
                       <p className="font-semibold text-foreground">{question.question}</p>
                       <p className="mt-1 text-sm text-muted-foreground">Correcta: {question.options[question.correctIndex] ?? "Sin definir"}</p>
                     </div>
-                    <div className="flex shrink-0 gap-2">
+                    <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
                       <Button type="button" variant="outline" className="rounded-full" onClick={() => setEditingTriviaQuestion(editingTriviaQuestion?.id === question.id ? null : question)}>
                         {editingTriviaQuestion?.id === question.id ? "Cerrar" : "Editar"}
                       </Button>
@@ -379,10 +379,10 @@ export function AdminPageClient() {
             )}
           </div>
 
-          <div className="space-y-4 rounded-2xl border border-border bg-background p-4">
-            <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="space-y-4 rounded-2xl border border-border bg-background p-3 md:p-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h3 className="font-display text-xl font-extrabold">Trivias por día</h3>
+                <h3 className="font-display text-lg font-extrabold md:text-xl">Trivias por día</h3>
                 <p className="text-sm text-muted-foreground">Elegí un día y seleccioná sus 5 preguntas.</p>
               </div>
               <div className="flex flex-wrap gap-2 text-xs font-bold uppercase tracking-[0.14em]">
@@ -403,13 +403,13 @@ export function AdminPageClient() {
                 const isActive = activeTriviaDay === day.dailyKey
 
                 return (
-                  <article key={day.dailyKey} className={`space-y-3 rounded-2xl border p-4 ${day.trivia ? "border-primary/30 bg-primary/5" : "border-border bg-card"}`}>
-                    <div className="flex flex-wrap items-center justify-between gap-3">
+                  <article key={day.dailyKey} className={`space-y-3 rounded-2xl border p-3 md:p-4 ${day.trivia ? "border-primary/30 bg-primary/5" : "border-border bg-card"}`}>
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                       <div>
                         <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">{day.weekday}</p>
                         <h4 className="font-display text-lg font-extrabold">{day.label}</h4>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                         <Badge variant="outline" className={`rounded-full ${day.trivia ? "border-primary/30 bg-primary text-primary-foreground" : "border-border bg-muted text-muted-foreground"}`}>
                           {day.trivia ? "Programada" : "Sin programar"}
                         </Badge>
@@ -567,7 +567,7 @@ function TriviaQuestionForm({
         <textarea name="explanation" defaultValue={question?.explanation ?? ""} rows={3} className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm font-normal" />
       </label>
 
-      <div className="flex gap-2">
+      <div className="flex flex-col gap-2 sm:flex-row">
         <Button type="submit" className="rounded-full">Guardar pregunta</Button>
         <Button type="button" variant="outline" className="rounded-full" onClick={onCancel}>Cancelar</Button>
       </div>
@@ -634,7 +634,7 @@ function DailyTriviaForm({
         ))}
       </div>
       {formError && <p className="rounded-xl border border-primary/20 bg-primary/5 px-3 py-2 text-sm text-primary">{formError}</p>}
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-col gap-2 sm:flex-row">
         <Button type="submit" className="rounded-full">{dailyTrivia ? "Actualizar trivia" : "Programar trivia"}</Button>
         <Button type="button" variant="outline" className="rounded-full" onClick={onCancel}>Cancelar</Button>
       </div>
@@ -675,7 +675,7 @@ function PlayerEditForm({ player, onCancel, onSave }: { player: SquadPlayer; onC
         <input name="fromAcademy" type="checkbox" defaultChecked={player.fromAcademy} />
         Formado en River
       </label>
-      <div className="flex gap-2 md:col-span-2">
+      <div className="flex flex-col gap-2 sm:flex-row md:col-span-2">
         <Button type="submit" className="rounded-full">Guardar jugador</Button>
         <Button type="button" variant="outline" className="rounded-full" onClick={onCancel}>Cancelar</Button>
       </div>
@@ -714,7 +714,7 @@ function MatchEditForm({ match, onCancel, onSave }: { match: Match; onCancel: ()
       <AdminInput label="TV" name="tvChannel" defaultValue={match.tvChannel ?? ""} />
       <AdminInput label="Goles River" name="riverScore" type="number" defaultValue={String(match.riverScore ?? 0)} />
       <AdminInput label="Goles rival" name="opponentScore" type="number" defaultValue={String(match.opponentScore ?? 0)} />
-      <div className="flex gap-2 md:col-span-2">
+      <div className="flex flex-col gap-2 sm:flex-row md:col-span-2">
         <Button type="submit" className="rounded-full">Guardar partido</Button>
         <Button type="button" variant="outline" className="rounded-full" onClick={onCancel}>Cancelar</Button>
       </div>
@@ -744,12 +744,12 @@ function AdminSelect({ label, name, defaultValue, options }: { label: string; na
 
 function StatCard({ icon, label, value }: { icon: ReactNode; label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-border bg-background p-4">
-      <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+    <div className="rounded-2xl border border-border bg-background p-3 md:p-4">
+      <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground md:gap-2 md:text-sm">
         {icon}
         {label}
       </div>
-      <p className="mt-3 font-display text-3xl font-extrabold text-foreground">{value}</p>
+      <p className="mt-2 font-display text-2xl font-extrabold text-foreground md:mt-3 md:text-3xl">{value}</p>
     </div>
   )
 }
