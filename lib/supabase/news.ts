@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
 import type { NewsArticle, NewsTag } from "@/lib/data/types"
+import { normalizeNewsCategory } from "@/lib/news-taxonomy"
 
 export const NEWS_SELECT =
   "id, slug, title, excerpt, intro, content, image, author, published_at, category, competition, tag, featured"
@@ -31,7 +32,7 @@ export function mapNewsRowToArticle(row: NewsRow): NewsArticle {
     image: row.image ?? undefined,
     author: row.author,
     date: row.published_at,
-    category: row.category,
+    category: normalizeNewsCategory(row.category),
     competition: row.competition ?? undefined,
     tag: row.tag as NewsTag,
     featured: row.featured,

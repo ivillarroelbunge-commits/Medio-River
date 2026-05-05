@@ -21,6 +21,7 @@ import { createClient as createSupabaseBrowserClient } from "@/lib/supabase/clie
 import { fetchMatches, getMatchTableMissingMessage, mapMatchRowToMatch, mapMatchToPayload, MATCHES_SELECT, type MatchRow } from "@/lib/supabase/matches"
 import { fetchNewsArticles, mapNewsRowToArticle, NEWS_SELECT } from "@/lib/supabase/news"
 import { mapProfileToAppUser, type ProfileRow } from "@/lib/supabase/profiles"
+import { normalizeNewsCategory } from "@/lib/news-taxonomy"
 import {
   DAILY_TRIVIAS_SELECT,
   fetchTriviaState,
@@ -45,6 +46,7 @@ interface NewsInput {
   content: string
   category: NewsArticle["category"]
   competition?: NewsArticle["competition"]
+  tag?: NewsArticle["tag"]
   image?: string
 }
 
@@ -507,9 +509,9 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         image: input.image?.trim() || undefined,
         author: existingArticle?.author ?? currentUser?.name ?? "Redacción Medio River",
         date: existingArticle?.date ?? new Date().toISOString(),
-        category: input.category,
+        category: normalizeNewsCategory(input.category) || "Partidos",
         competition: input.competition,
-        tag: input.category === "Opinión" ? "Opinión" : "Información",
+        tag: input.tag ?? existingArticle?.tag ?? "Información",
         featured: existingArticle?.featured ?? true,
       }
 

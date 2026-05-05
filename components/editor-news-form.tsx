@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { defaultNewsCategories, normalizeNewsCategory } from "@/lib/news-taxonomy"
 
-const defaultCategories = ["Partidos", "Mercado de pases", "Opinión", "Juveniles"]
+const defaultCategories = defaultNewsCategories
 const defaultCompetitions = ["Torneo Apertura", "Copa Sudamericana", "Copa Argentina"]
 
 export function EditorNewsForm({
@@ -28,6 +29,7 @@ export function EditorNewsForm({
     content: string
     category: NewsArticle["category"]
     competition?: NewsArticle["competition"]
+    tag: NewsArticle["tag"]
     image?: string
   }) => void
   submitLabel: string
@@ -65,6 +67,7 @@ export function EditorNewsForm({
           content: sanitizeNewsContentHtml(contentHtml),
           category: category || "Partidos",
           competition: competition || undefined,
+          tag: String(formData.get("tag") || initialArticle?.tag || "Información") as NewsArticle["tag"],
           image: image || undefined,
         })
       }}
@@ -81,7 +84,19 @@ export function EditorNewsForm({
         <Label htmlFor="news-content">Contenido</Label>
         <RichTextEditor value={contentHtml} onChange={setContentHtml} />
       </div>
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-3">
+        <div className="space-y-2">
+          <Label htmlFor="news-tag">Tipo de artículo</Label>
+          <select
+            id="news-tag"
+            name="tag"
+            defaultValue={initialArticle?.tag ?? "Información"}
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+          >
+            <option value="Información">Información</option>
+            <option value="Opinión">Opinión</option>
+          </select>
+        </div>
         <div className="space-y-2">
           <Label htmlFor="news-category">Categoría</Label>
           <div className="grid gap-2">
@@ -95,11 +110,11 @@ export function EditorNewsForm({
               <option value="custom">Crear nueva categoría</option>
             </select>
             {categoryMode === "existing" ? (
-              <select name="category" defaultValue={initialArticle?.category ?? "Partidos"} className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
+              <select name="category" defaultValue={normalizeNewsCategory(initialArticle?.category) || "Partidos"} className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
                 {categories.map((category) => <option key={category}>{category}</option>)}
               </select>
             ) : (
-              <Input name="categoryCustom" defaultValue={initialArticle?.category ?? ""} placeholder="Ej: Mercado interno, Inferiores, Opinión táctica" required />
+              <Input name="categoryCustom" defaultValue={initialArticle?.category ?? ""} placeholder="Ej: Mercado interno, Inferiores, Táctica" required />
             )}
           </div>
         </div>
@@ -157,7 +172,8 @@ export function EditorNewsForm({
 function mergeOptions(options: string[], defaults: string[], current?: string) {
   const normalized = [...defaults, ...options, current]
     .filter((option): option is string => Boolean(option?.trim()))
-    .map((option) => option.trim())
+    .map((option) => normalizeNewsCategory(option))
+    .filter(Boolean)
   return Array.from(new Set(normalized))
 }
 

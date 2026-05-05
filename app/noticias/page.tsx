@@ -10,8 +10,9 @@ import { useAppState } from "@/components/app-state-provider"
 import type { NewsArticle } from "@/lib/data/types"
 import { getNewsImage } from "@/lib/news-media"
 import { timeAgo } from "@/lib/format"
+import { defaultNewsCategories, normalizeNewsCategory } from "@/lib/news-taxonomy"
 
-const defaultCategories = ["Partidos", "Mercado de pases", "Opinión", "Juveniles"]
+const defaultCategories = defaultNewsCategories
 const defaultCompetitions = ["Torneo Apertura", "Copa Sudamericana", "Copa Argentina"]
 const INITIAL_VISIBLE = 9
 const LOAD_MORE_STEP = 6
@@ -19,6 +20,7 @@ const LOAD_MORE_STEP = 6
 export default function NoticiasPage() {
   const { news, isHydrated } = useAppState()
   const [query, setQuery] = useState("")
+  const [tag, setTag] = useState("Todas")
   const [category, setCategory] = useState("Todas")
   const [competition, setCompetition] = useState("Todas")
   const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE)
@@ -39,15 +41,16 @@ export default function NoticiasPage() {
 
   const filtered = useMemo(() => news.filter((article) => {
     if (featuredIds.has(article.id)) return false
-    const matchesCategory = category === "Todas" || article.category === category
+    const matchesTag = tag === "Todas" || article.tag === tag
+    const matchesCategory = category === "Todas" || normalizeNewsCategory(article.category) === category
     const matchesCompetition = competition === "Todas" || article.competition === competition
     const matchesQuery = query.trim().length === 0 || article.title.toLowerCase().includes(query.toLowerCase()) || article.excerpt.toLowerCase().includes(query.toLowerCase())
-    return matchesCategory && matchesCompetition && matchesQuery
-  }), [category, competition, featuredIds, news, query])
+    return matchesTag && matchesCategory && matchesCompetition && matchesQuery
+  }), [category, competition, featuredIds, news, query, tag])
 
   useEffect(() => {
     setVisibleCount(INITIAL_VISIBLE)
-  }, [category, competition, query])
+  }, [category, competition, query, tag])
 
   useEffect(() => {
     if (featuredStories.length <= 1) return
@@ -101,6 +104,13 @@ export default function NoticiasPage() {
           <div className="space-y-3 rounded-xl border border-border/70 bg-muted/20 p-3 md:p-4">
             <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar noticia" className="h-10 w-full rounded-lg border border-input/70 bg-background/80 px-3.5 text-sm" />
             <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 md:mx-0 md:flex-wrap md:overflow-visible md:px-0 md:pb-0">
+              {["Todas", "Información", "Opinión"].map((item) => (
+                <button key={item} type="button" onClick={() => setTag(item)} className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold ${item === tag ? "bg-foreground text-background" : "border border-border text-muted-foreground hover:text-foreground"}`}>
+                  {item}
+                </button>
+              ))}
+            </div>
+            <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 md:mx-0 md:flex-wrap md:overflow-visible md:px-0 md:pb-0">
               {categories.map((item) => (
                 <button key={item} type="button" onClick={() => setCategory(item)} className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold ${item === category ? "bg-primary text-primary-foreground" : "border border-border text-muted-foreground hover:text-foreground"}`}>
                   {item}
@@ -137,7 +147,7 @@ export default function NoticiasPage() {
 }
 
 function mergeNewsOptions(defaults: string[], values: Array<string | undefined>) {
-  return Array.from(new Set([...defaults, ...values].filter((value): value is string => Boolean(value?.trim())).map((value) => value.trim())))
+  return Array.from(new Set([...defaults, ...values].filter((value): value is string => Boolean(value?.trim())).map((value) => normalizeNewsCategory(value)).filter(Boolean)))
 }
 
 function FeaturedLeadCard({ article }: { article: NewsArticle }) {
@@ -149,7 +159,7 @@ function FeaturedLeadCard({ article }: { article: NewsArticle }) {
         <div className="absolute inset-x-0 bottom-0 p-4 md:p-7 xl:p-8">
           <div className="flex flex-wrap gap-2">
             <span className="inline-flex rounded-full bg-primary px-3 py-1 text-[0.62rem] font-extrabold uppercase tracking-[0.08em] text-primary-foreground md:px-4 md:py-1.5 md:text-[0.72rem]">
-              {article.category}
+              {normalizeNewsCategory(article.category)}
             </span>
             {article.competition && (
               <span className="inline-flex rounded-full bg-white/92 px-3 py-1 text-[0.62rem] font-extrabold uppercase tracking-[0.08em] text-foreground md:px-4 md:py-1.5 md:text-[0.72rem]">
@@ -179,7 +189,7 @@ function FeaturedSideCard({ article }: { article: NewsArticle }) {
         <img src={getNewsImage(article)} alt={article.title} className="h-full min-h-[7rem] w-full rounded-[1rem] object-cover sm:min-h-[9.5rem] md:rounded-[1.35rem]" />
         <div className="flex h-full flex-col">
           <div>
-            <p className="text-[0.72rem] font-extrabold uppercase tracking-[0.08em] text-primary">{article.category}</p>
+            <p className="text-[0.72rem] font-extrabold uppercase tracking-[0.08em] text-primary">{normalizeNewsCategory(article.category)}</p>
             <h3 className="mt-2 line-clamp-3 max-w-md text-[0.98rem] font-extrabold leading-[1.22] tracking-[-0.02em] text-foreground md:mt-3 md:line-clamp-none md:text-[1.18rem] md:leading-[1.28]">
               {article.title}
             </h3>

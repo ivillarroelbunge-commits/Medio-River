@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Check, Link2, Twitter } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -11,11 +11,11 @@ interface ShareButtonsProps {
 
 export function ShareButtons({ title, slug }: ShareButtonsProps) {
   const [copied, setCopied] = useState(false)
+  const [url, setUrl] = useState(`/noticias/${slug}`)
 
-  const url =
-    typeof window !== "undefined"
-      ? `${window.location.origin}/noticias/${slug}`
-      : `/noticias/${slug}`
+  useEffect(() => {
+    setUrl(`${window.location.origin}/noticias/${slug}`)
+  }, [slug])
 
   const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
     title,

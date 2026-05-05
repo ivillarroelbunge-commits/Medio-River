@@ -1,6 +1,7 @@
 import Link from "next/link"
 import type { NewsArticle } from "@/lib/data/types"
 import { getNewsImage } from "@/lib/news-media"
+import { normalizeNewsCategory } from "@/lib/news-taxonomy"
 import { timeAgo } from "@/lib/format"
 
 export function NewsCard({ article }: { article: NewsArticle }) {
@@ -17,7 +18,7 @@ export function NewsCard({ article }: { article: NewsArticle }) {
         <div className="flex flex-1 flex-col p-4 md:p-5">
           <div className="flex flex-wrap gap-2">
             <span className="inline-flex rounded-full bg-primary/8 px-3 py-1 text-[0.7rem] font-bold uppercase tracking-[0.08em] text-primary">
-              {article.category}
+              {normalizeNewsCategory(article.category)}
             </span>
             {article.competition && (
               <span className="inline-flex rounded-full bg-muted px-3 py-1 text-[0.7rem] font-bold uppercase tracking-[0.08em] text-muted-foreground">
