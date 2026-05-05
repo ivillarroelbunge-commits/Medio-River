@@ -1,6 +1,6 @@
 import type { PlayerSeasonStats, PlayerStatLine, PlayerStatsCompetitionKey } from "@/lib/data/types"
 
-export const playerStatsUpdatedAt = "2026-04-29"
+export const playerStatsUpdatedAt = "2026-05-05"
 export const playerStatsSourceUrl = "https://www.fotmob.com/teams/10076/stats/river-plate"
 
 export const playerStatsCompetitionLabels: Record<PlayerStatsCompetitionKey | "total", string> = {
@@ -33,8 +33,8 @@ export const playerSeasonStats: Record<string, PlayerSeasonStats> = {
     sourceId: 1652014,
     updatedAt: playerStatsUpdatedAt,
     competitions: {
-      apertura: { matches: 15, minutes: 1305, rating: 7.21, cleanSheets: 7 },
-      sudamericana: { matches: 2, minutes: 180, rating: 6.89, cleanSheets: 1 },
+      apertura: { matches: 16, minutes: 1395, rating: 7.18, cleanSheets: 7 },
+      sudamericana: { matches: 3, minutes: 270, rating: 7.05, cleanSheets: 2 },
       copaArgentina: { matches: 1, minutes: 90, rating: 7.3, cleanSheets: 1 },
     },
   },
@@ -43,7 +43,7 @@ export const playerSeasonStats: Record<string, PlayerSeasonStats> = {
     updatedAt: playerStatsUpdatedAt,
     competitions: {
       apertura: { matches: 14, minutes: 1259, goals: 4, assists: 1, rating: 7.51, yellowCards: 4 },
-      sudamericana: { matches: 1, minutes: 45, rating: 6.84 },
+      sudamericana: { matches: 2, minutes: 135, rating: 6.98 },
       copaArgentina: { matches: 1, minutes: 90, rating: 7.53 },
     },
   },
@@ -51,8 +51,8 @@ export const playerSeasonStats: Record<string, PlayerSeasonStats> = {
     sourceId: 638771,
     updatedAt: playerStatsUpdatedAt,
     competitions: {
-      apertura: { matches: 15, minutes: 1341, goals: 1, rating: 7.35, yellowCards: 4 },
-      sudamericana: { matches: 1, minutes: 5, redCards: 1 },
+      apertura: { matches: 16, minutes: 1431, goals: 1, rating: 7.32, yellowCards: 4 },
+      sudamericana: { matches: 2, minutes: 95, goals: 1, redCards: 1 },
       copaArgentina: { matches: 1, minutes: 90, rating: 7.57 },
     },
   },
@@ -76,7 +76,7 @@ export const playerSeasonStats: Record<string, PlayerSeasonStats> = {
     sourceId: 798148,
     updatedAt: playerStatsUpdatedAt,
     competitions: {
-      apertura: { matches: 2, minutes: 91 },
+      apertura: { matches: 3, minutes: 136 },
       sudamericana: { matches: 2, minutes: 135, assists: 1, rating: 7.55 },
     },
   },
@@ -84,16 +84,16 @@ export const playerSeasonStats: Record<string, PlayerSeasonStats> = {
     sourceId: 561187,
     updatedAt: playerStatsUpdatedAt,
     competitions: {
-      apertura: { matches: 10, minutes: 749, assists: 1, rating: 7.46, yellowCards: 6 },
-      sudamericana: { matches: 1, minutes: 14, rating: 6.65 },
+      apertura: { matches: 11, minutes: 839, assists: 1, rating: 7.36, yellowCards: 6 },
+      sudamericana: { matches: 2, minutes: 104, rating: 6.92 },
     },
   },
   "player-rivero": {
     sourceId: 1649321,
     updatedAt: playerStatsUpdatedAt,
     competitions: {
-      apertura: { matches: 13, minutes: 1148, goals: 1, rating: 7.23, yellowCards: 6 },
-      sudamericana: { matches: 2, minutes: 180, rating: 7.48 },
+      apertura: { matches: 14, minutes: 1238, goals: 1, rating: 7.18, yellowCards: 6 },
+      sudamericana: { matches: 3, minutes: 270, rating: 7.52 },
     },
   },
   "player-vina": {
@@ -123,9 +123,16 @@ export const playerSeasonStats: Record<string, PlayerSeasonStats> = {
     sourceId: 207617,
     updatedAt: playerStatsUpdatedAt,
     competitions: {
-      apertura: { matches: 11, minutes: 523, goals: 2, assists: 2, rating: 6.99 },
+      apertura: { matches: 12, minutes: 550, goals: 2, assists: 2, rating: 6.97 },
       sudamericana: { matches: 1, minutes: 51, rating: 7.15 },
       copaArgentina: { matches: 1, minutes: 89, goals: 1, rating: 9.01 },
+    },
+  },
+  "player-meza": {
+    sourceId: 469616,
+    updatedAt: playerStatsUpdatedAt,
+    competitions: {
+      apertura: { matches: 1, minutes: 63, rating: 6.45 },
     },
   },
   "player-galoppo": {
@@ -163,8 +170,8 @@ export const playerSeasonStats: Record<string, PlayerSeasonStats> = {
     sourceId: 1256242,
     updatedAt: playerStatsUpdatedAt,
     competitions: {
-      apertura: { matches: 15, minutes: 1086, goals: 2, assists: 1, rating: 7.1 },
-      sudamericana: { matches: 2, minutes: 121, rating: 7.14 },
+      apertura: { matches: 16, minutes: 1149, goals: 2, assists: 1, rating: 7.04 },
+      sudamericana: { matches: 3, minutes: 211, rating: 7.18 },
       copaArgentina: { matches: 1, minutes: 83, rating: 7.34 },
     },
   },
@@ -181,8 +188,8 @@ export const playerSeasonStats: Record<string, PlayerSeasonStats> = {
     sourceId: 1025557,
     updatedAt: playerStatsUpdatedAt,
     competitions: {
-      apertura: { matches: 15, minutes: 1302, assists: 2, rating: 7.3, yellowCards: 1 },
-      sudamericana: { matches: 2, minutes: 162, rating: 7.34 },
+      apertura: { matches: 16, minutes: 1392, assists: 2, rating: 7.24, yellowCards: 1 },
+      sudamericana: { matches: 3, minutes: 252, rating: 7.39 },
       copaArgentina: { matches: 1, minutes: 90, rating: 8 },
     },
   },
@@ -191,21 +198,21 @@ export const playerSeasonStats: Record<string, PlayerSeasonStats> = {
     updatedAt: playerStatsUpdatedAt,
     competitions: {
       apertura: { matches: 4, minutes: 135, assists: 2, yellowCards: 2 },
-      sudamericana: { matches: 2, minutes: 104, rating: 6.54 },
+      sudamericana: { matches: 3, minutes: 194, rating: 6.72 },
     },
   },
   "player-lautaro-pereyra": {
     sourceId: 1946519,
     updatedAt: playerStatsUpdatedAt,
     competitions: {
-      apertura: { matches: 2, minutes: 16 },
+      apertura: { matches: 3, minutes: 43 },
     },
   },
   "player-kendry-paez": {
     sourceId: 1443464,
     updatedAt: playerStatsUpdatedAt,
     competitions: {
-      apertura: { matches: 7, minutes: 272, goals: 1, rating: 6.64 },
+      apertura: { matches: 8, minutes: 317, goals: 1, rating: 6.62 },
       sudamericana: { matches: 1, minutes: 39, assists: 1, rating: 7.99 },
     },
   },
@@ -213,7 +220,7 @@ export const playerSeasonStats: Record<string, PlayerSeasonStats> = {
     sourceId: 1580546,
     updatedAt: playerStatsUpdatedAt,
     competitions: {
-      apertura: { matches: 3, minutes: 124, yellowCards: 1 },
+      apertura: { matches: 4, minutes: 206, yellowCards: 1 },
       copaArgentina: { matches: 1, minutes: 59, rating: 6.32 },
     },
   },
@@ -221,8 +228,8 @@ export const playerSeasonStats: Record<string, PlayerSeasonStats> = {
     sourceId: 949735,
     updatedAt: playerStatsUpdatedAt,
     competitions: {
-      apertura: { matches: 11, minutes: 715, goals: 3, assists: 1, rating: 6.78, yellowCards: 1, redCards: 1 },
-      sudamericana: { matches: 1, minutes: 90, rating: 7.11 },
+      apertura: { matches: 12, minutes: 805, goals: 3, assists: 1, rating: 6.72, yellowCards: 1, redCards: 1 },
+      sudamericana: { matches: 2, minutes: 180, rating: 7.16 },
       copaArgentina: { matches: 1, minutes: 31, rating: 6.64 },
     },
   },
@@ -230,8 +237,8 @@ export const playerSeasonStats: Record<string, PlayerSeasonStats> = {
     sourceId: 1582679,
     updatedAt: playerStatsUpdatedAt,
     competitions: {
-      apertura: { matches: 15, minutes: 709, goals: 1, assists: 2, rating: 6.77, yellowCards: 2 },
-      sudamericana: { matches: 2, minutes: 55, rating: 6.05 },
+      apertura: { matches: 16, minutes: 754, goals: 1, assists: 2, rating: 6.71, yellowCards: 2 },
+      sudamericana: { matches: 3, minutes: 145, rating: 6.18 },
       copaArgentina: { matches: 1, minutes: 31, rating: 6.08 },
     },
   },
@@ -247,7 +254,8 @@ export const playerSeasonStats: Record<string, PlayerSeasonStats> = {
     sourceId: 730647,
     updatedAt: playerStatsUpdatedAt,
     competitions: {
-      apertura: { matches: 11, minutes: 343, goals: 1, rating: 6.26, yellowCards: 2 },
+      apertura: { matches: 12, minutes: 351, goals: 1, rating: 6.23, yellowCards: 2 },
+      sudamericana: { matches: 1, minutes: 90, rating: 6.9 },
       copaArgentina: { matches: 1, minutes: 59, rating: 6.87 },
     },
   },
@@ -262,7 +270,7 @@ export const playerSeasonStats: Record<string, PlayerSeasonStats> = {
     sourceId: 1847899,
     updatedAt: playerStatsUpdatedAt,
     competitions: {
-      apertura: { matches: 9, minutes: 445, goals: 1, assists: 1, rating: 6.69, yellowCards: 1 },
+      apertura: { matches: 10, minutes: 490, goals: 1, assists: 1, rating: 6.67, yellowCards: 1 },
       sudamericana: { matches: 2, minutes: 135, rating: 6.75 },
       copaArgentina: { matches: 1, minutes: 31, rating: 7.04 },
     },

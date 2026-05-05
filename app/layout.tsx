@@ -8,10 +8,10 @@ import "./globals.css"
 export const metadata: Metadata = {
   metadataBase: new URL("https://medioriver.com.ar"),
   title: {
-    default: "Medio River — Noticias, fixture y trivia de River Plate",
+    default: "Medio River",
     template: "%s · Medio River",
   },
-  description: "Noticias, fixture, plantel y trivia del mundo River.",
+  description: "Medio de comunicación de actualidad creado por hinchas para hinchas de River Plate. Medio River es un sitio independiente, sin vinculación oficial con el Club Atlético River Plate.",
   icons: {
     icon: [
       { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
@@ -59,6 +59,22 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7693484030474244"
           crossOrigin="anonymous"
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              name: "Medio River",
+              url: "https://medioriver.com.ar",
+              logo: "https://medioriver.com.ar/logoMR.jpeg",
+              sameAs: [
+                "https://x.com/medioriver",
+                "https://www.instagram.com/medioriver",
+              ],
+            }),
+          }}
         />
       </head>
       <body className="font-sans antialiased">

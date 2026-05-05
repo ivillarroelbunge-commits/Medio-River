@@ -1,6 +1,6 @@
 import type { SquadPlayer } from "@/lib/data/types"
 
-export const squadVerifiedAt = "28 de abril de 2026"
+export const squadVerifiedAt = "5 de mayo de 2026"
 
 function fotmobPlayerImage(id: number) {
   return `https://images.fotmob.com/image_resources/playerimages/${id}.png`

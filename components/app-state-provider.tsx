@@ -18,6 +18,7 @@ import {
 } from "@/lib/app-state"
 import type { AppUser, DailyTrivia, Match, NewsArticle, SquadPlayer, TriviaQuestion, TriviaResult, UserRole } from "@/lib/data/types"
 import { createClient as createSupabaseBrowserClient } from "@/lib/supabase/client"
+import { fetchMatches, getMatchTableMissingMessage, mapMatchRowToMatch, mapMatchToPayload, MATCHES_SELECT, type MatchRow } from "@/lib/supabase/matches"
 import { fetchNewsArticles, mapNewsRowToArticle, NEWS_SELECT } from "@/lib/supabase/news"
 import { mapProfileToAppUser, type ProfileRow } from "@/lib/supabase/profiles"
 import {
@@ -84,7 +85,7 @@ interface AppStateContextValue {
   updateProfile: (input: { name: string; avatar?: string }) => Promise<ProfileActionResult>
   saveNews: (input: NewsInput) => Promise<ProfileActionResult>
   deleteNews: (id: string) => Promise<ProfileActionResult>
-  updateMatch: (match: Match) => void
+  updateMatch: (match: Match) => Promise<ProfileActionResult>
   updateSquadPlayer: (player: SquadPlayer) => void
   saveTriviaQuestion: (question: TriviaQuestion) => Promise<ProfileActionResult>
   createTriviaQuestion: (question: Omit<TriviaQuestion, "id">) => Promise<ProfileActionResult>
@@ -237,6 +238,21 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     }))
   }
 
+  async function loadMatches() {
+    const { matches, error } = await fetchMatches(supabase)
+    if (error) {
+      console.warn(getMatchTableMissingMessage(error.message) ?? "No se pudieron cargar los partidos desde Supabase.")
+      return
+    }
+
+    if (!matches?.length) return
+
+    setLocalState((previous) => ({
+      ...previous,
+      matches: mergeStoredMatches(previous.matches, matches),
+    }))
+  }
+
   async function loadTriviaData() {
     const { questions, dailyTrivias, results, errors } = await fetchTriviaState(supabase)
 
@@ -307,7 +323,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         setIsHydrated(true)
       }
 
-      void Promise.all([refreshAuthState(), loadNews(), loadTriviaData()]).catch((error) => {
+      void Promise.all([refreshAuthState(), loadNews(), loadMatches(), loadTriviaData()]).catch((error) => {
         console.error("No se pudieron sincronizar los datos remotos.", error)
       })
     }
@@ -557,11 +573,27 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
 
       return { ok: true }
     },
-    updateMatch(match) {
+    async updateMatch(match) {
+      const { data, error } = await supabase
+        .from("matches")
+        .upsert(mapMatchToPayload(match, currentUser?.id), { onConflict: "id" })
+        .select(MATCHES_SELECT)
+        .single<MatchRow>()
+
+      if (error) {
+        return {
+          ok: false,
+          error: getMatchTableMissingMessage(error.message) ?? "No se pudo guardar el partido.",
+        }
+      }
+
+      const savedMatch = data ? mapMatchRowToMatch(data) : match
       setLocalState((previous) => ({
         ...previous,
-        matches: previous.matches.map((item) => (item.id === match.id ? match : item)),
+        matches: previous.matches.map((item) => (item.id === savedMatch.id ? savedMatch : item)),
       }))
+
+      return { ok: true }
     },
     updateSquadPlayer(player) {
       setLocalState((previous) => ({

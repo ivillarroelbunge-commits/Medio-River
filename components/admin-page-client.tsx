@@ -7,6 +7,7 @@ import { EditorNewsForm } from "@/components/editor-news-form"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import type { Competition, DailyTrivia, Match, NewsArticle, SquadPlayer, TriviaQuestion, UserRole } from "@/lib/data/types"
+import { getAutomaticMatchUpdate } from "@/lib/match-autofill"
 import { getRoleBadgeClass, getRoleLabel } from "@/lib/roles"
 
 const roles: UserRole[] = ["admin", "editor", "user"]
@@ -293,10 +294,36 @@ export function AdminPageClient() {
                 </div>
                 {editingMatch?.id === match.id && (
                   <div className="rounded-2xl border border-primary/25 bg-primary/5 p-3">
-                    <MatchEditForm match={editingMatch} onCancel={() => setEditingMatch(null)} onSave={(updatedMatch) => {
-                      updateMatch(updatedMatch)
-                      setEditingMatch(null)
-                    }} />
+                    <MatchEditForm
+                      match={editingMatch}
+                      onCancel={() => setEditingMatch(null)}
+                      onAutofill={async (matchToAutofill) => {
+                        setError(null)
+                        const automaticMatch = getAutomaticMatchUpdate(matchToAutofill)
+                        if (!automaticMatch) {
+                          setError("Todavía no hay una carga automática disponible para este partido.")
+                          return false
+                        }
+
+                        const result = await updateMatch(automaticMatch)
+                        if (!result.ok) {
+                          setError(result.error ?? "No se pudo guardar el partido.")
+                          return false
+                        }
+
+                        setEditingMatch(null)
+                        return true
+                      }}
+                      onSave={async (updatedMatch) => {
+                        setError(null)
+                        const result = await updateMatch(updatedMatch)
+                        if (!result.ok) {
+                          setError(result.error ?? "No se pudo guardar el partido.")
+                          return
+                        }
+                        setEditingMatch(null)
+                      }}
+                    />
                   </div>
                 )}
               </div>
@@ -756,15 +783,29 @@ function PlayerEditForm({ player, onCancel, onSave }: { player: SquadPlayer; onC
   )
 }
 
-function MatchEditForm({ match, onCancel, onSave }: { match: Match; onCancel: () => void; onSave: (match: Match) => void }) {
+function MatchEditForm({
+  match,
+  onAutofill,
+  onCancel,
+  onSave,
+}: {
+  match: Match
+  onAutofill: (match: Match) => Promise<boolean>
+  onCancel: () => void
+  onSave: (match: Match) => Promise<void>
+}) {
+  const [isSaving, setIsSaving] = useState(false)
+  const [isAutofilling, setIsAutofilling] = useState(false)
+
   return (
     <form
       className="grid gap-3 rounded-2xl border border-border bg-muted/30 p-4 md:grid-cols-2"
-      onSubmit={(event) => {
+      onSubmit={async (event) => {
         event.preventDefault()
+        setIsSaving(true)
         const formData = new FormData(event.currentTarget)
         const status = String(formData.get("status") || match.status) as Match["status"]
-        onSave({
+        await onSave({
           ...match,
           opponent: String(formData.get("opponent") || match.opponent),
           competition: String(formData.get("competition") || match.competition) as Competition,
@@ -776,6 +817,7 @@ function MatchEditForm({ match, onCancel, onSave }: { match: Match; onCancel: ()
           riverScore: status === "played" ? Number(formData.get("riverScore") || 0) : undefined,
           opponentScore: status === "played" ? Number(formData.get("opponentScore") || 0) : undefined,
         })
+        setIsSaving(false)
       }}
     >
       <AdminInput label="Rival" name="opponent" defaultValue={match.opponent} />
@@ -787,8 +829,23 @@ function MatchEditForm({ match, onCancel, onSave }: { match: Match; onCancel: ()
       <AdminInput label="TV" name="tvChannel" defaultValue={match.tvChannel ?? ""} />
       <AdminInput label="Goles River" name="riverScore" type="number" defaultValue={String(match.riverScore ?? 0)} />
       <AdminInput label="Goles rival" name="opponentScore" type="number" defaultValue={String(match.opponentScore ?? 0)} />
-      <div className="flex flex-col gap-2 sm:flex-row md:col-span-2">
-        <Button type="submit" className="rounded-full">Guardar partido</Button>
+      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap md:col-span-2">
+        <Button type="submit" className="rounded-full" disabled={isSaving || isAutofilling}>
+          {isSaving ? "Guardando..." : "Guardar partido"}
+        </Button>
+        <Button
+          type="button"
+          variant="secondary"
+          className="rounded-full"
+          disabled={isSaving || isAutofilling}
+          onClick={async () => {
+            setIsAutofilling(true)
+            await onAutofill(match)
+            setIsAutofilling(false)
+          }}
+        >
+          {isAutofilling ? "Cargando..." : "Cargar datos automáticos"}
+        </Button>
         <Button type="button" variant="outline" className="rounded-full" onClick={onCancel}>Cancelar</Button>
       </div>
     </form>

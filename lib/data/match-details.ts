@@ -3290,5 +3290,171 @@ export const matchDetailsById: Record<string, MatchDetail> = {
         ]
       }
     }
+  },
+  "match-19": {
+    "sourceLabel": "Río Negro / Doble Amarilla",
+    "sourceUrl": "https://www.rionegro.com.ar/deportes/futbol/river-vs-bragantino-por-la-copa-sudamericana-a-que-hora-juegan-y-donde-ver-el-partido-4140829/",
+    "referee": "Sin dato confirmado",
+    "goals": [
+      {
+        "team": "river",
+        "player": "Lucas Martínez Quarta",
+        "minute": "90+3",
+        "detail": "Gol agónico para el 1-0 de River"
+      }
+    ],
+    "cards": [
+      {
+        "team": "opponent",
+        "player": "Alix Vinicius",
+        "minute": "59",
+        "card": "red"
+      }
+    ],
+    "substitutions": [],
+    "lineups": {
+      "river": {
+        "coach": "Marcelo Gallardo",
+        "starters": [
+          "#41 Santiago Beltrán",
+          "#29 Gonzalo Montiel",
+          "#28 Lucas Martínez Quarta",
+          "#13 Lautaro Rubén Rivero",
+          "#21 Marcos Javier Acuña",
+          "#6 Aníbal Ismael Moreno",
+          "#26 Tomás Ezequiel Galván",
+          "#24 Juan Cruz Meza",
+          "#38 Ian Martín Subiabre",
+          "#11 Facundo Colidio",
+          "#7 Maximiliano Nahuel Salas"
+        ],
+        "substitutes": [
+          "#1 Franco Armani",
+          "#33 Ezequiel Centurión",
+          "#16 Fabricio Tomás Bustos",
+          "#17 Paulo César Díaz Huincales",
+          "#18 Matías Nicolás Viña",
+          "#20 Germán Alejo Pezzella",
+          "#31 Facundo González",
+          "#32 Agustín Fabián Ruberto",
+          "#34 Giuliano Galoppo",
+          "#35 Joaquín Freitas",
+          "#39 Santiago Javier Lencina",
+          "#10 Juan Fernando Quintero"
+        ]
+      },
+      "opponent": {
+        "coach": "Fernando Seabra",
+        "starters": [
+          "#1 Cleiton",
+          "#34 Andrés Hurtado",
+          "#14 Pedro Henrique",
+          "#4 Juninho Capixaba",
+          "#29 Guilherme Lopes",
+          "#5 Jadsom",
+          "#8 Lucas Evangelista",
+          "#10 Lincoln",
+          "#11 Helinho",
+          "#18 Thiago Borbas",
+          "#30 Henry Mosquera"
+        ],
+        "substitutes": []
+      }
+    }
+  },
+  "match-20": {
+    "sourceLabel": "TyC Sports / Infobae",
+    "sourceUrl": "https://www.tycsports.com/river-plate/river-atletico-tucuman-torneo-apertura-id660522.html",
+    "referee": "Darío Herrera",
+    "goals": [
+      {
+        "team": "opponent",
+        "player": "Renzo Tesuri",
+        "minute": "18",
+        "detail": "Gol de Atlético Tucumán"
+      }
+    ],
+    "cards": [],
+    "substitutions": [
+      {
+        "team": "river",
+        "minute": "46",
+        "playerIn": "Joaquín Freitas",
+        "playerOut": "Fabricio Bustos"
+      },
+      {
+        "team": "river",
+        "minute": "46",
+        "playerIn": "Kendry Páez",
+        "playerOut": "Ian Subiabre"
+      },
+      {
+        "team": "river",
+        "minute": "63",
+        "playerIn": "Lautaro Pereyra",
+        "playerOut": "Maximiliano Meza"
+      },
+      {
+        "team": "river",
+        "minute": "63",
+        "playerIn": "Juan Fernando Quintero",
+        "playerOut": "Tomás Galván"
+      },
+      {
+        "team": "river",
+        "minute": "82",
+        "playerIn": "Maximiliano Salas",
+        "playerOut": "Agustín Ruberto"
+      }
+    ],
+    "lineups": {
+      "river": {
+        "coach": "Marcelo Gallardo",
+        "starters": [
+          "#41 Santiago Beltrán",
+          "#16 Fabricio Tomás Bustos",
+          "#28 Lucas Martínez Quarta",
+          "#13 Lautaro Rubén Rivero",
+          "#21 Marcos Javier Acuña",
+          "#6 Aníbal Ismael Moreno",
+          "#8 Maximiliano Meza",
+          "#26 Tomás Ezequiel Galván",
+          "#38 Ian Martín Subiabre",
+          "#11 Facundo Colidio",
+          "#32 Agustín Fabián Ruberto"
+        ],
+        "substitutes": [
+          "#35 Joaquín Freitas",
+          "#19 Kendry Páez",
+          "#25 Lautaro Pereyra",
+          "#10 Juan Fernando Quintero",
+          "#7 Maximiliano Nahuel Salas",
+          "#1 Franco Armani",
+          "#33 Ezequiel Centurión",
+          "#17 Paulo César Díaz Huincales",
+          "#18 Matías Nicolás Viña",
+          "#20 Germán Alejo Pezzella",
+          "#24 Juan Cruz Meza",
+          "#34 Giuliano Galoppo"
+        ]
+      },
+      "opponent": {
+        "coach": "Lucas Pusineri",
+        "starters": [
+          "#1 Tomás Durso",
+          "#4 Marcelo Ortiz",
+          "#2 Francisco Flores",
+          "#6 Nicolás Romero",
+          "#3 Matías Orihuela",
+          "#5 Guillermo Acosta",
+          "#8 Adrián Sánchez",
+          "#18 Renzo Tesuri",
+          "#10 Mateo Bajamich",
+          "#11 Leandro Díaz",
+          "#9 Mateo Coronel"
+        ],
+        "substitutes": []
+      }
+    }
   }
 }
