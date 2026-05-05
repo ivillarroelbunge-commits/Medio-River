@@ -6,6 +6,7 @@ import { getSupabaseEnv } from "@/lib/supabase/env"
 const siteUrl = "https://medioriver.com.ar"
 
 const staticRoutes = [
+  { path: "", priority: 1 },
   { path: "/inicio", priority: 1 },
   { path: "/noticias", priority: 0.9 },
   { path: "/fixture", priority: 0.8 },

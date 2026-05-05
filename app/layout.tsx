@@ -14,13 +14,18 @@ export const metadata: Metadata = {
   description: "Medio de comunicación de actualidad creado por hinchas para hinchas de River Plate. Medio River es un sitio independiente, sin vinculación oficial con el Club Atlético River Plate.",
   icons: {
     icon: [
+      { url: "/favicon-48x48.png", sizes: "48x48", type: "image/png" },
+      { url: "/favicon-96x96.png", sizes: "96x96", type: "image/png" },
       { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
       { url: "/icon-192x192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512x512.png", sizes: "512x512", type: "image/png" },
     ],
+    shortcut: [{ url: "/favicon-48x48.png", sizes: "48x48", type: "image/png" }],
     apple: [
       { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
     ],
   },
+  manifest: "/manifest.webmanifest",
   openGraph: {
     title: "Medio River",
     description: "Noticias, fixture, plantel y trivia del mundo River.",
@@ -41,7 +46,7 @@ export const metadata: Metadata = {
     card: "summary",
     title: "Medio River",
     description: "Noticias, fixture, plantel y trivia del mundo River.",
-    images: ["/logoMR.jpeg"],
+    images: ["/logo-google.png"],
   },
 }
 
@@ -68,7 +73,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
               "@type": "Organization",
               name: "Medio River",
               url: "https://medioriver.com.ar",
-              logo: "https://medioriver.com.ar/logoMR.jpeg",
+              logo: "https://medioriver.com.ar/logo-google.png",
               sameAs: [
                 "https://x.com/medioriver",
                 "https://www.instagram.com/medioriver",
