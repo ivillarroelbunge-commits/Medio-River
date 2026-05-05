@@ -92,7 +92,7 @@ export default function NoticiasPage() {
           </header>
 
           {featuredStories.length > 0 && (
-            <section className="grid gap-4 md:gap-6 xl:h-[34rem] xl:grid-cols-[1.9fr_0.95fr] xl:items-stretch">
+            <section className="grid gap-3 sm:gap-4 md:gap-6 xl:h-[34rem] xl:grid-cols-[1.9fr_0.95fr] xl:items-stretch">
               <FeaturedLeadCard article={rotatingFeaturedStories[0]} />
               <div className="flex flex-col gap-4 md:gap-6 xl:h-full">
                 {rotatingFeaturedStories.slice(1).map((article) => (
@@ -102,7 +102,7 @@ export default function NoticiasPage() {
             </section>
           )}
 
-          <div className="space-y-3 rounded-xl border border-border/70 bg-muted/20 p-3 md:p-4">
+          <div className="space-y-3 rounded-xl border border-border/70 bg-muted/20 p-2.5 sm:p-3 md:p-4">
             <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar noticia" className="h-10 w-full rounded-lg border border-input/70 bg-background/80 px-3.5 text-sm" />
             <div className="grid gap-2 sm:grid-cols-3">
               <FilterSelect label="Tipo" value={tag} options={["Todas", "Información", "Opinión"]} onChange={setTag} tone="dark" />
@@ -111,7 +111,7 @@ export default function NoticiasPage() {
             </div>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 md:gap-6 xl:grid-cols-3">
             {visibleArticles.map((article) => <NewsCard key={article.id} article={article} />)}
           </div>
 
@@ -176,11 +176,11 @@ function FilterSelect({
 function FeaturedLeadCard({ article }: { article: NewsArticle }) {
   return (
     <article className="overflow-hidden rounded-[1.5rem] border border-border shadow-[0_12px_34px_rgba(15,23,42,0.12)] md:rounded-[2rem] xl:h-full">
-      <Link href={`/noticias/${article.slug}`} className="group relative block min-h-[18rem] overflow-hidden md:min-h-[30rem] xl:h-full xl:min-h-0">
+      <Link href={`/noticias/${article.slug}`} className="group relative block min-h-[16rem] overflow-hidden sm:min-h-[18rem] md:min-h-[30rem] xl:h-full xl:min-h-0">
         <img src={getNewsImage(article)} alt={article.title} className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.02]" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/84 via-black/26 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 p-4 md:p-7 xl:p-8">
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5 sm:gap-2">
             <span className="inline-flex rounded-full bg-primary px-3 py-1 text-[0.62rem] font-extrabold uppercase tracking-[0.08em] text-primary-foreground md:px-4 md:py-1.5 md:text-[0.72rem]">
               {normalizeNewsCategory(article.category)}
             </span>
@@ -190,7 +190,7 @@ function FeaturedLeadCard({ article }: { article: NewsArticle }) {
               </span>
             )}
           </div>
-          <h2 className="mt-3 max-w-3xl font-display text-[1.45rem] font-extrabold leading-[1.08] text-white md:mt-4 md:text-[2.6rem] xl:text-[3rem]">
+          <h2 className="mt-3 max-w-3xl font-display text-[1.25rem] font-extrabold leading-[1.08] text-white sm:text-[1.45rem] md:mt-4 md:text-[2.6rem] xl:text-[3rem]">
             {article.title}
           </h2>
           <p className="mt-2 line-clamp-2 max-w-3xl text-xs leading-5 text-white/82 md:mt-3 md:line-clamp-none md:text-base md:leading-8 xl:max-w-2xl">
@@ -208,8 +208,8 @@ function FeaturedLeadCard({ article }: { article: NewsArticle }) {
 function FeaturedSideCard({ article }: { article: NewsArticle }) {
   return (
     <article className="overflow-hidden rounded-[1.5rem] border border-border bg-card shadow-sm md:rounded-[2rem] xl:flex-1">
-      <Link href={`/noticias/${article.slug}`} className="grid h-full grid-cols-[6.25rem_1fr] gap-3 p-3 sm:grid-cols-[9.5rem_1fr] sm:items-start md:gap-4 md:p-5 xl:h-full">
-        <img src={getNewsImage(article)} alt={article.title} className="h-full min-h-[7rem] w-full rounded-[1rem] object-cover sm:min-h-[9.5rem] md:rounded-[1.35rem]" />
+      <Link href={`/noticias/${article.slug}`} className="grid h-full grid-cols-[5.5rem_1fr] gap-3 p-3 sm:grid-cols-[9.5rem_1fr] sm:items-start md:gap-4 md:p-5 xl:h-full">
+        <img src={getNewsImage(article)} alt={article.title} className="h-full min-h-[6.5rem] w-full rounded-[1rem] object-cover sm:min-h-[9.5rem] md:rounded-[1.35rem]" />
         <div className="flex h-full flex-col">
           <div>
             <p className="text-[0.72rem] font-extrabold uppercase tracking-[0.08em] text-primary">{normalizeNewsCategory(article.category)}</p>

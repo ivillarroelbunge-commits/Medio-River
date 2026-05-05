@@ -129,8 +129,9 @@ function mergeStoredMatches(seedMatches: Match[], storedMatches: Match[]) {
     return {
       ...seedMatch,
       ...storedMatch,
-      referee: storedMatch.referee ?? seedMatch.referee,
-      detail: storedMatch.detail ?? seedMatch.detail,
+      stadium: shouldPreferSeedMatchDetail(seedMatch, storedMatch) ? seedMatch.stadium : storedMatch.stadium,
+      referee: shouldPreferSeedMatchDetail(seedMatch, storedMatch) ? seedMatch.referee : storedMatch.referee ?? seedMatch.referee,
+      detail: shouldPreferSeedMatchDetail(seedMatch, storedMatch) ? seedMatch.detail : storedMatch.detail ?? seedMatch.detail,
     }
   })
 
@@ -141,6 +142,10 @@ function mergeStoredMatches(seedMatches: Match[], storedMatches: Match[]) {
   }
 
   return merged
+}
+
+function shouldPreferSeedMatchDetail(seedMatch: Match, storedMatch: Match) {
+  return seedMatch.detail?.sourceLabel === "La Historia River" && storedMatch.detail?.sourceLabel !== "La Historia River"
 }
 
 function getProfilePayload(user: User) {

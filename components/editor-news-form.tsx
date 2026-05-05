@@ -47,7 +47,7 @@ export function EditorNewsForm({
 
   return (
     <form
-      className="space-y-4 rounded-2xl border border-border bg-card p-4 shadow-sm md:p-6"
+      className="space-y-4 rounded-2xl border border-border bg-card p-3 shadow-sm sm:p-4 md:p-6"
       onSubmit={(event) => {
         event.preventDefault()
         const formData = new FormData(event.currentTarget)
@@ -84,7 +84,7 @@ export function EditorNewsForm({
         <Label htmlFor="news-content">Contenido</Label>
         <RichTextEditor value={contentHtml} onChange={setContentHtml} />
       </div>
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-3 sm:gap-4 md:grid-cols-3">
         <div className="space-y-2">
           <Label htmlFor="news-tag">Tipo de artículo</Label>
           <select

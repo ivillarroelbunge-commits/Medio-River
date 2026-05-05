@@ -22,7 +22,7 @@ export function Logo({ className, invert = false }: LogoProps) {
         aria-hidden="true"
         className="h-9 w-9 rounded-full object-cover ring-1 ring-border transition-transform group-hover:scale-105 md:h-10 md:w-10"
       />
-      <span className="flex items-baseline">
+      <span className="hidden items-baseline xs:flex sm:flex">
         <span className={cn(invert ? "text-background" : "text-foreground")}>
           MEDIO
         </span>

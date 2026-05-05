@@ -29,7 +29,7 @@ export default function HomePage() {
           )}
 
           {isHydrated && nextMatch && (
-            <div className="grid items-stretch gap-6 md:grid-cols-2">
+            <div className="grid items-stretch gap-3 sm:gap-4 md:grid-cols-2 md:gap-6">
               <HomeNextMatchPanel match={nextMatch} />
               <HomeTriviaPanel />
             </div>
@@ -48,7 +48,7 @@ export default function HomePage() {
             </div>
 
             {isHydrated ? (
-              <ul className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              <ul className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 md:mt-6 md:gap-6 lg:grid-cols-3">
                 {latest.map((article) => (
                   <li key={article.id} className="flex">
                     <NewsCard article={article} />

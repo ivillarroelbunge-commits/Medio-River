@@ -92,14 +92,14 @@ export default function MatchDetailPage() {
                 <span>{formatTime(match.date)} hs</span>
               </div>
 
-              <div className="mt-5 grid grid-cols-[1fr_auto_1fr] items-start gap-2 md:mt-6 md:gap-8">
+              <div className="mt-5 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-start gap-1.5 md:mt-6 md:gap-8">
                 <TeamBlock team={homeTeam} goals={homeGoals} />
-                <div className="rounded-2xl border border-white/15 bg-white/10 px-3 py-3 text-center shadow-2xl backdrop-blur md:rounded-3xl md:px-7 md:py-5">
-                  <p className="font-display text-3xl font-black leading-none md:text-6xl">
+                <div className="rounded-2xl border border-white/15 bg-white/10 px-2 py-2.5 text-center shadow-2xl backdrop-blur sm:px-3 sm:py-3 md:rounded-3xl md:px-7 md:py-5">
+                  <p className="font-display text-2xl font-black leading-none sm:text-3xl md:text-6xl">
                     {homeScore ?? "-"} <span className="text-white/40">-</span> {awayScore ?? "-"}
                   </p>
                   <p className="mt-2 text-[0.65rem] font-bold uppercase tracking-[0.2em] text-white/65">Final</p>
-                  <div className="mt-3 space-y-2 border-t border-white/15 pt-3 text-left text-[0.62rem] font-semibold leading-tight text-white/78 md:mt-4 md:pt-4 md:text-xs">
+                  <div className="mt-2 space-y-1.5 border-t border-white/15 pt-2 text-left text-[0.56rem] font-semibold leading-tight text-white/78 sm:text-[0.62rem] md:mt-4 md:space-y-2 md:pt-4 md:text-xs">
                     <ScoreMeta icon={<MapPin className="h-3.5 w-3.5" />} label="Estadio" value={match.stadium} />
                     <ScoreMeta icon={<Flag className="h-3.5 w-3.5" />} label="Árbitro" value={detail?.referee ?? match.referee ?? "Sin dato"} />
                   </div>

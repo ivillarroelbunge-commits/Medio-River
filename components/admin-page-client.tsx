@@ -745,7 +745,7 @@ function DailyTriviaForm({
 function PlayerEditForm({ player, onCancel, onSave }: { player: SquadPlayer; onCancel: () => void; onSave: (player: SquadPlayer) => void }) {
   return (
     <form
-      className="grid gap-3 rounded-2xl border border-border bg-muted/30 p-4 md:grid-cols-2"
+      className="grid gap-3 rounded-2xl border border-border bg-muted/30 p-3 sm:p-4 md:grid-cols-2"
       onSubmit={(event) => {
         event.preventDefault()
         const formData = new FormData(event.currentTarget)
@@ -828,7 +828,7 @@ function MatchEditForm({
           <button
             type="button"
             onClick={() => setStatus("upcoming")}
-            className={`rounded-xl border px-4 py-3 text-left text-sm font-bold transition ${status === "upcoming" ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-foreground hover:border-primary/40"}`}
+            className={`rounded-xl border px-3 py-2.5 text-left text-sm font-bold transition sm:px-4 sm:py-3 ${status === "upcoming" ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-foreground hover:border-primary/40"}`}
           >
             Próximo partido
             <span className="mt-1 block text-xs font-medium opacity-75">No muestra resultado.</span>
@@ -836,7 +836,7 @@ function MatchEditForm({
           <button
             type="button"
             onClick={() => setStatus("played")}
-            className={`rounded-xl border px-4 py-3 text-left text-sm font-bold transition ${status === "played" ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-foreground hover:border-primary/40"}`}
+            className={`rounded-xl border px-3 py-2.5 text-left text-sm font-bold transition sm:px-4 sm:py-3 ${status === "played" ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-foreground hover:border-primary/40"}`}
           >
             Ya se jugó
             <span className="mt-1 block text-xs font-medium opacity-75">Habilita cargar el resultado.</span>
@@ -866,13 +866,13 @@ function MatchEditForm({
         </div>
       )}
       <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap md:col-span-2">
-        <Button type="submit" className="rounded-full" disabled={isSaving || isAutofilling}>
+        <Button type="submit" className="w-full rounded-full sm:w-auto" disabled={isSaving || isAutofilling}>
           {isSaving ? "Guardando..." : "Guardar partido"}
         </Button>
         <Button
           type="button"
           variant="secondary"
-          className="rounded-full"
+          className="w-full rounded-full sm:w-auto"
           disabled={isSaving || isAutofilling}
           onClick={async () => {
             setIsAutofilling(true)
@@ -882,7 +882,7 @@ function MatchEditForm({
         >
           {isAutofilling ? "Cargando..." : "Cargar datos automáticos"}
         </Button>
-        <Button type="button" variant="outline" className="rounded-full" onClick={onCancel}>Cancelar</Button>
+        <Button type="button" variant="outline" className="w-full rounded-full sm:w-auto" onClick={onCancel}>Cancelar</Button>
       </div>
     </form>
   )

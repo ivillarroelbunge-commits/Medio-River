@@ -5,7 +5,7 @@ import { formatTime, formatWeekdayDate } from "@/lib/format"
 import { Button } from "@/components/ui/button"
 import { TeamCrest } from "@/components/team-crest"
 
-const PANEL_BASE = "relative flex min-h-[180px] flex-col overflow-hidden rounded-2xl border p-4 shadow-sm md:min-h-[210px] md:p-5"
+const PANEL_BASE = "relative flex min-h-[150px] flex-col overflow-hidden rounded-2xl border p-3.5 shadow-sm sm:min-h-[170px] sm:p-4 md:min-h-[210px] md:p-5"
 
 export function HomeNextMatchPanel({ match }: { match: Match }) {
   const homeTeam = match.isHome ? "River Plate" : match.opponent
@@ -26,18 +26,18 @@ export function HomeNextMatchPanel({ match }: { match: Match }) {
         </Link>
       </div>
 
-      <div className="relative mt-3 flex flex-1 flex-col justify-center gap-3 md:mt-4 md:gap-4">
-        <div className="flex items-center gap-3">
+      <div className="relative mt-3 flex flex-1 flex-col justify-center gap-2.5 md:mt-4 md:gap-4">
+        <div className="flex items-center gap-2.5 md:gap-3">
           <span className="rounded-2xl bg-white p-1.5 shadow-md md:p-2">
-            <TeamCrest team={homeTeam} size="lg" />
+            <TeamCrest team={homeTeam} size="md" className="md:h-12 md:w-12" />
           </span>
-          <span className="font-display text-lg font-extrabold text-white/45 md:text-xl">VS</span>
+          <span className="font-display text-base font-extrabold text-white/45 md:text-xl">VS</span>
           <span className="rounded-2xl bg-white p-1.5 shadow-md md:p-2">
-            <TeamCrest team={awayTeam} size="lg" />
+            <TeamCrest team={awayTeam} size="md" className="md:h-12 md:w-12" />
           </span>
         </div>
         <div>
-          <h2 className="font-display text-xl font-extrabold leading-tight text-white md:text-3xl">{homeTeam} vs. {awayTeam}</h2>
+          <h2 className="font-display text-[1.05rem] font-extrabold leading-tight text-white sm:text-xl md:text-3xl">{homeTeam} vs. {awayTeam}</h2>
           <p className="mt-1 text-xs uppercase tracking-wider text-white/55">{match.competition} · {match.isHome ? "Local" : "Visitante"}</p>
         </div>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-white/86 md:gap-x-4 md:gap-y-2 md:text-sm">
@@ -65,12 +65,12 @@ export function HomeTriviaPanel() {
         </Button>
       </div>
 
-      <div className="relative mt-3 flex flex-1 flex-col justify-center gap-3 md:mt-4 md:gap-4">
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-primary shadow-md md:h-14 md:w-14">
-          <Gamepad2 className="h-6 w-6 md:h-7 md:w-7" />
+      <div className="relative mt-3 flex flex-1 flex-col justify-center gap-2.5 md:mt-4 md:gap-4">
+        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white text-primary shadow-md md:h-14 md:w-14">
+          <Gamepad2 className="h-5 w-5 md:h-7 md:w-7" />
         </div>
         <div>
-          <h2 className="font-display text-xl font-extrabold leading-tight text-white md:text-3xl">¿Cuánto sabés de River?</h2>
+          <h2 className="font-display text-[1.05rem] font-extrabold leading-tight text-white sm:text-xl md:text-3xl">¿Cuánto sabés de River?</h2>
           <p className="mt-1 text-xs leading-5 text-white/78 md:text-sm md:leading-6">Trivia diaria de 5 preguntas, un intento por usuario y ranking actualizado.</p>
         </div>
       </div>
