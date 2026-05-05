@@ -42,21 +42,19 @@ export function UpcomingMatches({ matches }: { matches: Match[] }) {
   const visible = useMemo(() => matches.filter((match) => active === "Todas" || match.competition === active), [active, matches])
 
   return (
-    <section className="space-y-4">
-      
-    
+    <section className="space-y-3 md:space-y-4">
       <FilterBar active={active} onChange={setActive} />
       <div className="space-y-3">
         {visible.map((match) => (
-          <article key={match.id} className={cn("flex flex-col gap-3 rounded-2xl border border-l-4 p-3 shadow-sm md:flex-row md:items-center md:justify-between md:p-4", competitionStyle[match.competition])}>
-            <div className="flex min-w-0 items-center gap-3">
+          <article key={match.id} className={cn("grid gap-3 rounded-2xl border border-l-4 p-3 shadow-sm md:flex md:items-center md:justify-between md:p-4", competitionStyle[match.competition])}>
+            <div className="grid min-w-0 grid-cols-[auto_1fr] items-center gap-3">
               <MatchCrests match={match} />
               <div className="min-w-0">
-                <p className="font-display text-base font-bold leading-tight md:text-lg">{formatMatchTitle(match)}</p>
-                <p className="text-xs uppercase tracking-wider text-muted-foreground">{match.competition} · {match.isHome ? "Local" : "Visitante"}</p>
+                <p className="font-display text-[0.98rem] font-bold leading-tight md:text-lg">{formatMatchTitle(match)}</p>
+                <p className="mt-1 text-[0.66rem] uppercase tracking-wider text-muted-foreground md:text-xs">{match.competition} · {match.isHome ? "Local" : "Visitante"}</p>
               </div>
             </div>
-            <div className="grid gap-2 text-xs sm:flex sm:items-center sm:gap-4">
+            <div className="grid grid-cols-2 gap-2 rounded-xl bg-background/70 p-2 text-xs sm:grid-cols-3 md:flex md:items-center md:gap-4 md:bg-transparent md:p-0">
               <InfoMini icon={<Calendar className="h-3.5 w-3.5" />} value={formatWeekdayDate(match.date)} />
               <InfoMini icon={<Clock className="h-3.5 w-3.5" />} value={`${formatTime(match.date)} hs`} />
               {match.tvChannel && <InfoMini icon={<Tv className="h-3.5 w-3.5" />} value={match.tvChannel} />}
@@ -73,8 +71,7 @@ export function PreviousResults({ matches }: { matches: Match[] }) {
   const visible = useMemo(() => matches.filter((match) => active === "Todas" || match.competition === active), [active, matches])
 
   return (
-    <section className="space-y-4">
-    
+    <section className="space-y-3 md:space-y-4">
       <FilterBar active={active} onChange={setActive} />
       <div className="space-y-3">
         {visible.map((match) => {
@@ -82,20 +79,20 @@ export function PreviousResults({ matches }: { matches: Match[] }) {
           const style = resultStyle[outcome]
 
           return (
-            <Link key={match.id} href={`/fixture/${match.id}?from=resultados`} className={cn("group flex flex-col gap-3 rounded-2xl border border-l-4 p-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md md:flex-row md:items-center md:justify-between md:p-4", style.article)}>
-              <div className="flex min-w-0 items-center gap-2.5 md:gap-3">
-                <span className={cn("inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-extrabold md:h-10 md:w-10", style.badge)}>
+            <Link key={match.id} href={`/fixture/${match.id}?from=resultados`} className={cn("group grid gap-3 rounded-2xl border border-l-4 p-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md md:flex md:items-center md:justify-between md:p-4", style.article)}>
+              <div className="grid min-w-0 grid-cols-[auto_auto_1fr] items-center gap-2.5 md:flex md:gap-3">
+                <span className={cn("inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-extrabold md:h-10 md:w-10 md:text-sm", style.badge)}>
                   {style.label}
                 </span>
                 <MatchCrests match={match} />
                 <div className="min-w-0">
-                  <p className="font-display text-base font-bold leading-tight md:text-lg">
+                  <p className="font-display text-[0.95rem] font-bold leading-tight md:text-lg">
                     <span>{formatResultLine(match, style.score)}</span>
                   </p>
-                  <p className="text-xs uppercase tracking-wider text-muted-foreground">{match.competition} · {match.isHome ? "Local" : "Visitante"}</p>
+                  <p className="mt-1 text-[0.66rem] uppercase tracking-wider text-muted-foreground md:text-xs">{match.competition} · {match.isHome ? "Local" : "Visitante"}</p>
                 </div>
               </div>
-              <div className="flex flex-wrap items-center gap-3 pl-[4.5rem] md:pl-0">
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-background/70 p-2 md:bg-transparent md:p-0 md:pl-0">
                 <InfoMini icon={<Calendar className="h-3.5 w-3.5" />} value={formatWeekdayDate(match.date)} />
                 <span className="text-xs font-bold uppercase tracking-[0.18em] text-primary md:opacity-0 md:transition md:group-hover:opacity-100">
                   Ver ficha
@@ -143,19 +140,19 @@ function MatchCrests({ match }: { match: Match }) {
   const awayTeam = match.isHome ? match.opponent : "River Plate"
 
   return (
-    <div className="flex shrink-0 items-center gap-1.5">
-      <TeamCrest team={homeTeam} size="sm" className="md:h-12 md:w-12" />
-      <span className="text-xs font-extrabold text-muted-foreground">vs</span>
-      <TeamCrest team={awayTeam} size="sm" className="md:h-12 md:w-12" />
+    <div className="flex shrink-0 items-center gap-1.5 rounded-full bg-background/75 px-1.5 py-1 ring-1 ring-border/60 md:bg-transparent md:p-0 md:ring-0">
+      <TeamCrest team={homeTeam} size="sm" className="h-8 w-8 md:h-12 md:w-12" />
+      <span className="text-[0.6rem] font-extrabold text-muted-foreground md:text-xs">vs</span>
+      <TeamCrest team={awayTeam} size="sm" className="h-8 w-8 md:h-12 md:w-12" />
     </div>
   )
 }
 
 function FilterBar({ active, onChange }: { active: (typeof filters)[number]; onChange: (value: (typeof filters)[number]) => void }) {
   return (
-    <div className="-mx-1 flex gap-1 overflow-x-auto rounded-full border border-border bg-card p-1 shadow-sm md:mx-0 md:inline-flex md:flex-wrap md:overflow-visible">
+    <div className="-mx-1 flex gap-1 overflow-x-auto rounded-2xl border border-border bg-card p-1 shadow-sm md:mx-0 md:inline-flex md:flex-wrap md:overflow-visible md:rounded-full">
       {filters.map((filter) => (
-        <button key={filter} type="button" onClick={() => onChange(filter)} className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold ${filter === active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
+        <button key={filter} type="button" onClick={() => onChange(filter)} className={`shrink-0 rounded-xl px-3 py-1.5 text-[0.68rem] font-bold md:rounded-full md:text-xs ${filter === active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
           {filter}
         </button>
       ))}

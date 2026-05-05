@@ -16,10 +16,10 @@ export default function FixturePage() {
     <div className="flex min-h-dvh flex-col">
       <SiteHeader />
       <main className="flex-1">
-        <div className="container-prose space-y-6 py-5 md:space-y-8 md:py-10">
-          <header className="space-y-2">
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Calendario</p>
-            <h1 className="font-display text-[2rem] font-extrabold tracking-tight leading-tight md:text-4xl">Fixture y resultados</h1>
+        <div className="container-prose space-y-4 py-4 md:space-y-8 md:py-10">
+          <header className="space-y-1.5 md:space-y-2">
+            <p className="text-[0.68rem] font-bold uppercase tracking-[0.2em] text-primary md:text-xs">Calendario</p>
+            <h1 className="font-display text-[1.75rem] font-extrabold tracking-tight leading-tight md:text-4xl">Fixture y resultados</h1>
           </header>
           {nextMatch && <Scoreboard match={nextMatch} variant="compact" />}
           <FixtureTabs upcoming={upcoming} previous={previous} />

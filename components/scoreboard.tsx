@@ -47,20 +47,20 @@ export function Scoreboard({ match, variant = "hero" }: ScoreboardProps) {
         />
 
         <div className="relative grid gap-4 p-4 md:grid-cols-[1fr_auto] md:items-center md:gap-8 md:p-6">
-          <div className="flex min-w-0 items-center gap-3 md:gap-4">
-            <div className="flex shrink-0 items-center gap-2 md:gap-3">
-              <TeamCrest team={homeTeam} size="sm" className="md:h-12 md:w-12" />
-              <span className="font-display text-base font-extrabold tracking-wider text-secondary-foreground/80 md:text-lg">
+          <div className="grid min-w-0 gap-3 md:flex md:items-center md:gap-4">
+            <div className="flex shrink-0 items-center justify-center gap-3 rounded-2xl bg-white/7 px-3 py-2 ring-1 ring-white/10 md:justify-start md:bg-transparent md:p-0 md:ring-0">
+              <TeamCrest team={homeTeam} size="md" className="h-10 w-10 bg-white/95 p-1 shadow-sm md:h-12 md:w-12" />
+              <span className="font-display text-sm font-extrabold tracking-wider text-secondary-foreground/80 md:text-lg">
                 VS
               </span>
-              <TeamCrest team={awayTeam} size="sm" className="md:h-12 md:w-12" />
+              <TeamCrest team={awayTeam} size="md" className="h-10 w-10 bg-white/95 p-1 shadow-sm md:h-12 md:w-12" />
             </div>
-            <div className="min-w-0">
+            <div className="min-w-0 text-center md:text-left">
               <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-secondary-foreground/70">
-                <span className="h-1 w-6 rounded-full bg-primary" aria-hidden="true" />
+                <span className="hidden h-1 w-6 rounded-full bg-primary md:block" aria-hidden="true" />
                 Próximo partido
               </div>
-              <h2 className="mt-1 font-display text-lg font-extrabold leading-tight md:truncate md:text-2xl">
+              <h2 className="mt-1 font-display text-[1.05rem] font-extrabold leading-tight md:truncate md:text-2xl">
                 {homeTeam} vs. {awayTeam}
               </h2>
               <p className="mt-0.5 text-xs uppercase tracking-wider text-secondary-foreground/60">
@@ -70,7 +70,7 @@ export function Scoreboard({ match, variant = "hero" }: ScoreboardProps) {
           </div>
 
           <div className="flex flex-col gap-3">
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs md:gap-x-4 md:text-sm">
+            <div className="grid grid-cols-1 gap-1.5 rounded-2xl bg-white/7 p-3 text-xs ring-1 ring-white/10 sm:grid-cols-3 md:flex md:flex-wrap md:items-center md:gap-x-4 md:bg-transparent md:p-0 md:text-sm md:ring-0">
               <InfoInline
                 icon={<Calendar className="h-3.5 w-3.5" />}
                 value={formatWeekdayDate(match.date)}

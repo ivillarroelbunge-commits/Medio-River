@@ -1,7 +1,7 @@
 "use client"
 
 import { type ReactNode, useMemo, useState } from "react"
-import { CalendarDays, ChevronDown, FilePenLine, ShieldCheck, ShieldQuestion, Trophy, Users } from "lucide-react"
+import { CalendarDays, ChevronDown, FilePenLine, Search, ShieldCheck, ShieldQuestion, Trophy, Users } from "lucide-react"
 import { useAppState } from "@/components/app-state-provider"
 import { EditorNewsForm } from "@/components/editor-news-form"
 import { Badge } from "@/components/ui/badge"
@@ -53,6 +53,9 @@ export function AdminPageClient() {
   const [error, setError] = useState<string | null>(null)
   const [pendingUserId, setPendingUserId] = useState<string | null>(null)
   const [pendingNewsId, setPendingNewsId] = useState<string | null>(null)
+  const [newsQuery, setNewsQuery] = useState("")
+  const [usersQuery, setUsersQuery] = useState("")
+  const [matchesQuery, setMatchesQuery] = useState("")
 
   const orderedUsers = useMemo(() => {
     const order: Record<UserRole, number> = { admin: 0, editor: 1, user: 2 }
@@ -65,6 +68,42 @@ export function AdminPageClient() {
   const sortedMatches = useMemo(
     () => matches.slice().sort((a, b) => +new Date(a.date) - +new Date(b.date)),
     [matches],
+  )
+
+  const filteredNews = useMemo(
+    () => news.filter((article) => matchesSearch(newsQuery, [
+      article.title,
+      article.category,
+      article.competition,
+      article.tag,
+      article.author,
+    ])),
+    [news, newsQuery],
+  )
+
+  const filteredUsers = useMemo(
+    () => orderedUsers.filter((user) => matchesSearch(usersQuery, [
+      user.name,
+      user.email,
+      user.role,
+      getRoleLabel(user.role),
+    ])),
+    [orderedUsers, usersQuery],
+  )
+
+  const filteredMatches = useMemo(
+    () => sortedMatches.filter((match) => matchesSearch(matchesQuery, [
+      match.opponent,
+      match.competition,
+      match.status === "played" ? "jugado resultado finalizado" : "proximo próximo",
+      match.isHome ? "local" : "visitante",
+      match.stadium,
+      match.tvChannel,
+      match.referee,
+      match.status === "played" ? `${match.riverScore ?? 0}-${match.opponentScore ?? 0}` : undefined,
+      match.status === "played" ? `${match.riverScore ?? 0} - ${match.opponentScore ?? 0}` : undefined,
+    ])),
+    [matchesQuery, sortedMatches],
   )
 
   const triviaPlannerDays = useMemo(
@@ -148,7 +187,16 @@ export function AdminPageClient() {
             {editingNews && <Badge variant="outline" className="rounded-full">Editando: {editingNews.title}</Badge>}
           </div>
 
-          {news.map((article) => (
+          <AdminSearch
+            value={newsQuery}
+            onChange={setNewsQuery}
+            placeholder="Buscar por título, categoría, competencia, autor..."
+            resultLabel={`${filteredNews.length} de ${news.length} noticias`}
+          />
+
+          {filteredNews.length === 0 && <EmptyAdminSearch text="No hay noticias que coincidan con esa búsqueda." />}
+
+          {filteredNews.map((article) => (
             <div key={article.id} className="space-y-3">
               <div className={`flex flex-col gap-3 rounded-2xl border p-3 md:flex-row md:items-center md:justify-between md:p-4 ${editingNews?.id === article.id ? "border-primary/40 bg-primary/5" : "border-border"}`}>
                 <div>
@@ -204,8 +252,21 @@ export function AdminPageClient() {
 
       {active === "usuarios" && (
         <section className="space-y-3 rounded-2xl border border-border bg-card p-4 shadow-sm md:p-5">
-          <h2 className="font-display text-xl font-extrabold md:text-2xl">Usuarios</h2>
-          {orderedUsers.map((user) => (
+          <div>
+            <h2 className="font-display text-xl font-extrabold md:text-2xl">Usuarios</h2>
+            <p className="text-sm text-muted-foreground">Buscar usuarios y modificar roles.</p>
+          </div>
+
+          <AdminSearch
+            value={usersQuery}
+            onChange={setUsersQuery}
+            placeholder="Buscar por nombre, email o rol..."
+            resultLabel={`${filteredUsers.length} de ${users.length} usuarios`}
+          />
+
+          {filteredUsers.length === 0 && <EmptyAdminSearch text="No hay usuarios que coincidan con esa búsqueda." />}
+
+          {filteredUsers.map((user) => (
             <div key={user.id} className="flex flex-col gap-3 rounded-2xl border border-border p-3 md:flex-row md:items-center md:justify-between md:p-4">
               <div>
                 <div className="flex flex-wrap items-center gap-2">
@@ -280,8 +341,17 @@ export function AdminPageClient() {
             <p className="text-sm text-muted-foreground">Modificar fixture, resultados, estadio y TV.</p>
           </div>
 
+          <AdminSearch
+            value={matchesQuery}
+            onChange={setMatchesQuery}
+            placeholder="Buscar por rival, competencia, estadio, estado..."
+            resultLabel={`${filteredMatches.length} de ${matches.length} partidos`}
+          />
+
           <div className="space-y-3">
-            {sortedMatches.map((match) => (
+            {filteredMatches.length === 0 && <EmptyAdminSearch text="No hay partidos que coincidan con esa búsqueda." />}
+
+            {filteredMatches.map((match) => (
               <div key={match.id} className="space-y-3">
                 <div className={`flex flex-col gap-3 rounded-2xl border p-3 md:flex-row md:items-center md:justify-between md:p-4 ${editingMatch?.id === match.id ? "border-primary/40 bg-primary/5" : "border-border"}`}>
                   <div>
@@ -895,6 +965,63 @@ function AdminInput({ label, name, defaultValue, type = "text" }: { label: strin
       <input name={name} type={type} defaultValue={defaultValue} className="h-10 w-full rounded-xl border border-input bg-background px-3 text-sm font-normal" />
     </label>
   )
+}
+
+function AdminSearch({
+  onChange,
+  placeholder,
+  resultLabel,
+  value,
+}: {
+  onChange: (value: string) => void
+  placeholder: string
+  resultLabel: string
+  value: string
+}) {
+  return (
+    <div className="flex flex-col gap-2 rounded-2xl border border-border bg-background p-2.5 sm:flex-row sm:items-center sm:justify-between sm:p-3">
+      <label className="relative min-w-0 flex-1">
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <input
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          placeholder={placeholder}
+          className="h-10 w-full rounded-full border border-input bg-card pl-9 pr-4 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/15"
+        />
+      </label>
+      <div className="flex items-center justify-between gap-2 sm:justify-end">
+        <span className="px-2 text-xs font-semibold text-muted-foreground">{resultLabel}</span>
+        {value && (
+          <Button type="button" variant="ghost" className="h-8 rounded-full px-3 text-xs" onClick={() => onChange("")}>
+            Limpiar
+          </Button>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function EmptyAdminSearch({ text }: { text: string }) {
+  return (
+    <p className="rounded-2xl border border-dashed border-border bg-background px-4 py-5 text-center text-sm text-muted-foreground">
+      {text}
+    </p>
+  )
+}
+
+function matchesSearch(query: string, values: Array<string | number | undefined | null>) {
+  const normalizedQuery = normalizeSearchText(query)
+  if (!normalizedQuery) return true
+
+  return values.some((value) => normalizeSearchText(String(value ?? "")).includes(normalizedQuery))
+}
+
+function normalizeSearchText(value: string) {
+  return value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
 }
 
 function AdminSelect({ label, name, defaultValue, options }: { label: string; name: string; defaultValue: string; options: string[] }) {
