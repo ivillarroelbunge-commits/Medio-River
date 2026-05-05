@@ -3293,7 +3293,7 @@ export const matchDetailsById: Record<string, MatchDetail> = {
   },
   "match-19": {
     "sourceLabel": "Río Negro / Doble Amarilla",
-    "sourceUrl": "https://www.rionegro.com.ar/deportes/futbol/river-vs-bragantino-por-la-copa-sudamericana-a-que-hora-juegan-y-donde-ver-el-partido-4140829/",
+    "sourceUrl": "https://www.rionegro.com.ar/deportes/futbol/river-visita-a-bragantino-en-brasil-en-un-partido-clave-por-la-copa-sudamericana-4559195/",
     "referee": "Sin dato confirmado",
     "goals": [
       {
