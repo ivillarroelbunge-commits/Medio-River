@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { ChevronDown } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { NewsCard } from "@/components/news-card"
 import { SiteFooter } from "@/components/site-footer"
@@ -103,26 +104,10 @@ export default function NoticiasPage() {
 
           <div className="space-y-3 rounded-xl border border-border/70 bg-muted/20 p-3 md:p-4">
             <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar noticia" className="h-10 w-full rounded-lg border border-input/70 bg-background/80 px-3.5 text-sm" />
-            <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 md:mx-0 md:flex-wrap md:overflow-visible md:px-0 md:pb-0">
-              {["Todas", "Información", "Opinión"].map((item) => (
-                <button key={item} type="button" onClick={() => setTag(item)} className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold ${item === tag ? "bg-foreground text-background" : "border border-border text-muted-foreground hover:text-foreground"}`}>
-                  {item}
-                </button>
-              ))}
-            </div>
-            <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 md:mx-0 md:flex-wrap md:overflow-visible md:px-0 md:pb-0">
-              {categories.map((item) => (
-                <button key={item} type="button" onClick={() => setCategory(item)} className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold ${item === category ? "bg-primary text-primary-foreground" : "border border-border text-muted-foreground hover:text-foreground"}`}>
-                  {item}
-                </button>
-              ))}
-            </div>
-            <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 md:mx-0 md:flex-wrap md:overflow-visible md:px-0 md:pb-0">
-              {competitions.map((item) => (
-                <button key={item} type="button" onClick={() => setCompetition(item)} className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold ${item === competition ? "bg-secondary text-secondary-foreground" : "border border-border text-muted-foreground hover:text-foreground"}`}>
-                  {item}
-                </button>
-              ))}
+            <div className="grid gap-2 sm:grid-cols-3">
+              <FilterSelect label="Tipo" value={tag} options={["Todas", "Información", "Opinión"]} onChange={setTag} tone="dark" />
+              <FilterSelect label="Categoría" value={category} options={categories} onChange={setCategory} tone="primary" />
+              <FilterSelect label="Competencia" value={competition} options={competitions} onChange={setCompetition} tone="secondary" />
             </div>
           </div>
 
@@ -148,6 +133,44 @@ export default function NoticiasPage() {
 
 function mergeNewsOptions(defaults: string[], values: Array<string | undefined>) {
   return Array.from(new Set([...defaults, ...values].filter((value): value is string => Boolean(value?.trim())).map((value) => normalizeNewsCategory(value)).filter(Boolean)))
+}
+
+function FilterSelect({
+  label,
+  options,
+  value,
+  onChange,
+  tone,
+}: {
+  label: string
+  options: string[]
+  value: string
+  onChange: (value: string) => void
+  tone: "dark" | "primary" | "secondary"
+}) {
+  const active = value !== "Todas"
+  const activeClass =
+    tone === "dark"
+      ? "border-foreground bg-foreground text-background"
+      : tone === "primary"
+        ? "border-primary bg-primary text-primary-foreground"
+        : "border-secondary bg-secondary text-secondary-foreground"
+
+  return (
+    <label className="relative block">
+      <span className="mb-1.5 block text-[0.64rem] font-extrabold uppercase tracking-[0.14em] text-muted-foreground">
+        {label}
+      </span>
+      <select
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className={`h-10 w-full appearance-none rounded-full border px-3.5 pr-9 text-xs font-bold outline-none transition focus-visible:ring-2 focus-visible:ring-ring ${active ? activeClass : "border-border bg-background text-muted-foreground hover:text-foreground"}`}
+      >
+        {options.map((item) => <option key={item} value={item}>{item}</option>)}
+      </select>
+      <ChevronDown className={`pointer-events-none absolute bottom-3 right-3 h-4 w-4 ${active ? "opacity-80" : "text-muted-foreground"}`} />
+    </label>
+  )
 }
 
 function FeaturedLeadCard({ article }: { article: NewsArticle }) {
