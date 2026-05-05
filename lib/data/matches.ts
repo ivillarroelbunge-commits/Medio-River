@@ -258,7 +258,7 @@ export const matches: Match[] = [
     status: "played",
     isHome: true,
     stadium: "Monumental",
-    referee: "Darío Herrera",
+    referee: "Yael Falcón Pérez",
     tvChannel: "TNT Sports",
     riverScore: 0,
     opponentScore: 1,

@@ -3505,7 +3505,7 @@ export const matchDetailsById: Record<string, MatchDetail> = {
   "match-20": {
     "sourceLabel": "La Historia River",
     "sourceUrl": "https://lahistoriariver.com/partidos/river-plate-atletico-tucuman-torneo-apertura-2026",
-    "referee": "Darío Herrera",
+    "referee": "Yael Falcón Pérez",
     "goals": [
       {
         "team": "opponent",

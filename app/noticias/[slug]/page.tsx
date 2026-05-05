@@ -6,9 +6,9 @@ import { SiteFooter } from "@/components/site-footer"
 import { SiteHeader } from "@/components/site-header"
 import { useAppState } from "@/components/app-state-provider"
 import { NewsCard } from "@/components/news-card"
+import { NewsImage } from "@/components/news-image"
 import { ShareButtons } from "@/components/share-buttons"
 import { formatDateLong } from "@/lib/format"
-import { getNewsImage } from "@/lib/news-media"
 import { normalizeNewsCategory } from "@/lib/news-taxonomy"
 
 export default function NoticiaDetallePage() {
@@ -76,7 +76,7 @@ export default function NoticiaDetallePage() {
             <p className="text-sm text-muted-foreground">{article.author} · {formatDateLong(article.date)}</p>
             <p className="text-base leading-7 text-muted-foreground md:text-lg md:leading-8">{article.intro}</p>
           </header>
-          <img src={getNewsImage(article)} alt={article.title} className="h-[16rem] w-full rounded-2xl object-cover md:h-[30rem] md:rounded-3xl" />
+          <NewsImage article={article} className="h-[16rem] w-full rounded-2xl md:h-[30rem] md:rounded-3xl" />
           <div className="news-rich-content space-y-4 text-sm leading-7 text-foreground md:space-y-5 md:text-base md:leading-8">
             {article.content.some(hasHtmlTags) ? (
               <div dangerouslySetInnerHTML={{ __html: sanitizeStoredNewsHtml(article.content.join("")) }} />

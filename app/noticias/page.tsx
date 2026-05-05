@@ -4,12 +4,12 @@ import Link from "next/link"
 import { ChevronDown } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { NewsCard } from "@/components/news-card"
+import { NewsImage } from "@/components/news-image"
 import { SiteFooter } from "@/components/site-footer"
 import { SiteHeader } from "@/components/site-header"
 import { Button } from "@/components/ui/button"
 import { useAppState } from "@/components/app-state-provider"
 import type { NewsArticle } from "@/lib/data/types"
-import { getNewsImage } from "@/lib/news-media"
 import { timeAgo } from "@/lib/format"
 import { defaultNewsCategories, normalizeNewsCategory } from "@/lib/news-taxonomy"
 
@@ -177,7 +177,7 @@ function FeaturedLeadCard({ article }: { article: NewsArticle }) {
   return (
     <article className="overflow-hidden rounded-[1.5rem] border border-border shadow-[0_12px_34px_rgba(15,23,42,0.12)] md:rounded-[2rem] xl:h-full">
       <Link href={`/noticias/${article.slug}`} className="group relative block min-h-[16rem] overflow-hidden sm:min-h-[18rem] md:min-h-[30rem] xl:h-full xl:min-h-0">
-        <img src={getNewsImage(article)} alt={article.title} className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.02]" />
+        <NewsImage article={article} className="absolute inset-0 h-full w-full" imageClassName="transition duration-500 group-hover:scale-[1.02]" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/84 via-black/26 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 p-4 md:p-7 xl:p-8">
           <div className="flex flex-wrap gap-1.5 sm:gap-2">
@@ -209,7 +209,7 @@ function FeaturedSideCard({ article }: { article: NewsArticle }) {
   return (
     <article className="overflow-hidden rounded-[1.5rem] border border-border bg-card shadow-sm md:rounded-[2rem] xl:flex-1">
       <Link href={`/noticias/${article.slug}`} className="grid h-full grid-cols-[5.5rem_1fr] gap-3 p-3 sm:grid-cols-[9.5rem_1fr] sm:items-start md:gap-4 md:p-5 xl:h-full">
-        <img src={getNewsImage(article)} alt={article.title} className="h-full min-h-[6.5rem] w-full rounded-[1rem] object-cover sm:min-h-[9.5rem] md:rounded-[1.35rem]" />
+        <NewsImage article={article} className="h-full min-h-[6.5rem] w-full rounded-[1rem] sm:min-h-[9.5rem] md:rounded-[1.35rem]" />
         <div className="flex h-full flex-col">
           <div>
             <p className="text-[0.72rem] font-extrabold uppercase tracking-[0.08em] text-primary">{normalizeNewsCategory(article.category)}</p>

@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { defaultNewsCategories, normalizeNewsCategory } from "@/lib/news-taxonomy"
+import { getNewsImageStyle } from "@/lib/news-media"
 
 const defaultCategories = defaultNewsCategories
 const defaultCompetitions = ["Torneo Apertura", "Copa Sudamericana", "Copa Argentina"]
@@ -31,10 +32,16 @@ export function EditorNewsForm({
     competition?: NewsArticle["competition"]
     tag: NewsArticle["tag"]
     image?: string
+    imageFocusX?: number
+    imageFocusY?: number
+    imageZoom?: number
   }) => void
   submitLabel: string
 }) {
   const [image, setImage] = useState(initialArticle?.image ?? "")
+  const [imageFocusX, setImageFocusX] = useState(initialArticle?.imageFocusX ?? 50)
+  const [imageFocusY, setImageFocusY] = useState(initialArticle?.imageFocusY ?? 50)
+  const [imageZoom, setImageZoom] = useState(initialArticle?.imageZoom ?? 1)
   const baseCategories = mergeOptions(categoryOptions, defaultCategories)
   const baseCompetitions = mergeOptions(competitionOptions, defaultCompetitions)
   const initialCategoryIsCustom = Boolean(initialArticle?.category && !baseCategories.includes(initialArticle.category))
@@ -69,6 +76,9 @@ export function EditorNewsForm({
           competition: competition || undefined,
           tag: String(formData.get("tag") || initialArticle?.tag || "Información") as NewsArticle["tag"],
           image: image || undefined,
+          imageFocusX,
+          imageFocusY,
+          imageZoom,
         })
       }}
     >
@@ -142,31 +152,181 @@ export function EditorNewsForm({
           </div>
         </div>
       </div>
-      <div className="space-y-2">
-        <Label htmlFor="news-image">Imagen URL</Label>
-        <Input id="news-image" value={image} onChange={(event) => setImage(event.target.value)} placeholder="https://..." />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="news-image-file">O subir archivo</Label>
-        <Input
-          id="news-image-file"
-          type="file"
-          accept="image/*"
-          onChange={(event) => {
-            const file = event.target.files?.[0]
-            if (!file) return
-            const reader = new FileReader()
-            reader.onload = () => {
-              if (typeof reader.result === "string") setImage(reader.result)
-            }
-            reader.readAsDataURL(file)
+      <section className="space-y-4 rounded-2xl border border-border bg-muted/20 p-3 sm:p-4">
+        <div>
+          <p className="text-sm font-extrabold text-foreground">Imagen y encuadre</p>
+          <p className="text-xs text-muted-foreground">Cargá la imagen y ajustá cómo se recorta en la home, cards y detalle.</p>
+        </div>
+        <div className="grid gap-3 md:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="news-image">Imagen URL</Label>
+            <Input id="news-image" value={image} onChange={(event) => setImage(event.target.value)} placeholder="https://..." />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="news-image-file">O subir archivo</Label>
+            <Input
+              id="news-image-file"
+              type="file"
+              accept="image/*"
+              onChange={(event) => {
+                const file = event.target.files?.[0]
+                if (!file) return
+                const reader = new FileReader()
+                reader.onload = () => {
+                  if (typeof reader.result === "string") setImage(reader.result)
+                }
+                reader.readAsDataURL(file)
+              }}
+            />
+          </div>
+        </div>
+        <ImageCropControls
+          article={{
+            ...(initialArticle ?? createPreviewArticle()),
+            title: String(initialArticle?.title || "Vista previa de imagen"),
+            image: image || undefined,
+            imageFocusX,
+            imageFocusY,
+            imageZoom,
           }}
+          imageFocusX={imageFocusX}
+          imageFocusY={imageFocusY}
+          imageZoom={imageZoom}
+          onFocusXChange={setImageFocusX}
+          onFocusYChange={setImageFocusY}
+          onZoomChange={setImageZoom}
         />
-      </div>
-      {image && <img src={image} alt="Preview" className="h-40 w-full rounded-2xl object-cover" />}
+      </section>
       <Button type="submit" className="w-full rounded-full sm:w-auto">{submitLabel}</Button>
     </form>
   )
+}
+
+function ImageCropControls({
+  article,
+  imageFocusX,
+  imageFocusY,
+  imageZoom,
+  onFocusXChange,
+  onFocusYChange,
+  onZoomChange,
+}: {
+  article: NewsArticle
+  imageFocusX: number
+  imageFocusY: number
+  imageZoom: number
+  onFocusXChange: (value: number) => void
+  onFocusYChange: (value: number) => void
+  onZoomChange: (value: number) => void
+}) {
+  return (
+    <section className="rounded-2xl border border-border bg-muted/25 p-3 sm:p-4">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <p className="text-sm font-extrabold text-foreground">Encuadre de imagen</p>
+          <p className="text-xs text-muted-foreground">Ajustá zoom y foco. Se usa en carrusel, cards y detalle.</p>
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          className="h-8 rounded-full px-3 text-xs"
+          onClick={() => {
+            onFocusXChange(50)
+            onFocusYChange(50)
+            onZoomChange(1)
+          }}
+        >
+          Centrar
+        </Button>
+      </div>
+
+      <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_18rem]">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <ImagePreview article={article} label="Carrusel" className="h-44 sm:col-span-2 md:h-56" />
+          <ImagePreview article={article} label="Card" className="h-32" />
+          <ImagePreview article={article} label="Detalle" className="h-32" />
+        </div>
+
+        <div className="space-y-4 rounded-2xl bg-card p-3 shadow-sm">
+          <RangeControl label="Foco horizontal" value={imageFocusX} min={0} max={100} step={1} suffix="%" onChange={onFocusXChange} />
+          <RangeControl label="Foco vertical" value={imageFocusY} min={0} max={100} step={1} suffix="%" onChange={onFocusYChange} />
+          <RangeControl label="Zoom / tamaño" value={imageZoom} min={1} max={2} step={0.01} suffix="x" onChange={onZoomChange} />
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function ImagePreview({ article, label, className }: { article: NewsArticle; label: string; className: string }) {
+  return (
+    <div className={`relative overflow-hidden rounded-2xl bg-muted ${className}`}>
+      {article.image ? (
+        <img src={article.image} alt={article.title} className="absolute inset-0 h-full w-full object-cover" style={getNewsImageStyle(article)} />
+      ) : (
+        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-muted to-background px-5 text-center text-xs font-semibold text-muted-foreground">
+          Cargá una imagen para ver y ajustar el recorte
+        </div>
+      )}
+      <span className="absolute left-3 top-3 rounded-full bg-black/65 px-2.5 py-1 text-[0.62rem] font-bold uppercase tracking-[0.1em] text-white backdrop-blur">
+        {label}
+      </span>
+    </div>
+  )
+}
+
+function RangeControl({
+  label,
+  value,
+  min,
+  max,
+  step,
+  suffix,
+  onChange,
+}: {
+  label: string
+  value: number
+  min: number
+  max: number
+  step: number
+  suffix: string
+  onChange: (value: number) => void
+}) {
+  return (
+    <label className="block space-y-2">
+      <span className="flex items-center justify-between gap-3 text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground">
+        {label}
+        <span className="text-foreground">{formatRangeValue(value)}{suffix}</span>
+      </span>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(event) => onChange(Number(event.target.value))}
+        className="w-full accent-primary"
+      />
+    </label>
+  )
+}
+
+function createPreviewArticle(): NewsArticle {
+  return {
+    id: "preview",
+    slug: "preview",
+    title: "Vista previa",
+    excerpt: "",
+    intro: "",
+    content: [],
+    author: "Medio River",
+    date: new Date(0).toISOString(),
+    category: "Partidos",
+    tag: "Información",
+  }
+}
+
+function formatRangeValue(value: number) {
+  return Number.isInteger(value) ? String(value) : value.toFixed(2)
 }
 
 function mergeOptions(options: string[], defaults: string[], current?: string) {

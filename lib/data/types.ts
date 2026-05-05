@@ -18,6 +18,9 @@ export interface NewsArticle {
   content: string[]
   image?: string
   imageQuery?: string
+  imageFocusX?: number
+  imageFocusY?: number
+  imageZoom?: number
   author: string
   date: string
   category: NewsCategory

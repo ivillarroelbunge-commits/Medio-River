@@ -19,7 +19,7 @@ import {
 import type { AppUser, DailyTrivia, Match, NewsArticle, SquadPlayer, TriviaQuestion, TriviaResult, UserRole } from "@/lib/data/types"
 import { createClient as createSupabaseBrowserClient } from "@/lib/supabase/client"
 import { fetchMatches, getMatchTableMissingMessage, mapMatchRowToMatch, mapMatchToPayload, MATCHES_SELECT, type MatchRow } from "@/lib/supabase/matches"
-import { fetchNewsArticles, mapNewsRowToArticle, NEWS_SELECT } from "@/lib/supabase/news"
+import { fetchNewsArticles, isMissingImageCropColumn, mapNewsRowToArticle, NEWS_SELECT } from "@/lib/supabase/news"
 import { mapProfileToAppUser, type ProfileRow } from "@/lib/supabase/profiles"
 import { normalizeNewsCategory } from "@/lib/news-taxonomy"
 import {
@@ -48,6 +48,9 @@ interface NewsInput {
   competition?: NewsArticle["competition"]
   tag?: NewsArticle["tag"]
   image?: string
+  imageFocusX?: number
+  imageFocusY?: number
+  imageZoom?: number
 }
 
 interface AuthActionResult {
@@ -145,7 +148,12 @@ function mergeStoredMatches(seedMatches: Match[], storedMatches: Match[]) {
 }
 
 function shouldPreferSeedMatchDetail(seedMatch: Match, storedMatch: Match) {
-  return seedMatch.detail?.sourceLabel === "La Historia River" && storedMatch.detail?.sourceLabel !== "La Historia River"
+  if (seedMatch.detail?.sourceLabel !== "La Historia River") return false
+  if (storedMatch.detail?.sourceLabel !== "La Historia River") return true
+
+  // La Historia River imports are source-of-truth snapshots; this keeps stale
+  // Supabase rows from overriding corrected source data.
+  return seedMatch.detail?.sourceUrl === storedMatch.detail?.sourceUrl
 }
 
 function getProfilePayload(user: User) {
@@ -530,6 +538,9 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         intro,
         content,
         image: input.image?.trim() || undefined,
+        imageFocusX: input.imageFocusX ?? existingArticle?.imageFocusX ?? 50,
+        imageFocusY: input.imageFocusY ?? existingArticle?.imageFocusY ?? 50,
+        imageZoom: input.imageZoom ?? existingArticle?.imageZoom ?? 1,
         author: existingArticle?.author ?? currentUser?.name ?? "Redacción Medio River",
         date: existingArticle?.date ?? new Date().toISOString(),
         category: normalizeNewsCategory(input.category) || "Partidos",
@@ -546,6 +557,9 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         intro: article.intro,
         content: article.content,
         image: article.image ?? null,
+        image_focus_x: article.imageFocusX ?? 50,
+        image_focus_y: article.imageFocusY ?? 50,
+        image_zoom: article.imageZoom ?? 1,
         author: article.author,
         author_id: currentUser?.id ?? null,
         published_at: article.date,
@@ -877,6 +891,10 @@ function hasHtmlContent(value: string) {
 function getNewsSaveErrorMessage(message?: string) {
   if (message?.toLowerCase().includes("check constraint")) {
     return "Supabase todavía tiene una restricción vieja para categorías/competencias. Aplicá la migración 20260429_allow_custom_news_taxonomy.sql y volvé a guardar."
+  }
+
+  if (isMissingImageCropColumn(message)) {
+    return "Falta aplicar la migración 20260505_add_news_image_crop_settings.sql en Supabase para guardar el encuadre de imágenes."
   }
 
   return message || "No se pudo guardar la noticia."

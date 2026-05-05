@@ -48,13 +48,12 @@ export function EditorPageClient() {
         </div>
       </div>
 
-      {mode !== "list" && (
+      {mode === "create" && (
         <EditorNewsForm
-          key={editing?.id ?? 'new'}
+          key="new"
           categoryOptions={categoryOptions}
           competitionOptions={competitionOptions}
-          initialArticle={editing ?? undefined}
-          submitLabel={isSaving ? "Guardando..." : mode === "edit" ? "Guardar cambios" : "Publicar noticia"}
+          submitLabel={isSaving ? "Guardando..." : "Publicar noticia"}
           onSubmit={async (input) => {
             setError(null)
             setIsSaving(true)
@@ -98,18 +97,45 @@ export function EditorPageClient() {
         </div>
 
         {news.map((article) => (
-          <div key={article.id} className="flex flex-col gap-3 rounded-2xl border border-border p-3 md:flex-row md:items-center md:justify-between md:p-4">
-            <div>
-              <p className="font-semibold text-foreground">{article.title}</p>
-              <p className="text-sm text-muted-foreground">{article.category} · {article.competition ?? "Sin competencia"}</p>
+          <div key={article.id} className="space-y-3">
+            <div className={`flex flex-col gap-3 rounded-2xl border p-3 md:flex-row md:items-center md:justify-between md:p-4 ${editing?.id === article.id ? "border-primary/40 bg-primary/5" : "border-border"}`}>
+              <div>
+                <p className="font-semibold text-foreground">{article.title}</p>
+                <p className="text-sm text-muted-foreground">{article.category} · {article.competition ?? "Sin competencia"}</p>
+              </div>
+              <Button type="button" variant="outline" className="w-full rounded-full sm:w-auto" onClick={() => {
+                const isSameArticle = editing?.id === article.id && mode === "edit"
+                setEditing(isSameArticle ? null : article)
+                setMode(isSameArticle ? "list" : "edit")
+              }}>
+                <Pencil className="h-4 w-4" />
+                {editing?.id === article.id && mode === "edit" ? "Cerrar edición" : "Editar noticia"}
+              </Button>
             </div>
-            <Button type="button" variant="outline" className="w-full rounded-full sm:w-auto" onClick={() => {
-              setEditing(article)
-              setMode("edit")
-            }}>
-              <Pencil className="h-4 w-4" />
-              Editar noticia
-            </Button>
+            {editing?.id === article.id && mode === "edit" && (
+              <div className="rounded-2xl border border-primary/25 bg-primary/5 p-3">
+                <EditorNewsForm
+                  key={editing.id}
+                  categoryOptions={categoryOptions}
+                  competitionOptions={competitionOptions}
+                  initialArticle={editing}
+                  submitLabel={isSaving ? "Guardando..." : "Guardar cambios"}
+                  onSubmit={async (input) => {
+                    setError(null)
+                    setIsSaving(true)
+                    const result = await saveNews(input)
+                    setIsSaving(false)
+                    if (!result.ok) {
+                      setError(result.error ?? "No se pudo guardar la noticia.")
+                      return
+                    }
+                    setEditing(null)
+                    setMode("list")
+                    router.refresh()
+                  }}
+                />
+              </div>
+            )}
           </div>
         ))}
       </section>

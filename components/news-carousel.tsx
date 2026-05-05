@@ -3,8 +3,8 @@
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
+import { NewsImage } from "@/components/news-image"
 import type { NewsArticle } from "@/lib/data/types"
-import { getNewsImage } from "@/lib/news-media"
 
 export function NewsCarousel({ items }: { items: NewsArticle[] }) {
   const [index, setIndex] = useState(0)
@@ -34,7 +34,7 @@ export function NewsCarousel({ items }: { items: NewsArticle[] }) {
 
   return (
     <section className="relative overflow-hidden rounded-[1.5rem] bg-secondary text-secondary-foreground shadow-lg md:rounded-[2rem]">
-      <img src={getNewsImage(article)} alt={article.title} className="absolute inset-0 h-full w-full object-cover opacity-80" />
+      <NewsImage article={article} className="absolute inset-0 h-full w-full" imageClassName="opacity-80" />
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/22 to-black/0" />
 
       {items.length > 1 && (
