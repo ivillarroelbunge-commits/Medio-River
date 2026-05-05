@@ -125,7 +125,6 @@ function mergeStoredMatches(seedMatches: Match[], storedMatches: Match[]) {
     const storedMatch = storedById.get(seedMatch.id)
 
     if (!storedMatch) return seedMatch
-    if (storedMatch.opponent !== seedMatch.opponent || storedMatch.status !== seedMatch.status) return seedMatch
 
     return {
       ...seedMatch,
@@ -338,11 +337,30 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       })
     })
 
+    const matchesChannel = supabase
+      .channel("public-matches-changes")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "matches" }, (payload) => {
+        const match = mapMatchRowToMatch(payload.new as MatchRow)
+        setLocalState((previous) => ({
+          ...previous,
+          matches: mergeStoredMatches(previous.matches, [match]),
+        }))
+      })
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "matches" }, (payload) => {
+        const match = mapMatchRowToMatch(payload.new as MatchRow)
+        setLocalState((previous) => ({
+          ...previous,
+          matches: mergeStoredMatches(previous.matches, [match]),
+        }))
+      })
+      .subscribe()
+
     void hydrate()
 
     return () => {
       active = false
       subscription.unsubscribe()
+      void supabase.removeChannel(matchesChannel)
     }
   }, [supabase])
 
@@ -592,7 +610,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       const savedMatch = data ? mapMatchRowToMatch(data) : match
       setLocalState((previous) => ({
         ...previous,
-        matches: previous.matches.map((item) => (item.id === savedMatch.id ? savedMatch : item)),
+        matches: mergeStoredMatches(previous.matches, [savedMatch]),
       }))
 
       return { ok: true }

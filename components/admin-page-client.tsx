@@ -796,6 +796,8 @@ function MatchEditForm({
 }) {
   const [isSaving, setIsSaving] = useState(false)
   const [isAutofilling, setIsAutofilling] = useState(false)
+  const [status, setStatus] = useState<Match["status"]>(match.status)
+  const [isHome, setIsHome] = useState(match.isHome ? "home" : "away")
 
   return (
     <form
@@ -804,31 +806,65 @@ function MatchEditForm({
         event.preventDefault()
         setIsSaving(true)
         const formData = new FormData(event.currentTarget)
-        const status = String(formData.get("status") || match.status) as Match["status"]
+        const nextStatus = String(formData.get("status") || status) as Match["status"]
         await onSave({
           ...match,
           opponent: String(formData.get("opponent") || match.opponent),
           competition: String(formData.get("competition") || match.competition) as Competition,
           date: String(formData.get("date") || match.date),
-          status,
+          status: nextStatus,
           isHome: formData.get("isHome") === "home",
           stadium: String(formData.get("stadium") || match.stadium),
           tvChannel: String(formData.get("tvChannel") || "") || undefined,
-          riverScore: status === "played" ? Number(formData.get("riverScore") || 0) : undefined,
-          opponentScore: status === "played" ? Number(formData.get("opponentScore") || 0) : undefined,
+          riverScore: nextStatus === "played" ? Number(formData.get("riverScore") || 0) : undefined,
+          opponentScore: nextStatus === "played" ? Number(formData.get("opponentScore") || 0) : undefined,
         })
         setIsSaving(false)
       }}
     >
+      <div className="rounded-2xl border border-border bg-background p-3 md:col-span-2">
+        <p className="text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground">Estado del partido</p>
+        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+          <button
+            type="button"
+            onClick={() => setStatus("upcoming")}
+            className={`rounded-xl border px-4 py-3 text-left text-sm font-bold transition ${status === "upcoming" ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-foreground hover:border-primary/40"}`}
+          >
+            Próximo partido
+            <span className="mt-1 block text-xs font-medium opacity-75">No muestra resultado.</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setStatus("played")}
+            className={`rounded-xl border px-4 py-3 text-left text-sm font-bold transition ${status === "played" ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-foreground hover:border-primary/40"}`}
+          >
+            Ya se jugó
+            <span className="mt-1 block text-xs font-medium opacity-75">Habilita cargar el resultado.</span>
+          </button>
+        </div>
+        <input type="hidden" name="status" value={status} />
+      </div>
       <AdminInput label="Rival" name="opponent" defaultValue={match.opponent} />
       <AdminSelect label="Competencia" name="competition" defaultValue={match.competition} options={competitions} />
       <AdminInput label="Fecha ISO" name="date" defaultValue={match.date} />
-      <AdminSelect label="Estado" name="status" defaultValue={match.status} options={["upcoming", "played"]} />
-      <AdminSelect label="Condición" name="isHome" defaultValue={match.isHome ? "home" : "away"} options={["home", "away"]} />
+      <label className="space-y-1.5 text-sm font-semibold text-foreground">
+        <span>Condición</span>
+        <select name="isHome" value={isHome} onChange={(event) => setIsHome(event.target.value)} className="h-10 w-full rounded-xl border border-input bg-background px-3 text-sm font-normal">
+          <option value="home">Local</option>
+          <option value="away">Visitante</option>
+        </select>
+      </label>
       <AdminInput label="Estadio" name="stadium" defaultValue={match.stadium} />
       <AdminInput label="TV" name="tvChannel" defaultValue={match.tvChannel ?? ""} />
-      <AdminInput label="Goles River" name="riverScore" type="number" defaultValue={String(match.riverScore ?? 0)} />
-      <AdminInput label="Goles rival" name="opponentScore" type="number" defaultValue={String(match.opponentScore ?? 0)} />
+      {status === "played" && (
+        <div className="grid gap-3 rounded-2xl border border-primary/20 bg-primary/5 p-3 md:col-span-2 md:grid-cols-2">
+          <AdminInput label="Goles River" name="riverScore" type="number" defaultValue={String(match.riverScore ?? 0)} />
+          <AdminInput label={`Goles ${match.opponent}`} name="opponentScore" type="number" defaultValue={String(match.opponentScore ?? 0)} />
+          <p className="text-xs text-muted-foreground md:col-span-2">
+            Al guardar, este resultado queda en Supabase y se muestra públicamente en fixture, home y detalle del partido.
+          </p>
+        </div>
+      )}
       <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap md:col-span-2">
         <Button type="submit" className="rounded-full" disabled={isSaving || isAutofilling}>
           {isSaving ? "Guardando..." : "Guardar partido"}
