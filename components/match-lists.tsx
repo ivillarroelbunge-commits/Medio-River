@@ -44,17 +44,17 @@ export function UpcomingMatches({ matches }: { matches: Match[] }) {
   return (
     <section className="space-y-3 md:space-y-4">
       <FilterBar active={active} onChange={setActive} />
-      <div className="space-y-3">
+      <div className="space-y-2.5 md:space-y-3">
         {visible.map((match) => (
-          <article key={match.id} className={cn("grid gap-3 rounded-2xl border border-l-4 p-3 shadow-sm md:flex md:items-center md:justify-between md:p-4", competitionStyle[match.competition])}>
-            <div className="grid min-w-0 grid-cols-[auto_1fr] items-center gap-3">
+          <article key={match.id} className={cn("grid gap-2.5 rounded-[1.15rem] border border-l-4 p-2.5 shadow-sm md:flex md:items-center md:justify-between md:rounded-2xl md:p-4", competitionStyle[match.competition])}>
+            <div className="grid min-w-0 grid-cols-[auto_1fr] items-center gap-2.5 md:gap-3">
               <MatchCrests match={match} />
               <div className="min-w-0">
-                <p className="font-display text-[0.98rem] font-bold leading-tight md:text-lg">{formatMatchTitle(match)}</p>
-                <p className="mt-1 text-[0.66rem] uppercase tracking-wider text-muted-foreground md:text-xs">{match.competition} · {match.isHome ? "Local" : "Visitante"}</p>
+                <p className="font-display text-[0.9rem] font-bold leading-tight md:text-lg">{formatMatchTitle(match)}</p>
+                <p className="mt-0.5 text-[0.62rem] uppercase tracking-wider text-muted-foreground md:mt-1 md:text-xs">{match.competition} · {match.isHome ? "Local" : "Visitante"}</p>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-2 rounded-xl bg-background/70 p-2 text-xs sm:grid-cols-3 md:flex md:items-center md:gap-4 md:bg-transparent md:p-0">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.66rem] md:text-xs">
               <InfoMini icon={<Calendar className="h-3.5 w-3.5" />} value={formatWeekdayDate(match.date)} />
               <InfoMini icon={<Clock className="h-3.5 w-3.5" />} value={`${formatTime(match.date)} hs`} />
               {match.tvChannel && <InfoMini icon={<Tv className="h-3.5 w-3.5" />} value={match.tvChannel} />}
@@ -73,26 +73,26 @@ export function PreviousResults({ matches }: { matches: Match[] }) {
   return (
     <section className="space-y-3 md:space-y-4">
       <FilterBar active={active} onChange={setActive} />
-      <div className="space-y-3">
+      <div className="space-y-2.5 md:space-y-3">
         {visible.map((match) => {
           const outcome = getRiverOutcome(match)
           const style = resultStyle[outcome]
 
           return (
-            <Link key={match.id} href={`/fixture/${match.id}?from=resultados`} className={cn("group grid gap-3 rounded-2xl border border-l-4 p-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md md:flex md:items-center md:justify-between md:p-4", style.article)}>
-              <div className="grid min-w-0 grid-cols-[auto_auto_1fr] items-center gap-2.5 md:flex md:gap-3">
-                <span className={cn("inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-extrabold md:h-10 md:w-10 md:text-sm", style.badge)}>
+            <Link key={match.id} href={`/fixture/${match.id}?from=resultados`} className={cn("group grid gap-2 rounded-[1.15rem] border border-l-4 p-2.5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md md:flex md:items-center md:justify-between md:rounded-2xl md:p-4", style.article)}>
+              <div className="grid min-w-0 grid-cols-[auto_1fr] items-center gap-2.5 md:flex md:gap-3">
+                <span className={cn("hidden h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-extrabold md:inline-flex", style.badge)}>
                   {style.label}
                 </span>
                 <MatchCrests match={match} />
                 <div className="min-w-0">
-                  <p className="font-display text-[0.95rem] font-bold leading-tight md:text-lg">
+                  <p className="font-display text-[0.92rem] font-bold leading-tight md:text-lg">
                     <span>{formatResultLine(match, style.score)}</span>
                   </p>
-                  <p className="mt-1 text-[0.66rem] uppercase tracking-wider text-muted-foreground md:text-xs">{match.competition} · {match.isHome ? "Local" : "Visitante"}</p>
+                  <p className="mt-0.5 text-[0.62rem] uppercase tracking-wider text-muted-foreground md:mt-1 md:text-xs">{match.competition} · {match.isHome ? "Local" : "Visitante"}</p>
                 </div>
               </div>
-              <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-background/70 p-2 md:bg-transparent md:p-0 md:pl-0">
+              <div className="hidden flex-wrap items-center gap-3 md:flex md:pl-0">
                 <InfoMini icon={<Calendar className="h-3.5 w-3.5" />} value={formatWeekdayDate(match.date)} />
                 <span className="text-xs font-bold uppercase tracking-[0.18em] text-primary md:opacity-0 md:transition md:group-hover:opacity-100">
                   Ver ficha
@@ -120,7 +120,7 @@ function formatResultLine(match: Match, scoreClassName: string) {
   return (
     <>
       <span>{homeTeam}</span>
-      <span className={cn("mx-1.5 font-extrabold", scoreClassName)}>{score}</span>
+      <span className={cn("mx-1 inline-flex rounded-full bg-background/80 px-2 py-0.5 font-extrabold tabular-nums ring-1 ring-border/60 md:mx-1.5 md:bg-transparent md:px-0 md:py-0 md:ring-0", scoreClassName)}>{score}</span>
       <span>{awayTeam}</span>
     </>
   )
@@ -140,10 +140,10 @@ function MatchCrests({ match }: { match: Match }) {
   const awayTeam = match.isHome ? match.opponent : "River Plate"
 
   return (
-    <div className="flex shrink-0 items-center gap-1.5 rounded-full bg-background/75 px-1.5 py-1 ring-1 ring-border/60 md:bg-transparent md:p-0 md:ring-0">
-      <TeamCrest team={homeTeam} size="sm" className="h-8 w-8 md:h-12 md:w-12" />
+    <div className="flex shrink-0 items-center gap-1 rounded-full bg-background/75 px-1.5 py-1 ring-1 ring-border/60 md:gap-1.5 md:bg-transparent md:p-0 md:ring-0">
+      <TeamCrest team={homeTeam} size="sm" className="h-7 w-7 md:h-12 md:w-12" />
       <span className="text-[0.6rem] font-extrabold text-muted-foreground md:text-xs">vs</span>
-      <TeamCrest team={awayTeam} size="sm" className="h-8 w-8 md:h-12 md:w-12" />
+      <TeamCrest team={awayTeam} size="sm" className="h-7 w-7 md:h-12 md:w-12" />
     </div>
   )
 }
@@ -173,7 +173,7 @@ function InfoMini({ icon, value }: { icon: React.ReactNode; value: string }) {
   return (
     <span className="inline-flex items-center gap-1 text-muted-foreground">
       {icon}
-      <span className="text-foreground/80">{value}</span>
+      <span className="text-foreground/75">{value}</span>
     </span>
   )
 }

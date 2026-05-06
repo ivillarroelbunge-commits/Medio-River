@@ -46,8 +46,13 @@ export function Scoreboard({ match, variant = "hero" }: ScoreboardProps) {
           className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-primary/25 blur-3xl"
         />
 
-        <div className="relative grid gap-4 p-4 md:grid-cols-[1fr_auto] md:items-center md:gap-8 md:p-6">
-          <div className="grid min-w-0 gap-3 md:flex md:items-center md:gap-4">
+        <div className="relative grid gap-3 p-4 md:grid-cols-[1fr_auto] md:items-center md:gap-8 md:p-6">
+          <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-secondary-foreground/70 md:hidden">
+            <span className="h-1 w-6 rounded-full bg-primary" aria-hidden="true" />
+            Próximo partido
+          </div>
+
+          <div className="grid min-w-0 gap-2.5 md:flex md:items-center md:gap-4">
             <div className="flex shrink-0 items-center justify-center gap-3 rounded-2xl bg-white/7 px-3 py-2 ring-1 ring-white/10 md:justify-start md:bg-transparent md:p-0 md:ring-0">
               <TeamCrest team={homeTeam} size="md" className="h-10 w-10 bg-white/95 p-1 shadow-sm md:h-12 md:w-12" />
               <span className="font-display text-sm font-extrabold tracking-wider text-secondary-foreground/80 md:text-lg">
@@ -56,11 +61,11 @@ export function Scoreboard({ match, variant = "hero" }: ScoreboardProps) {
               <TeamCrest team={awayTeam} size="md" className="h-10 w-10 bg-white/95 p-1 shadow-sm md:h-12 md:w-12" />
             </div>
             <div className="min-w-0 text-center md:text-left">
-              <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-secondary-foreground/70">
-                <span className="hidden h-1 w-6 rounded-full bg-primary md:block" aria-hidden="true" />
+              <div className="hidden items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-secondary-foreground/70 md:flex">
+                <span className="h-1 w-6 rounded-full bg-primary" aria-hidden="true" />
                 Próximo partido
               </div>
-              <h2 className="mt-1 font-display text-[1.05rem] font-extrabold leading-tight md:truncate md:text-2xl">
+              <h2 className="font-display text-[1.05rem] font-extrabold leading-tight md:mt-1 md:truncate md:text-2xl">
                 {homeTeam} vs. {awayTeam}
               </h2>
               <p className="mt-0.5 text-xs uppercase tracking-wider text-secondary-foreground/60">
