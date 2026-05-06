@@ -58,7 +58,7 @@ export default function NoticiaDetallePage() {
       <main className="flex-1">
         <article className="container-prose max-w-4xl space-y-5 py-5 md:space-y-8 md:py-10">
           <Link href="/noticias" className="text-sm font-semibold text-primary hover:underline">← Volver a noticias</Link>
-          <header className="space-y-3">
+          <header className="space-y-3 pt-2 md:pt-3">
             <h1 className="font-display text-[2rem] font-extrabold tracking-tight leading-tight md:text-5xl">{article.title}</h1>
             <div className="flex flex-wrap gap-2">
               <span className={`inline-flex rounded-full px-3 py-1 text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-white ${article.tag === "Opinión" ? "bg-black" : "bg-primary"}`}>
@@ -77,7 +77,7 @@ export default function NoticiaDetallePage() {
             <p className="text-base leading-7 text-muted-foreground md:text-lg md:leading-8">{article.intro}</p>
           </header>
           <NewsImage article={article} className="h-[16rem] w-full rounded-2xl md:h-[30rem] md:rounded-3xl" />
-          <div className="news-rich-content space-y-4 text-sm leading-7 text-foreground md:space-y-5 md:text-base md:leading-8">
+          <div className="news-rich-content space-y-4 text-[1rem] leading-7 text-black md:space-y-5 md:text-[1.08rem] md:leading-8">
             {article.content.some(hasHtmlTags) ? (
               <div dangerouslySetInnerHTML={{ __html: sanitizeStoredNewsHtml(article.content.join("")) }} />
             ) : (

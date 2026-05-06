@@ -31,7 +31,7 @@ export function NewsCard({ article }: { article: NewsArticle }) {
             {article.title}
           </h3>
 
-          <p className="mt-2 line-clamp-3 flex-1 text-sm leading-6 text-muted-foreground md:mt-3 md:line-clamp-none md:text-[0.95rem] md:leading-7">
+          <p className="mt-2 line-clamp-2 flex-1 text-sm leading-6 text-muted-foreground md:mt-3 md:text-[0.95rem] md:leading-7">
             {article.excerpt}
           </p>
 

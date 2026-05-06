@@ -71,7 +71,7 @@ export function NewsCarousel({ items }: { items: NewsArticle[] }) {
             <h1 className="mt-3 max-w-3xl font-display text-[1.35rem] font-extrabold leading-[1.08] text-white md:mt-4 md:text-[2.35rem] lg:text-[2.85rem]">
               {article.title}
             </h1>
-            <p className="mt-2 line-clamp-2 max-w-2xl text-xs leading-5 text-white/82 md:mt-3 md:line-clamp-none md:text-sm md:leading-7 lg:max-w-3xl">
+            <p className="mt-2 line-clamp-2 max-w-xl text-xs leading-5 text-white/82 md:mt-3 md:max-w-2xl md:text-sm md:leading-7">
               {article.excerpt}
             </p>
           </div>

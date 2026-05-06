@@ -193,7 +193,7 @@ function FeaturedLeadCard({ article }: { article: NewsArticle }) {
           <h2 className="mt-3 max-w-3xl font-display text-[1.25rem] font-extrabold leading-[1.08] text-white sm:text-[1.45rem] md:mt-4 md:text-[2.6rem] xl:text-[3rem]">
             {article.title}
           </h2>
-          <p className="mt-2 line-clamp-2 max-w-3xl text-xs leading-5 text-white/82 md:mt-3 md:line-clamp-none md:text-base md:leading-8 xl:max-w-2xl">
+          <p className="mt-2 line-clamp-2 max-w-2xl text-xs leading-5 text-white/82 md:mt-3 md:text-base md:leading-8 xl:max-w-xl">
             {article.excerpt}
           </p>
           <p className="mt-3 text-[0.65rem] font-medium uppercase tracking-[0.08em] text-white/65 md:mt-4 md:text-sm">
