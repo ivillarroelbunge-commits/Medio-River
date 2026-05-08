@@ -1,6 +1,6 @@
 import type { PlayerSeasonStats, PlayerStatLine, PlayerStatsCompetitionKey } from "@/lib/data/types"
 
-export const playerStatsUpdatedAt = "2026-05-05"
+export const playerStatsUpdatedAt = "2026-05-08"
 export const playerStatsSourceUrl = "https://www.fotmob.com/teams/10076/stats/river-plate/players"
 
 export const playerStatsCompetitionLabels: Record<PlayerStatsCompetitionKey | "total", string> = {
@@ -53,12 +53,13 @@ export const playerSeasonStats: Record<string, PlayerSeasonStats> = {
         cleanSheets: 7,
       },
       sudamericana: {
-        matches: 3,
-        minutes: 270,
+        matches: 4,
+        minutes: 356,
         goals: 0,
         assists: 0,
         rating: 7.57,
         cleanSheets: 2,
+        redCards: 1,
       },
       copaArgentina: {
         matches: 1,
@@ -97,8 +98,8 @@ export const playerSeasonStats: Record<string, PlayerSeasonStats> = {
         yellowCards: 6,
       },
       sudamericana: {
-        matches: 3,
-        minutes: 270,
+        matches: 4,
+        minutes: 360,
         goals: 0,
         assists: 0,
         rating: 7.4,
@@ -117,8 +118,8 @@ export const playerSeasonStats: Record<string, PlayerSeasonStats> = {
         rating: 7.1,
       },
       sudamericana: {
-        matches: 2,
-        minutes: 135,
+        matches: 3,
+        minutes: 225,
         goals: 0,
         assists: 1,
         rating: 7.54,
@@ -166,11 +167,12 @@ export const playerSeasonStats: Record<string, PlayerSeasonStats> = {
         redCards: 1,
       },
       sudamericana: {
-        matches: 2,
-        minutes: 166,
+        matches: 3,
+        minutes: 256,
         goals: 0,
         assists: 0,
         rating: 7.49,
+        yellowCards: 1,
       },
       copaArgentina: {
         matches: 1,
@@ -193,11 +195,12 @@ export const playerSeasonStats: Record<string, PlayerSeasonStats> = {
         rating: 6.77,
       },
       sudamericana: {
-        matches: 2,
-        minutes: 165,
+        matches: 3,
+        minutes: 255,
         goals: 0,
         assists: 0,
         rating: 6.88,
+        yellowCards: 1,
       },
     },
   },
@@ -289,6 +292,14 @@ export const playerSeasonStats: Record<string, PlayerSeasonStats> = {
         assists: 0,
         rating: 6.83,
       },
+      sudamericana: {
+        matches: 1,
+        minutes: 90,
+        goals: 0,
+        assists: 1,
+        rating: null,
+        yellowCards: 1,
+      },
     },
   },
   "player-portillo": {
@@ -344,10 +355,10 @@ export const playerSeasonStats: Record<string, PlayerSeasonStats> = {
         rating: 6.97,
       },
       sudamericana: {
-        matches: 1,
-        minutes: 51,
+        matches: 2,
+        minutes: 130,
         goals: 0,
-        assists: 0,
+        assists: 1,
         rating: 7.15,
       },
       copaArgentina: {
@@ -421,11 +432,12 @@ export const playerSeasonStats: Record<string, PlayerSeasonStats> = {
         yellowCards: 2,
       },
       sudamericana: {
-        matches: 3,
-        minutes: 194,
+        matches: 4,
+        minutes: 212,
         goals: 0,
         assists: 0,
         rating: 6.49,
+        yellowCards: 1,
       },
     },
   },
@@ -441,8 +453,8 @@ export const playerSeasonStats: Record<string, PlayerSeasonStats> = {
         rating: 7.12,
       },
       sudamericana: {
-        matches: 3,
-        minutes: 211,
+        matches: 4,
+        minutes: 301,
         goals: 0,
         assists: 0,
         rating: 7.23,
@@ -469,7 +481,8 @@ export const playerSeasonStats: Record<string, PlayerSeasonStats> = {
         yellowCards: 1,
       },
       sudamericana: {
-        matches: 1,
+        matches: 2,
+        minutes: 90,
         goals: 0,
         assists: 0,
         rating: 6.73,
@@ -496,9 +509,9 @@ export const playerSeasonStats: Record<string, PlayerSeasonStats> = {
         yellowCards: 2,
       },
       sudamericana: {
-        matches: 1,
-        minutes: 90,
-        goals: 0,
+        matches: 2,
+        minutes: 121,
+        goals: 1,
         assists: 0,
         rating: 6.91,
       },
@@ -521,6 +534,13 @@ export const playerSeasonStats: Record<string, PlayerSeasonStats> = {
         goals: 0,
         assists: 0,
         rating: 6.52,
+      },
+      sudamericana: {
+        matches: 1,
+        minutes: 59,
+        goals: 1,
+        assists: 0,
+        rating: null,
       },
     },
   },
@@ -558,8 +578,8 @@ export const playerSeasonStats: Record<string, PlayerSeasonStats> = {
         redCards: 1,
       },
       sudamericana: {
-        matches: 2,
-        minutes: 180,
+        matches: 3,
+        minutes: 211,
         goals: 0,
         assists: 0,
         rating: 7.06,
@@ -586,8 +606,8 @@ export const playerSeasonStats: Record<string, PlayerSeasonStats> = {
         yellowCards: 1,
       },
       sudamericana: {
-        matches: 2,
-        minutes: 39,
+        matches: 3,
+        minutes: 50,
         goals: 0,
         assists: 1,
         rating: 7.31,
@@ -604,6 +624,13 @@ export const playerSeasonStats: Record<string, PlayerSeasonStats> = {
         goals: 0,
         assists: 0,
         rating: 7.04,
+      },
+      sudamericana: {
+        matches: 1,
+        minutes: 11,
+        goals: 0,
+        assists: 0,
+        rating: null,
       },
     },
   },
@@ -660,8 +687,8 @@ export const playerSeasonStats: Record<string, PlayerSeasonStats> = {
         yellowCards: 1,
       },
       sudamericana: {
-        matches: 3,
-        minutes: 135,
+        matches: 4,
+        minutes: 207,
         goals: 0,
         assists: 0,
         rating: 6.75,
@@ -720,6 +747,27 @@ export const playerSeasonStats: Record<string, PlayerSeasonStats> = {
         goals: 0,
         assists: 0,
         rating: null,
+      },
+      sudamericana: {
+        matches: 1,
+        minutes: 59,
+        goals: 0,
+        assists: 0,
+        rating: null,
+      },
+    },
+  },
+  "player-lucas-silva": {
+    sourceId: 1958447,
+    updatedAt: playerStatsUpdatedAt,
+    competitions: {
+      sudamericana: {
+        matches: 1,
+        minutes: 79,
+        goals: 0,
+        assists: 0,
+        rating: null,
+        yellowCards: 1,
       },
     },
   },

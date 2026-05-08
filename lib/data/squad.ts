@@ -1,6 +1,6 @@
 import type { SquadPlayer } from "@/lib/data/types"
 
-export const squadVerifiedAt = "5 de mayo de 2026"
+export const squadVerifiedAt = "8 de mayo de 2026"
 
 function fotmobPlayerImage(id: number) {
   return `https://images.fotmob.com/image_resources/playerimages/${id}.png`
@@ -222,6 +222,18 @@ export const squadPlayers: SquadPlayer[] = [
     foot: "Diestro",
     fromAcademy: true,
     image: fotmobPlayerImage(1666511),
+  },
+  {
+    id: "player-lucas-silva",
+    name: "Lucas Silva",
+    number: 44,
+    line: "Mediocampistas",
+    position: "Volante central",
+    age: 19,
+    nationality: "Argentina",
+    foot: "Diestro",
+    fromAcademy: true,
+    image: fotmobPlayerImage(1958447),
   },
   {
     id: "player-portillo",

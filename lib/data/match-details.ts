@@ -3672,5 +3672,227 @@ export const matchDetailsById: Record<string, MatchDetail> = {
         ]
       }
     }
+  },
+  "match-21": {
+    "sourceLabel": "La Historia River",
+    "sourceUrl": "https://lahistoriariver.com/partidos/carabobo-river-plate-sudamericana-2026",
+    "referee": "Derlis López",
+    "goals": [
+      {
+        "team": "river",
+        "player": "Maximiliano Meza",
+        "minute": "59",
+        "assist": "Juan Fernando Quintero",
+        "detail": "Remate de cabeza desde muy cerca a la escuadra derecha. Asistencia de Quintero tras un córner."
+      },
+      {
+        "team": "opponent",
+        "player": "Matías Núñez",
+        "minute": "77",
+        "detail": "De penal. Remate con la izquierda por el lado derecho de la portería."
+      },
+      {
+        "team": "river",
+        "player": "Maximiliano Salas",
+        "minute": "90+6",
+        "assist": "Facundo González",
+        "detail": "Remate con la izquierda desde fuera del área por el lado derecho de la portería tras un contraataque."
+      }
+    ],
+    "cards": [
+      {
+        "team": "opponent",
+        "player": "Ezequiel Neira",
+        "minute": "25",
+        "card": "yellow",
+        "detail": "Por juego peligroso"
+      },
+      {
+        "team": "river",
+        "player": "Facundo González",
+        "minute": "37",
+        "card": "yellow",
+        "detail": "Por juego peligroso"
+      },
+      {
+        "team": "opponent",
+        "player": "Edson Castillo",
+        "minute": "45",
+        "card": "yellow",
+        "detail": "Por juego peligroso"
+      },
+      {
+        "team": "opponent",
+        "player": "Edson Castillo",
+        "minute": "45+4",
+        "card": "red"
+      },
+      {
+        "team": "river",
+        "player": "Germán Pezzella",
+        "minute": "49",
+        "card": "yellow",
+        "detail": "Por juego peligroso"
+      },
+      {
+        "team": "river",
+        "player": "Lucas Silva",
+        "minute": "55",
+        "card": "yellow",
+        "detail": "Por juego peligroso"
+      },
+      {
+        "team": "river",
+        "player": "Matías Viña",
+        "minute": "73",
+        "card": "yellow",
+        "detail": "Por juego peligroso"
+      },
+      {
+        "team": "river",
+        "player": "Juan Cruz Meza",
+        "minute": "74",
+        "card": "yellow",
+        "detail": "Por juego peligroso. Penal cometido"
+      },
+      {
+        "team": "opponent",
+        "player": "Lucas Bruera",
+        "minute": "82",
+        "card": "yellow"
+      },
+      {
+        "team": "river",
+        "player": "Ezequiel Centurión",
+        "minute": "84",
+        "card": "yellow"
+      },
+      {
+        "team": "river",
+        "player": "Santiago Beltrán",
+        "minute": "86",
+        "card": "red"
+      }
+    ],
+    "substitutions": [
+      {
+        "team": "opponent",
+        "minute": "45",
+        "playerIn": "Jean Franco Fuentes",
+        "playerOut": "Yohandry Orozco",
+        "detail": "Entra Jean Franco Fuentes por Yohandry Orozco"
+      },
+      {
+        "team": "opponent",
+        "minute": "45",
+        "playerIn": "Maurice Cova",
+        "playerOut": "Edson Tortolero",
+        "detail": "Entra Maurice Cova por Edson Tortolero"
+      },
+      {
+        "team": "river",
+        "minute": "59",
+        "playerIn": "Maximiliano Salas",
+        "playerOut": "Santiago Lencina",
+        "detail": "Entra Maximiliano Salas por Santiago Lencina"
+      },
+      {
+        "team": "river",
+        "minute": "59",
+        "playerIn": "Facundo Colidio",
+        "playerOut": "Maximiliano Meza",
+        "detail": "Entra Facundo Colidio por Maximiliano Meza"
+      },
+      {
+        "team": "opponent",
+        "minute": "71",
+        "playerIn": "Joshuan Berríos",
+        "playerOut": "Jonathan Bilbao",
+        "detail": "Entra Joshuan Berríos por Jonathan Bilbao"
+      },
+      {
+        "team": "river",
+        "minute": "72",
+        "playerIn": "Juan Cruz Meza",
+        "playerOut": "Joaquín Freitas",
+        "detail": "Entra Juan Cruz Meza por Joaquín Freitas"
+      },
+      {
+        "team": "river",
+        "minute": "79",
+        "playerIn": "Lautaro Pereyra",
+        "playerOut": "Lucas Silva",
+        "detail": "Entra Lautaro Pereyra por Lucas Silva"
+      },
+      {
+        "team": "river",
+        "minute": "79",
+        "playerIn": "Kendry Páez",
+        "playerOut": "Juan Fernando Quintero",
+        "detail": "Entra Kendry Páez por Juan Fernando Quintero"
+      }
+    ],
+    "lineups": {
+      "river": {
+        "coach": "Eduardo Germán Coudet",
+        "starters": [
+          "#41 Santiago Beltrán",
+          "#16 Fabricio Tomás Bustos",
+          "#20 Germán Alejo Pezzella",
+          "#31 Facundo González",
+          "#18 Matías Nicolás Viña",
+          "#44 Lucas Silva",
+          "#34 Giuliano Galoppo",
+          "#10 Juan Fernando Quintero",
+          "#8 Maximiliano Eduardo Meza",
+          "#35 Joaquín Freitas",
+          "#39 Santiago Javier Lencina"
+        ],
+        "substitutes": [
+          "#28 Lucas Martínez Quarta",
+          "#11 Facundo Colidio",
+          "#7 Maximiliano Nahuel Salas",
+          "#24 Juan Cruz Meza",
+          "#25 Lautaro Pereyra",
+          "#19 Kendry Páez",
+          "#38 Ian Martín Subiabre",
+          "#22 Kevin Duván Castaño",
+          "#36 Ulises Adrián Giménez",
+          "#42 Franco Jaroszewicz",
+          "#32 Agustín Fabián Ruberto",
+          "#33 Ezequiel Centurión"
+        ]
+      },
+      "opponent": {
+        "coach": "Daniel Farías",
+        "starters": [
+          "#22 Lucas Bruera",
+          "#21 Alexander González",
+          "#32 Ezequiel Neira",
+          "#28 Jonathan Bilbao",
+          "#4 Leonardo Aponte",
+          "#8 Juan Pérez",
+          "#26 Matías Núñez",
+          "#5 Edson Castillo",
+          "#10 Yohandry Orozco",
+          "#7 Edson Tortolero",
+          "#19 Loureins Martínez"
+        ],
+        "substitutes": [
+          "#3 Jean Franco Fuentes",
+          "#14 Joshuan Berríos",
+          "#6 Abraham Bahachille",
+          "#12 Keiber Roa",
+          "#30 Sebastián Mendoza",
+          "#9 José Riasco",
+          "#2 Marcel Guaramato",
+          "#17 Franyer Oliveros",
+          "#18 Juan Obando",
+          "#16 Franner López",
+          "#23 Dimas Meza",
+          "#15 Maurice Cova"
+        ]
+      }
+    }
   }
 }
