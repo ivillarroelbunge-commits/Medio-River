@@ -27,14 +27,14 @@ export function FixtureTabs({ upcoming, previous }: { upcoming: Match[]; previou
 
   return (
     <div id="resultados-previos" className="space-y-4 scroll-mt-24 md:space-y-6">
-      <div role="tablist" className="-mx-1 flex gap-1 overflow-x-auto rounded-2xl border border-border bg-card p-1 shadow-sm md:mx-0 md:flex-wrap md:overflow-visible">
+      <div role="tablist" className="grid grid-cols-3 gap-1 rounded-2xl border border-border bg-card p-1 shadow-sm md:flex md:flex-wrap">
         {tabs.map((tab) => {
           const Icon = tab.icon
           const isActive = active === tab.key
           return (
-            <button key={tab.key} type="button" onClick={() => setActive(tab.key)} className={cn("inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-[0.72rem] font-bold transition-colors md:gap-2 md:px-4 md:py-2.5 md:text-sm", isActive ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-muted hover:text-foreground")}>
-              <Icon className="h-4 w-4" />
-              {tab.label}
+            <button key={tab.key} type="button" onClick={() => setActive(tab.key)} className={cn("inline-flex min-w-0 items-center justify-center gap-1 rounded-xl px-1.5 py-2 text-[0.62rem] font-bold leading-tight transition-colors md:gap-2 md:px-4 md:py-2.5 md:text-sm", isActive ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-muted hover:text-foreground")}>
+              <Icon className="h-3.5 w-3.5 shrink-0 md:h-4 md:w-4" />
+              <span className="truncate">{tab.label}</span>
             </button>
           )
         })}

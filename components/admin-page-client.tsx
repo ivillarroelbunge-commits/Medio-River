@@ -7,7 +7,6 @@ import { EditorNewsForm } from "@/components/editor-news-form"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import type { Competition, DailyTrivia, Match, NewsArticle, SquadPlayer, TriviaQuestion, UserRole } from "@/lib/data/types"
-import { getAutomaticMatchUpdate } from "@/lib/match-autofill"
 import { getRoleBadgeClass, getRoleLabel } from "@/lib/roles"
 
 const roles: UserRole[] = ["admin", "editor", "user"]
@@ -369,20 +368,25 @@ export function AdminPageClient() {
                       onCancel={() => setEditingMatch(null)}
                       onAutofill={async (matchToAutofill) => {
                         setError(null)
-                        const automaticMatch = getAutomaticMatchUpdate(matchToAutofill)
-                        if (!automaticMatch) {
-                          setError("Todavía no hay una carga automática disponible para este partido.")
-                          return false
-                        }
+                        try {
+                          const response = await fetch("/api/match-autofill", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ match: matchToAutofill }),
+                          })
+                          const data = await response.json() as { ok: boolean; match?: Match; error?: string }
 
-                        const result = await updateMatch(automaticMatch)
-                        if (!result.ok) {
-                          setError(result.error ?? "No se pudo guardar el partido.")
-                          return false
-                        }
+                          if (!response.ok || !data.ok || !data.match) {
+                            setError(data.error ?? "No se pudieron encontrar datos públicos para este partido.")
+                            return null
+                          }
 
-                        setEditingMatch(null)
-                        return true
+                          setEditingMatch(data.match)
+                          return data.match
+                        } catch {
+                          setError("No se pudo conectar con el asistente de carga.")
+                          return null
+                        }
                       }}
                       onSave={async (updatedMatch) => {
                         setError(null)
@@ -860,7 +864,7 @@ function MatchEditForm({
   onSave,
 }: {
   match: Match
-  onAutofill: (match: Match) => Promise<boolean>
+  onAutofill: (match: Match) => Promise<Match | null>
   onCancel: () => void
   onSave: (match: Match) => Promise<void>
 }) {
@@ -868,6 +872,7 @@ function MatchEditForm({
   const [isAutofilling, setIsAutofilling] = useState(false)
   const [status, setStatus] = useState<Match["status"]>(match.status)
   const [isHome, setIsHome] = useState(match.isHome ? "home" : "away")
+  const [draft, setDraft] = useState(match)
 
   return (
     <form
@@ -878,13 +883,14 @@ function MatchEditForm({
         const formData = new FormData(event.currentTarget)
         const nextStatus = String(formData.get("status") || status) as Match["status"]
         await onSave({
-          ...match,
-          opponent: String(formData.get("opponent") || match.opponent),
-          competition: String(formData.get("competition") || match.competition) as Competition,
-          date: String(formData.get("date") || match.date),
+          ...draft,
+          opponent: String(formData.get("opponent") || draft.opponent),
+          competition: String(formData.get("competition") || draft.competition) as Competition,
+          date: String(formData.get("date") || draft.date),
           status: nextStatus,
           isHome: formData.get("isHome") === "home",
-          stadium: String(formData.get("stadium") || match.stadium),
+          stadium: String(formData.get("stadium") || draft.stadium),
+          referee: String(formData.get("referee") || "") || undefined,
           tvChannel: String(formData.get("tvChannel") || "") || undefined,
           riverScore: nextStatus === "played" ? Number(formData.get("riverScore") || 0) : undefined,
           opponentScore: nextStatus === "played" ? Number(formData.get("opponentScore") || 0) : undefined,
@@ -914,9 +920,9 @@ function MatchEditForm({
         </div>
         <input type="hidden" name="status" value={status} />
       </div>
-      <AdminInput label="Rival" name="opponent" defaultValue={match.opponent} />
-      <AdminSelect label="Competencia" name="competition" defaultValue={match.competition} options={competitions} />
-      <AdminInput label="Fecha ISO" name="date" defaultValue={match.date} />
+      <AdminInput key={`opponent-${draft.opponent}`} label="Rival" name="opponent" defaultValue={draft.opponent} />
+      <AdminSelect key={`competition-${draft.competition}`} label="Competencia" name="competition" defaultValue={draft.competition} options={competitions} />
+      <AdminInput key={`date-${draft.date}`} label="Fecha ISO" name="date" defaultValue={draft.date} />
       <label className="space-y-1.5 text-sm font-semibold text-foreground">
         <span>Condición</span>
         <select name="isHome" value={isHome} onChange={(event) => setIsHome(event.target.value)} className="h-10 w-full rounded-xl border border-input bg-background px-3 text-sm font-normal">
@@ -924,16 +930,22 @@ function MatchEditForm({
           <option value="away">Visitante</option>
         </select>
       </label>
-      <AdminInput label="Estadio" name="stadium" defaultValue={match.stadium} />
-      <AdminInput label="TV" name="tvChannel" defaultValue={match.tvChannel ?? ""} />
+      <AdminInput key={`stadium-${draft.stadium}`} label="Estadio" name="stadium" defaultValue={draft.stadium} />
+      <AdminInput key={`referee-${draft.referee ?? ""}`} label="Árbitro" name="referee" defaultValue={draft.referee ?? draft.detail?.referee ?? ""} />
+      <AdminInput key={`tv-${draft.tvChannel ?? ""}`} label="TV" name="tvChannel" defaultValue={draft.tvChannel ?? ""} />
       {status === "played" && (
         <div className="grid gap-3 rounded-2xl border border-primary/20 bg-primary/5 p-3 md:col-span-2 md:grid-cols-2">
-          <AdminInput label="Goles River" name="riverScore" type="number" defaultValue={String(match.riverScore ?? 0)} />
-          <AdminInput label={`Goles ${match.opponent}`} name="opponentScore" type="number" defaultValue={String(match.opponentScore ?? 0)} />
+          <AdminInput key={`riverScore-${draft.riverScore ?? 0}`} label="Goles River" name="riverScore" type="number" defaultValue={String(draft.riverScore ?? 0)} />
+          <AdminInput key={`opponentScore-${draft.opponentScore ?? 0}`} label={`Goles ${draft.opponent}`} name="opponentScore" type="number" defaultValue={String(draft.opponentScore ?? 0)} />
           <p className="text-xs text-muted-foreground md:col-span-2">
             Al guardar, este resultado queda en Supabase y se muestra públicamente en fixture, home y detalle del partido.
           </p>
         </div>
+      )}
+      {draft.detail?.sourceUrl && (
+        <p className="rounded-xl border border-primary/20 bg-background px-3 py-2 text-xs leading-5 text-muted-foreground md:col-span-2">
+          Datos precargados desde <a href={draft.detail.sourceUrl} target="_blank" rel="noreferrer" className="font-semibold text-primary hover:underline">{draft.detail.sourceLabel ?? "fuente pública"}</a>. Revisalos y apretá Guardar partido para publicarlos.
+        </p>
       )}
       <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap md:col-span-2">
         <Button type="submit" className="w-full rounded-full sm:w-auto" disabled={isSaving || isAutofilling}>
@@ -946,11 +958,16 @@ function MatchEditForm({
           disabled={isSaving || isAutofilling}
           onClick={async () => {
             setIsAutofilling(true)
-            await onAutofill(match)
+            const autofilledMatch = await onAutofill(draft)
+            if (autofilledMatch) {
+              setDraft(autofilledMatch)
+              setStatus(autofilledMatch.status)
+              setIsHome(autofilledMatch.isHome ? "home" : "away")
+            }
             setIsAutofilling(false)
           }}
         >
-          {isAutofilling ? "Cargando..." : "Cargar datos automáticos"}
+          {isAutofilling ? "Buscando..." : "Precargar desde La Historia River"}
         </Button>
         <Button type="button" variant="outline" className="w-full rounded-full sm:w-auto" onClick={onCancel}>Cancelar</Button>
       </div>
