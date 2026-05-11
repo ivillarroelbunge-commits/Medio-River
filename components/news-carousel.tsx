@@ -8,10 +8,12 @@ import type { NewsArticle } from "@/lib/data/types"
 
 export function NewsCarousel({ items }: { items: NewsArticle[] }) {
   const [index, setIndex] = useState(0)
+  const [direction, setDirection] = useState<"next" | "previous">("next")
 
   useEffect(() => {
     if (items.length <= 1) return
     const interval = window.setInterval(() => {
+      setDirection("next")
       setIndex((current) => (current + 1) % items.length)
     }, 5000)
     return () => window.clearInterval(interval)
@@ -25,16 +27,24 @@ export function NewsCarousel({ items }: { items: NewsArticle[] }) {
   if (!article) return null
 
   const goPrevious = () => {
+    setDirection("previous")
     setIndex((current) => (current - 1 + items.length) % items.length)
   }
 
   const goNext = () => {
+    setDirection("next")
     setIndex((current) => (current + 1) % items.length)
+  }
+
+  const goTo = (itemIndex: number) => {
+    if (itemIndex === index) return
+    setDirection(itemIndex > index ? "next" : "previous")
+    setIndex(itemIndex)
   }
 
   return (
     <section className="relative overflow-hidden rounded-[1.5rem] bg-secondary text-secondary-foreground shadow-lg md:rounded-[2rem]">
-      <NewsImage article={article} className="absolute inset-0 h-full w-full" imageClassName="opacity-80" />
+      <NewsImage key={`image-${article.id}`} article={article} className={`absolute inset-0 h-full w-full ${direction === "next" ? "carousel-image-enter-next" : "carousel-image-enter-previous"}`} imageClassName="opacity-80" />
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/22 to-black/0" />
 
       {items.length > 1 && (
@@ -63,7 +73,7 @@ export function NewsCarousel({ items }: { items: NewsArticle[] }) {
         className="relative block min-h-[17rem] px-5 pb-12 pt-14 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 md:min-h-[28rem] md:px-10 md:pb-12 md:pl-24 md:pt-10 lg:min-h-[30rem] lg:px-12 lg:pb-14 lg:pl-28"
       >
         <div className="absolute inset-x-0 bottom-0 h-[42%] bg-gradient-to-t from-black/78 via-black/30 to-transparent md:h-[40%]" />
-        <div className="relative flex min-h-[inherit] items-end">
+        <div key={`content-${article.id}`} className={`relative flex min-h-[inherit] items-end ${direction === "next" ? "carousel-content-enter-next" : "carousel-content-enter-previous"}`}>
           <div className="max-w-3xl pb-1 md:max-w-3xl lg:max-w-4xl">
             <span className="inline-flex rounded-full bg-primary px-3 py-1 text-[0.58rem] font-extrabold uppercase tracking-[0.12em] text-primary-foreground shadow-sm md:px-4.5 md:py-1.5 md:text-[0.65rem]">
               {article.category}
@@ -85,7 +95,7 @@ export function NewsCarousel({ items }: { items: NewsArticle[] }) {
               key={item.id}
               type="button"
               aria-label={item.title}
-              onClick={() => setIndex(itemIndex)}
+              onClick={() => goTo(itemIndex)}
               className={`h-2 rounded-full transition-all md:h-2.5 ${itemIndex === index ? "w-10 bg-primary md:w-14" : "w-4 bg-white/55 md:w-5"}`}
             />
           ))}

@@ -178,6 +178,15 @@ function getAuthCallbackUrl(next = "/perfil") {
   return callbackUrl.toString()
 }
 
+function isExpectedRemoteSyncError(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error ?? "")
+  return (
+    message.includes("Failed to fetch") ||
+    message.includes("refresh_token_not_found") ||
+    message.includes("Invalid Refresh Token")
+  )
+}
+
 export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const [localState, setLocalState] = useState<LocalState>(createInitialLocalState)
   const [users, setUsers] = useState<AppUser[]>([])
@@ -222,12 +231,32 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   }
 
   async function refreshAuthState() {
-    const {
-      data: { user },
-      error,
-    } = await supabase.auth.getUser()
+    let user: User | null = null
 
-    if (error || !user) {
+    try {
+      const response = await supabase.auth.getUser()
+      user = response.data.user
+
+      if (response.error) {
+        if (isExpectedRemoteSyncError(response.error)) {
+          await supabase.auth.signOut({ scope: "local" }).catch(() => undefined)
+        }
+
+        setCurrentUser(null)
+        setUsers([])
+        return
+      }
+    } catch (error) {
+      if (!isExpectedRemoteSyncError(error)) {
+        console.warn("No se pudo leer la sesión de Supabase.", error)
+      }
+
+      setCurrentUser(null)
+      setUsers([])
+      return
+    }
+
+    if (!user) {
       setCurrentUser(null)
       setUsers([])
       return
@@ -338,7 +367,9 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       }
 
       void Promise.all([refreshAuthState(), loadNews(), loadMatches(), loadTriviaData()]).catch((error) => {
-        console.error("No se pudieron sincronizar los datos remotos.", error)
+        if (!isExpectedRemoteSyncError(error)) {
+          console.warn("No se pudieron sincronizar los datos remotos.", error)
+        }
       })
     }
 
@@ -346,7 +377,9 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(() => {
       void Promise.all([refreshAuthState(), loadTriviaData()]).catch((error) => {
-        console.error("No se pudo actualizar la sesión.", error)
+        if (!isExpectedRemoteSyncError(error)) {
+          console.warn("No se pudo actualizar la sesión.", error)
+        }
       })
     })
 

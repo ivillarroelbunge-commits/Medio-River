@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import { useEffect, useRef, useState, type ReactNode } from "react"
-import { ArrowLeft, CalendarDays, Flag, MapPin, RefreshCw, Square } from "lucide-react"
+import { ArrowLeft, Clock3, Flag, MapPin, RefreshCw, Square } from "lucide-react"
 import { SiteFooter } from "@/components/site-footer"
 import { SiteHeader } from "@/components/site-header"
 import { TeamCrest } from "@/components/team-crest"
@@ -17,7 +17,7 @@ export default function MatchDetailPage() {
   const { matches } = useAppState()
   const match = matches.find((item) => item.id === params.id)
   const formationsCardRef = useRef<HTMLElement>(null)
-  const [incidentsHeight, setIncidentsHeight] = useState<number>()
+  const [timelineHeight, setTimelineHeight] = useState<number>()
 
   useEffect(() => {
     const card = formationsCardRef.current
@@ -25,12 +25,12 @@ export default function MatchDetailPage() {
 
     const updateIncidentsHeight = () => {
       if (!window.matchMedia("(min-width: 1280px)").matches) {
-        setIncidentsHeight(undefined)
+        setTimelineHeight(undefined)
         return
       }
 
       const nextHeight = Math.ceil(card.getBoundingClientRect().height)
-      setIncidentsHeight((currentHeight) => (currentHeight === nextHeight ? currentHeight : nextHeight))
+      setTimelineHeight((currentHeight) => (currentHeight === nextHeight ? currentHeight : nextHeight))
     }
 
     updateIncidentsHeight()
@@ -76,15 +76,15 @@ export default function MatchDetailPage() {
     <div className="flex min-h-dvh flex-col bg-muted/20">
       <SiteHeader />
       <main className="flex-1">
-        <div className="container-prose space-y-5 py-5 md:space-y-6 md:py-10">
-          <Link href="/fixture?tab=resultados#resultados-previos" className="inline-flex items-center gap-2 text-sm font-semibold text-primary">
+        <div className="container-prose space-y-4 py-4 md:space-y-6 md:py-10">
+          <Link href="/fixture?tab=resultados#resultados-previos" className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.12em] text-primary md:text-sm md:normal-case md:tracking-normal">
             <ArrowLeft className="h-4 w-4" />
             Volver al fixture
           </Link>
 
           <section className="overflow-hidden rounded-[1.5rem] border border-border bg-card shadow-sm md:rounded-[2rem]">
-            <div className="border-b border-border bg-gradient-to-br from-zinc-950 via-zinc-900 to-primary px-4 py-5 text-white md:px-8 md:py-6">
-              <div className="flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-white/70">
+            <div className="border-b border-border bg-gradient-to-br from-zinc-950 via-zinc-900 to-primary px-3 py-4 text-white md:px-8 md:py-6">
+              <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-center text-[0.62rem] font-bold uppercase tracking-[0.14em] text-white/70 md:text-xs md:tracking-[0.18em]">
                 <span>{match.competition}</span>
                 <span>·</span>
                 <span>{formatDateLong(match.date)}</span>
@@ -92,41 +92,42 @@ export default function MatchDetailPage() {
                 <span>{formatTime(match.date)} hs</span>
               </div>
 
-              <div className="mt-5 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-start gap-1.5 md:mt-6 md:gap-8">
+              <div className="mt-4 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-start gap-1.5 md:mt-6 md:gap-8">
                 <TeamBlock team={homeTeam} goals={homeGoals} />
-                <div className="rounded-2xl border border-white/15 bg-white/10 px-2 py-2.5 text-center shadow-2xl backdrop-blur sm:px-3 sm:py-3 md:rounded-3xl md:px-7 md:py-5">
-                  <p className="font-display text-2xl font-black leading-none sm:text-3xl md:text-6xl">
+                <div className="rounded-2xl border border-white/15 bg-white/10 px-2.5 py-2.5 text-center shadow-2xl backdrop-blur sm:px-3 sm:py-3 md:rounded-3xl md:px-7 md:py-5">
+                  <p className="font-display text-[1.55rem] font-black leading-none sm:text-3xl md:text-6xl">
                     {homeScore ?? "-"} <span className="text-white/40">-</span> {awayScore ?? "-"}
                   </p>
                   <p className="mt-2 text-[0.65rem] font-bold uppercase tracking-[0.2em] text-white/65">Final</p>
-                  <div className="mt-2 space-y-1.5 border-t border-white/15 pt-2 text-left text-[0.56rem] font-semibold leading-tight text-white/78 sm:text-[0.62rem] md:mt-4 md:space-y-2 md:pt-4 md:text-xs">
-                    <ScoreMeta icon={<MapPin className="h-3.5 w-3.5" />} label="Estadio" value={match.stadium} />
-                    <ScoreMeta icon={<Flag className="h-3.5 w-3.5" />} label="Árbitro" value={detail?.referee ?? match.referee ?? "Sin dato"} />
-                  </div>
                 </div>
                 <TeamBlock team={awayTeam} goals={awayGoals} align="right" />
+              </div>
+
+              <div className="mx-auto mt-4 grid max-w-2xl grid-cols-2 gap-2 border-t border-white/15 pt-3 text-center text-[0.56rem] font-semibold leading-tight text-white/80 sm:text-[0.68rem] md:mt-6 md:gap-4 md:pt-4 md:text-xs">
+                <ScoreMeta icon={<MapPin className="h-3.5 w-3.5" />} label="Estadio" value={match.stadium} />
+                <ScoreMeta icon={<Flag className="h-3.5 w-3.5" />} label="Árbitro" value={detail?.referee ?? match.referee ?? "Sin dato"} />
               </div>
             </div>
           </section>
 
-          <section className="grid items-start gap-4 md:gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]">
+          <section className="grid items-start gap-4 md:gap-6 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
             <MatchCard ref={formationsCardRef} title="Formaciones">
-              <div className="grid gap-6 lg:grid-cols-2">
+              <div className="grid gap-4 md:gap-6 lg:grid-cols-2">
                 <LineupPanel title="River Plate" lineup={detail?.lineups.river} tone="river" />
                 <LineupPanel title={match.opponent} lineup={detail?.lineups.opponent} tone="opponent" />
               </div>
             </MatchCard>
             <MatchCard
-              title="Incidencias"
-              icon={<CalendarDays className="h-4 w-4" />}
+              title="Minuto a minuto"
+              icon={<Clock3 className="h-4 w-4" />}
               className="xl:flex xl:min-h-0 xl:flex-col xl:overflow-hidden"
               bodyClassName="xl:min-h-0 xl:flex-1 xl:overflow-y-auto xl:pr-1"
-              style={incidentsHeight ? { height: incidentsHeight } : undefined}
+              style={timelineHeight ? { height: timelineHeight } : undefined}
             >
-              {detail && (detail.cards.length > 0 || detail.substitutions.length > 0) ? (
-                <Timeline cards={detail.cards} substitutions={detail.substitutions} opponent={match.opponent} />
+              {detail && (detail.goals.length > 0 || detail.cards.length > 0 || detail.substitutions.length > 0) ? (
+                <Timeline goals={detail.goals} cards={detail.cards} substitutions={detail.substitutions} opponent={match.opponent} />
               ) : (
-                <EmptyState text="No hay incidencias cargadas para este partido." />
+                <EmptyState text="No hay minuto a minuto cargado para este partido." />
               )}
             </MatchCard>
           </section>
@@ -150,10 +151,10 @@ function TeamBlock({ team, goals, align = "left" }: { team: string; goals: Match
   return (
     <div className={cn("flex min-w-0 flex-col items-center gap-1.5 md:gap-2", align === "right" && "text-right")}>
       <div className="rounded-full bg-white p-1.5 shadow-xl md:p-2">
-        <TeamCrest team={team} size="md" className="md:h-16 md:w-16" />
+        <TeamCrest team={team} size="md" className="h-10 w-10 md:h-16 md:w-16" />
       </div>
-      <h1 className="line-clamp-2 font-display text-base font-extrabold leading-tight md:text-2xl">{team}</h1>
-      <div className="mt-1 min-h-8 space-y-1 text-center text-[0.6rem] font-semibold leading-tight text-white/80 md:min-h-10 md:text-xs">
+      <h1 className="line-clamp-2 font-display text-[0.82rem] font-extrabold leading-tight md:text-2xl">{team}</h1>
+      <div className="mt-1 min-h-7 space-y-1 text-center text-[0.56rem] font-semibold leading-tight text-white/80 md:min-h-10 md:text-xs">
         {goals.length > 0 ? (
           goals.map((goal, index) => <GoalMini key={`${goal.minute}-${goal.player}-${index}`} goal={goal} />)
         ) : (
@@ -166,11 +167,11 @@ function TeamBlock({ team, goals, align = "left" }: { team: string; goals: Match
 
 function ScoreMeta({ icon, label, value }: { icon: ReactNode; label: string; value: string }) {
   return (
-    <div className="flex items-start gap-2">
-      <span className="mt-0.5 text-white/55">{icon}</span>
-      <p>
-        <span className="block text-[0.58rem] uppercase tracking-[0.18em] text-white/45">{label}</span>
-        <span className="text-white/85">{value}</span>
+    <div className="flex items-start justify-center gap-1.5 md:gap-2">
+      <span className="mt-0.5 shrink-0 text-white/55">{icon}</span>
+      <p className="min-w-0">
+        <span className="block text-[0.52rem] uppercase tracking-[0.16em] text-white/45 md:text-[0.58rem] md:tracking-[0.18em]">{label}</span>
+        <span className="break-words text-white/85">{value}</span>
       </p>
     </div>
   )
@@ -194,10 +195,10 @@ function MatchCard({
   ref?: React.Ref<HTMLElement>
 }) {
   return (
-    <section ref={ref} style={style} className={cn("rounded-[1.5rem] border border-border bg-card p-4 shadow-sm md:rounded-[1.75rem] md:p-5", className)}>
-      <div className="mb-4 flex items-center gap-2">
-        {icon && <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground">{icon}</span>}
-        <h2 className="font-display text-xl font-extrabold uppercase tracking-tight md:text-2xl">{title}</h2>
+    <section ref={ref} style={style} className={cn("rounded-[1.35rem] border border-border bg-card p-3.5 shadow-sm md:rounded-[1.75rem] md:p-5", className)}>
+      <div className="mb-3 flex items-center gap-2 md:mb-4">
+        {icon && <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground md:h-8 md:w-8">{icon}</span>}
+        <h2 className="font-display text-lg font-extrabold uppercase tracking-tight md:text-2xl">{title}</h2>
       </div>
       <div className={bodyClassName}>
         {children}
@@ -214,20 +215,23 @@ function GoalMini({ goal }: { goal: MatchGoal }) {
   )
 }
 
-function Timeline({ cards, substitutions, opponent }: { cards: MatchCardEvent[]; substitutions: MatchSubstitution[]; opponent: string }) {
+function Timeline({ goals, cards, substitutions, opponent }: { goals: MatchGoal[]; cards: MatchCardEvent[]; substitutions: MatchSubstitution[]; opponent: string }) {
   const events = [
+    ...goals.map((goal) => ({ type: "goal" as const, minute: goal.minute, team: goal.team, payload: goal })),
     ...cards.map((card) => ({ type: "card" as const, minute: card.minute, team: card.team, payload: card })),
     ...substitutions.map((substitution) => ({ type: "substitution" as const, minute: substitution.minute, team: substitution.team, payload: substitution })),
-  ].sort((a, b) => Number(a.minute) - Number(b.minute))
+  ].sort((a, b) => getMinuteValue(a.minute) - getMinuteValue(b.minute))
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2.5 md:space-y-3">
       {events.map((event, index) => (
-        <div key={`${event.type}-${event.minute}-${index}`} className="flex gap-3 rounded-2xl border border-border bg-background p-4">
-          <span className="mt-1 h-fit rounded-full bg-muted px-2.5 py-1 text-xs font-black text-foreground">{event.minute}'</span>
+        <div key={`${event.type}-${event.minute}-${index}`} className={cn("flex gap-2.5 rounded-2xl border p-3 md:gap-3 md:p-4", getTimelineEventStyle(event.type, event.team))}>
+          <span className="mt-0.5 h-fit min-w-10 rounded-full bg-background/85 px-2 py-1 text-center text-xs font-black text-foreground ring-1 ring-border/70 md:mt-1 md:min-w-11 md:px-2.5">{formatMinute(event.minute)}</span>
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground">{teamLabel(event.team, opponent)}</p>
-            {event.type === "card" ? <CardEvent event={event.payload} /> : <SubstitutionEvent event={event.payload} />}
+            <p className="text-[0.62rem] font-bold uppercase tracking-[0.16em] text-muted-foreground md:text-xs">{teamLabel(event.team, opponent)}</p>
+            {event.type === "goal" && <GoalEvent event={event.payload} />}
+            {event.type === "card" && <CardEvent event={event.payload} />}
+            {event.type === "substitution" && <SubstitutionEvent event={event.payload} />}
           </div>
         </div>
       ))}
@@ -235,12 +239,28 @@ function Timeline({ cards, substitutions, opponent }: { cards: MatchCardEvent[];
   )
 }
 
+function GoalEvent({ event }: { event: MatchGoal }) {
+  return (
+    <div className="mt-1 space-y-0.5">
+      <p className="flex items-center gap-2 font-semibold">
+        <span className="shrink-0 text-base leading-none" aria-hidden="true">⚽</span>
+        Gol de {event.player}
+      </p>
+      {(event.assist || event.detail) && (
+        <p className="text-xs text-muted-foreground md:text-sm">
+          {[event.assist ? `Asistencia: ${event.assist}` : null, event.detail].filter(Boolean).join(" · ")}
+        </p>
+      )}
+    </div>
+  )
+}
+
 function CardEvent({ event }: { event: MatchCardEvent }) {
   return (
-    <div className="mt-1 flex items-center gap-2">
-      <Square className={cn("h-4 w-4 fill-current", event.card === "red" ? "text-primary" : "text-yellow-500")} />
+    <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+      <Square className={cn("h-4 w-4 shrink-0 fill-current", event.card === "red" ? "text-primary" : "text-yellow-500")} />
       <span className="font-semibold">{event.player}</span>
-      {event.detail && <span className="text-sm text-muted-foreground">· {event.detail}</span>}
+      {event.detail && <span className="text-xs text-muted-foreground md:text-sm">· {event.detail}</span>}
     </div>
   )
 }
@@ -249,27 +269,27 @@ function SubstitutionEvent({ event }: { event: MatchSubstitution }) {
   return (
     <div className="mt-1 space-y-1">
       <p className="flex items-center gap-2 font-semibold">
-        <RefreshCw className="h-4 w-4 text-primary" />
+        <RefreshCw className="h-4 w-4 shrink-0 text-primary" />
         Entra {event.playerIn}
       </p>
-      <p className="text-sm text-muted-foreground">Sale {event.playerOut}</p>
+      <p className="text-xs text-muted-foreground md:text-sm">Sale {event.playerOut}</p>
     </div>
   )
 }
 
 function LineupPanel({ title, lineup, tone }: { title: string; lineup?: MatchLineup; tone: "river" | "opponent" }) {
   return (
-    <section className="space-y-4">
-      <h3 className="font-display text-xl font-extrabold text-foreground">{title}</h3>
+    <section className="space-y-3 md:space-y-4">
+      <h3 className="font-display text-lg font-extrabold text-foreground md:text-xl">{title}</h3>
 
       {lineup ? (
-        <div className="rounded-2xl border border-border bg-background p-4 md:p-5">
+        <div className="rounded-2xl border border-border bg-background p-3.5 md:p-5">
           <PlayerList title="Titulares" players={lineup.starters} tone={tone} />
-          <div className="mt-7">
-            <p className="text-sm text-muted-foreground">Entrenador</p>
-            <p className="mt-1 text-lg font-semibold text-foreground">{lineup.coach}</p>
+          <div className="mt-5 rounded-2xl bg-muted/50 p-3 md:mt-7 md:bg-transparent md:p-0">
+            <p className="text-xs text-muted-foreground md:text-sm">Entrenador</p>
+            <p className="mt-1 text-base font-semibold text-foreground md:text-lg">{lineup.coach}</p>
           </div>
-          <div className="my-7 h-px bg-border" />
+          <div className="my-5 h-px bg-border md:my-7" />
           <PlayerList title="Suplentes" players={lineup.substitutes} tone={tone} compact />
         </div>
       ) : (
@@ -284,8 +304,8 @@ function PlayerList({ title, players, tone, compact = false }: { title: string; 
 
   return (
     <div>
-      <h4 className="mb-3 text-base font-extrabold text-foreground md:mb-4">{title}</h4>
-      <div className="space-y-2.5 md:space-y-3">
+      <h4 className="mb-3 text-sm font-extrabold uppercase tracking-[0.08em] text-foreground md:mb-4 md:text-base md:normal-case md:tracking-normal">{title}</h4>
+      <div className="space-y-2 md:space-y-3">
         {orderedPlayers.map((player) => (
           <PlayerRow key={player} player={player} tone={tone} compact={compact} />
         ))}
@@ -298,10 +318,10 @@ function PlayerRow({ player, tone, compact }: { player: string; tone: "river" | 
   const { number, name } = parsePlayerLabel(player)
 
   return (
-    <div className={cn("flex items-center gap-3", compact && "gap-3 text-muted-foreground")}>
+    <div className={cn("flex min-w-0 items-center gap-2.5 md:gap-3", compact && "text-muted-foreground")}>
       <span
         className={cn(
-          "inline-flex h-7 min-w-7 items-center justify-center rounded-md px-1.5 text-sm font-black",
+          "inline-flex h-6 min-w-6 shrink-0 items-center justify-center rounded-md px-1.5 text-xs font-black md:h-7 md:min-w-7 md:text-sm",
           compact
             ? "border border-border bg-card text-muted-foreground"
             : tone === "river"
@@ -311,9 +331,25 @@ function PlayerRow({ player, tone, compact }: { player: string; tone: "river" | 
       >
         {number}
       </span>
-      <span className={cn("text-sm font-medium md:text-base", compact ? "text-muted-foreground" : "text-foreground")}>{name}</span>
+      <span className={cn("min-w-0 text-sm font-medium leading-tight md:text-base", compact ? "text-muted-foreground" : "text-foreground")}>{name}</span>
     </div>
   )
+}
+
+function getTimelineEventStyle(type: "goal" | "card" | "substitution", team: MatchTeamSide) {
+  if (type === "goal" && team === "river") return "border-primary/30 bg-primary/10"
+  if (type === "goal") return "border-zinc-950 bg-zinc-200/85"
+  if (type === "card") return "border-border bg-background"
+  return "border-border bg-muted/35"
+}
+
+function formatMinute(minute: string) {
+  return minute.endsWith("'") ? minute : `${minute}'`
+}
+
+function getMinuteValue(minute: string) {
+  const [base, added] = minute.split("+")
+  return Number(base) + (Number(added) || 0) / 100
 }
 
 function parsePlayerLabel(player: string) {
