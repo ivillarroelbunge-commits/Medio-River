@@ -137,6 +137,10 @@ function clearStoredState() {
   }
 }
 
+function isLegacyStoredStateTooLarge(raw: string) {
+  return raw.length > 200_000
+}
+
 function mergeStoredMatches(seedMatches: Match[], storedMatches: Match[]) {
   const storedById = new Map(storedMatches.map((match) => [match.id, match]))
 
@@ -346,6 +350,11 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       try {
         const raw = window.localStorage.getItem(STORAGE_KEY)
         if (raw) {
+          if (isLegacyStoredStateTooLarge(raw)) {
+            clearStoredState()
+            return
+          }
+
           const parsed = JSON.parse(raw) as Partial<LocalState> & {
             news?: NewsArticle[]
             matches?: Match[]
