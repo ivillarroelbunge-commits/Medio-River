@@ -18,7 +18,7 @@ import {
 } from "@/lib/app-state"
 import type { AppUser, DailyTrivia, Match, NewsArticle, SquadPlayer, TriviaQuestion, TriviaResult, UserRole } from "@/lib/data/types"
 import { createClient as createSupabaseBrowserClient } from "@/lib/supabase/client"
-import { fetchMatches, getMatchTableMissingMessage, mapMatchRowToMatch, mapMatchToPayload, MATCHES_SELECT, type MatchRow } from "@/lib/supabase/matches"
+import { fetchMatches, getMatchTableMissingMessage, mapMatchToPayload } from "@/lib/supabase/matches"
 import { fetchNewsArticles, isMissingImageCropColumn, mapNewsRowToArticle, NEWS_SELECT } from "@/lib/supabase/news"
 import { mapProfileToAppUser, type ProfileRow } from "@/lib/supabase/profiles"
 import { normalizeNewsCategory } from "@/lib/news-taxonomy"
@@ -118,6 +118,22 @@ function createInitialLocalState(): LocalState {
     triviaQuestions: initialState.triviaQuestions,
     dailyTrivias: initialState.dailyTrivias,
     triviaResults: initialState.triviaResults,
+  }
+}
+
+function getPersistableLocalState(state: LocalState): Partial<LocalState> {
+  return {
+    // Public content comes from seed data/Supabase. Keeping only trivia results
+    // avoids Safari mobile quota crashes caused by storing full match details.
+    triviaResults: state.triviaResults,
+  }
+}
+
+function clearStoredState() {
+  try {
+    window.localStorage.removeItem(STORAGE_KEY)
+  } catch {
+    // Storage can be unavailable in private/mobile contexts.
   }
 }
 
@@ -359,6 +375,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         }
       } catch {
         if (!active) return
+        clearStoredState()
         setLocalState(createInitialLocalState())
       }
 
@@ -383,36 +400,24 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       })
     })
 
-    const matchesChannel = supabase
-      .channel("public-matches-changes")
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "matches" }, (payload) => {
-        const match = mapMatchRowToMatch(payload.new as MatchRow)
-        setLocalState((previous) => ({
-          ...previous,
-          matches: mergeStoredMatches(previous.matches, [match]),
-        }))
-      })
-      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "matches" }, (payload) => {
-        const match = mapMatchRowToMatch(payload.new as MatchRow)
-        setLocalState((previous) => ({
-          ...previous,
-          matches: mergeStoredMatches(previous.matches, [match]),
-        }))
-      })
-      .subscribe()
-
     void hydrate()
 
     return () => {
       active = false
       subscription.unsubscribe()
-      void supabase.removeChannel(matchesChannel)
     }
   }, [supabase])
 
   useEffect(() => {
     if (!isHydrated) return
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(localState))
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(getPersistableLocalState(localState)))
+    } catch (error) {
+      clearStoredState()
+      if (!isExpectedRemoteSyncError(error)) {
+        console.warn("No se pudo guardar el estado local.", error)
+      }
+    }
   }, [isHydrated, localState])
 
   const ranking = useMemo(() => {
