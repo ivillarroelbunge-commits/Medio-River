@@ -1,7 +1,5 @@
 import type { Metadata, Viewport } from "next"
 import { Suspense } from "react"
-import { Analytics } from "@vercel/analytics/next"
-import { SpeedInsights } from "@vercel/speed-insights/next"
 import { AppStateProvider } from "@/components/app-state-provider"
 import "./globals.css"
 
@@ -81,8 +79,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <AppStateProvider>
           <Suspense fallback={null}>{children}</Suspense>
         </AppStateProvider>
-        {process.env.NODE_ENV === "production" && <Analytics />}
-        <SpeedInsights />
       </body>
     </html>
   )
