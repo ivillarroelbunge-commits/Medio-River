@@ -22,12 +22,12 @@ set
           { "player": "Joaquín Freitas", "scored": true }
         ],
         "opponent": [
-          { "player": "Insaurralde", "scored": true },
-          { "player": "Corujo", "scored": true },
-          { "player": "Erazo", "scored": true },
-          { "player": "Rodríguez", "scored": false },
-          { "player": "Perruzzi", "scored": false },
-          { "player": "De Ritis", "scored": false }
+          { "player": "Carlos Insaurralde", "scored": true },
+          { "player": "Guzmán Corujo", "scored": true },
+          { "player": "Diego Herazo", "scored": true },
+          { "player": "Gregorio Rodríguez", "scored": false },
+          { "player": "Ignacio Perruzzi", "scored": false },
+          { "player": "Mathías De Ritis", "scored": false }
         ]
       }
     },

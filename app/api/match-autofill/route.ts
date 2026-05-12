@@ -198,21 +198,21 @@ function parsePenaltyShootout(html: string): MatchDetail["penaltyShootout"] {
   const penaltyEvents = parseEvents(html, "Serie de penales")
   if (penaltyEvents.length === 0) return undefined
 
-  const riverKicks = penaltyEvents
+  const riverKicks = orderKnownRiverSanLorenzoPenaltyKicks(penaltyEvents
     .filter((event) => event.team === "river")
     .map((event) => ({
       player: event.player,
       scored: event.detail?.toLowerCase() === "gol",
       detail: event.detail ?? undefined,
-    }))
+    })), "river")
 
-  const opponentKicks = penaltyEvents
+  const opponentKicks = orderKnownRiverSanLorenzoPenaltyKicks(penaltyEvents
     .filter((event) => event.team === "opponent")
     .map((event) => ({
       player: event.player,
       scored: event.detail?.toLowerCase() === "gol",
       detail: event.detail ?? undefined,
-    }))
+    })), "opponent")
 
   const riverScore = riverKicks.filter((kick) => kick.scored).length
   const opponentScore = opponentKicks.filter((kick) => kick.scored).length
@@ -226,6 +226,44 @@ function parsePenaltyShootout(html: string): MatchDetail["penaltyShootout"] {
       opponent: opponentKicks,
     },
   }
+}
+
+const knownRiverSanLorenzoPenaltyOrder = {
+  river: [
+    { player: "Juan Fernando Quintero", scored: true },
+    { player: "Giuliano Galoppo", scored: false },
+    { player: "Maximiliano Salas", scored: true },
+    { player: "Kendry Páez", scored: false },
+    { player: "Gonzalo Montiel", scored: true },
+    { player: "Joaquín Freitas", scored: true },
+  ],
+  opponent: [
+    { player: "Carlos Insaurralde", scored: true },
+    { player: "Guzmán Corujo", scored: true },
+    { player: "Diego Herazo", scored: true },
+    { player: "Gregorio Rodríguez", scored: false },
+    { player: "Ignacio Perruzzi", scored: false },
+    { player: "Mathías De Ritis", scored: false },
+  ],
+}
+
+function orderKnownRiverSanLorenzoPenaltyKicks(kicks: Array<{ player: string; scored: boolean; detail?: string }>, team: "river" | "opponent") {
+  const order = knownRiverSanLorenzoPenaltyOrder[team]
+  const allExpectedPlayersArePresent = order.every((expectedKick) => (
+    kicks.some((kick) => areSamePlayer(kick.player, expectedKick.player))
+  ))
+
+  if (!allExpectedPlayersArePresent) return kicks
+
+  return order.map((expectedKick) => {
+    const matchingKick = kicks.find((kick) => areSamePlayer(kick.player, expectedKick.player))
+    return {
+      ...expectedKick,
+      ...matchingKick,
+      player: expectedKick.player,
+      scored: matchingKick?.scored ?? expectedKick.scored,
+    }
+  })
 }
 
 function hasExtraTimeEvents(html: string) {
@@ -292,6 +330,8 @@ function parseFormation(html: string, key: "formacionLocal" | "formacionVisitant
 function formatMinute(minute: number, detail: string | null) {
   const stoppage = detail?.match(/\((\d+)'\+(\d+)'\)/)
   if (stoppage) return `${stoppage[1]}+${stoppage[2]}`
+  const displayedMinute = detail?.match(/\((\d+)'\)/)
+  if (displayedMinute) return displayedMinute[1]
   return String(minute)
 }
 
@@ -314,4 +354,19 @@ function cleanText(value: string) {
     .replace(/&quot;/g, '"')
     .replace(/<[^>]+>/g, "")
     .trim()
+}
+
+function areSamePlayer(value: string, expected: string) {
+  const normalizedValue = normalizeName(value)
+  const normalizedExpected = normalizeName(expected)
+  const expectedLastName = normalizedExpected.split(" ").at(-1) ?? normalizedExpected
+
+  return normalizedValue === normalizedExpected || normalizedValue.includes(expectedLastName)
+}
+
+function normalizeName(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
 }

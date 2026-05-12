@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
-import type { Competition, Match, MatchDetail } from "@/lib/data/types"
+import type { Competition, Match, MatchDetail, MatchPenaltyKick } from "@/lib/data/types"
 
 export const MATCHES_SELECT = "id, date, opponent, competition, status, is_home, stadium, tv_channel, river_score, opponent_score, referee, detail"
 
@@ -31,8 +31,78 @@ export function mapMatchRowToMatch(row: MatchRow): Match {
     riverScore: row.river_score ?? undefined,
     opponentScore: row.opponent_score ?? undefined,
     referee: row.referee ?? undefined,
-    detail: row.detail ?? undefined,
+    detail: normalizeMatchDetail(row.id, row.detail) ?? undefined,
   }
+}
+
+function normalizeMatchDetail(matchId: string, detail: MatchDetail | null) {
+  if (!detail || matchId !== "match-25") return detail
+
+  return {
+    ...detail,
+    penaltyShootout: detail.penaltyShootout
+      ? {
+          ...detail.penaltyShootout,
+          kicks: detail.penaltyShootout.kicks
+            ? {
+                river: orderPenaltyKicks(detail.penaltyShootout.kicks.river, riverSanLorenzoPenaltyOrder.river),
+                opponent: orderPenaltyKicks(detail.penaltyShootout.kicks.opponent, riverSanLorenzoPenaltyOrder.opponent),
+              }
+            : detail.penaltyShootout.kicks,
+        }
+      : detail.penaltyShootout,
+    cards: detail.cards.map((card) => (
+      card.team === "river" && normalizeName(card.player).includes("anibal moreno") && card.minute === "103"
+        ? { ...card, minute: "93" }
+        : card
+    )),
+  }
+}
+
+const riverSanLorenzoPenaltyOrder = {
+  river: [
+    { player: "Juan Fernando Quintero", scored: true },
+    { player: "Giuliano Galoppo", scored: false },
+    { player: "Maximiliano Salas", scored: true },
+    { player: "Kendry Páez", scored: false },
+    { player: "Gonzalo Montiel", scored: true },
+    { player: "Joaquín Freitas", scored: true },
+  ],
+  opponent: [
+    { player: "Carlos Insaurralde", scored: true },
+    { player: "Guzmán Corujo", scored: true },
+    { player: "Diego Herazo", scored: true },
+    { player: "Gregorio Rodríguez", scored: false },
+    { player: "Ignacio Perruzzi", scored: false },
+    { player: "Mathías De Ritis", scored: false },
+  ],
+} satisfies Record<"river" | "opponent", MatchPenaltyKick[]>
+
+function orderPenaltyKicks(kicks: MatchPenaltyKick[], order: MatchPenaltyKick[]) {
+  return order.map((expectedKick) => {
+    const matchingKick = kicks.find((kick) => areSamePlayer(kick.player, expectedKick.player))
+    return {
+      ...expectedKick,
+      ...matchingKick,
+      player: expectedKick.player,
+      scored: matchingKick?.scored ?? expectedKick.scored,
+    }
+  })
+}
+
+function areSamePlayer(value: string, expected: string) {
+  const normalizedValue = normalizeName(value)
+  const normalizedExpected = normalizeName(expected)
+  const expectedLastName = normalizedExpected.split(" ").at(-1) ?? normalizedExpected
+
+  return normalizedValue === normalizedExpected || normalizedValue.includes(expectedLastName)
+}
+
+function normalizeName(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
 }
 
 export function mapMatchToPayload(match: Match, userId?: string | null) {
