@@ -18,7 +18,7 @@ import {
 } from "@/lib/app-state"
 import type { AppUser, DailyTrivia, Match, NewsArticle, SquadPlayer, TriviaQuestion, TriviaResult, UserRole } from "@/lib/data/types"
 import { createClient as createSupabaseBrowserClient } from "@/lib/supabase/client"
-import { fetchMatches, getMatchTableMissingMessage, mapMatchToPayload, MATCHES_SELECT } from "@/lib/supabase/matches"
+import { fetchMatches, getMatchTableMissingMessage, mapMatchRowToMatch, mapMatchToPayload, MATCHES_SELECT, type MatchRow } from "@/lib/supabase/matches"
 import { fetchNewsArticles, isMissingImageCropColumn, mapNewsRowToArticle, NEWS_SELECT } from "@/lib/supabase/news"
 import { mapProfileToAppUser, type ProfileRow } from "@/lib/supabase/profiles"
 import { normalizeNewsCategory } from "@/lib/news-taxonomy"
@@ -183,9 +183,9 @@ function shouldPreferSeedMatchDetail(seedMatch: Match, storedMatch: Match) {
   return false
 }
 
-function withTimeout<T>(promise: Promise<T>, timeoutMs: number, message: string) {
+function withTimeout<T>(promise: PromiseLike<T>, timeoutMs: number, message: string) {
   return Promise.race([
-    promise,
+    Promise.resolve(promise),
     new Promise<never>((_, reject) => {
       setTimeout(() => reject(new Error(message)), timeoutMs)
     }),

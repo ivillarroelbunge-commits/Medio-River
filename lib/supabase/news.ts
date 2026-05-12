@@ -58,7 +58,12 @@ export async function fetchNewsArticles(supabase: SupabaseClient) {
       .from("news_articles")
       .select(LEGACY_NEWS_SELECT)
       .order("published_at", { ascending: false })
-    data = fallback.data
+    data = fallback.data?.map((row) => ({
+      ...row,
+      image_focus_x: null,
+      image_focus_y: null,
+      image_zoom: null,
+    })) ?? null
     error = fallback.error
   }
 
