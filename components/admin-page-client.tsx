@@ -20,6 +20,7 @@ const sections = [
 
 const competitions: Competition[] = ["Torneo Apertura", "Copa Sudamericana", "Copa Argentina"]
 const playerLines: SquadPlayer["line"][] = ["Arqueros", "Defensores", "Mediocampistas", "Delanteros"]
+const MATCH_AUTOFILL_TIMEOUT_MS = 15000
 
 export function AdminPageClient() {
   const {
@@ -368,11 +369,15 @@ export function AdminPageClient() {
                       onCancel={() => setEditingMatch(null)}
                       onAutofill={async (matchToAutofill) => {
                         setError(null)
+                        const controller = new AbortController()
+                        const timeout = setTimeout(() => controller.abort(), MATCH_AUTOFILL_TIMEOUT_MS)
+
                         try {
                           const response = await fetch("/api/match-autofill", {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({ match: matchToAutofill }),
+                            signal: controller.signal,
                           })
                           const data = await response.json() as { ok: boolean; match?: Match; error?: string }
 
@@ -383,9 +388,13 @@ export function AdminPageClient() {
 
                           setEditingMatch(data.match)
                           return data.match
-                        } catch {
-                          setError("No se pudo conectar con el asistente de carga.")
+                        } catch (error) {
+                          setError(error instanceof DOMException && error.name === "AbortError"
+                            ? "La importación tardó demasiado. Probá de nuevo en unos segundos."
+                            : "No se pudo conectar con el asistente de carga.")
                           return null
+                        } finally {
+                          clearTimeout(timeout)
                         }
                       }}
                       onSave={async (updatedMatch) => {
@@ -958,16 +967,19 @@ function MatchEditForm({
           disabled={isSaving || isAutofilling}
           onClick={async () => {
             setIsAutofilling(true)
-            const autofilledMatch = await onAutofill(draft)
-            if (autofilledMatch) {
-              setDraft(autofilledMatch)
-              setStatus(autofilledMatch.status)
-              setIsHome(autofilledMatch.isHome ? "home" : "away")
-              setIsSaving(true)
-              await onSave(autofilledMatch)
+            try {
+              const autofilledMatch = await onAutofill(draft)
+              if (autofilledMatch) {
+                setDraft(autofilledMatch)
+                setStatus(autofilledMatch.status)
+                setIsHome(autofilledMatch.isHome ? "home" : "away")
+                setIsSaving(true)
+                await onSave(autofilledMatch)
+              }
+            } finally {
               setIsSaving(false)
+              setIsAutofilling(false)
             }
-            setIsAutofilling(false)
           }}
         >
           {isAutofilling || isSaving ? "Importando..." : "Importar y guardar desde La Historia River"}

@@ -64,6 +64,8 @@ interface ProfileActionResult {
   error?: string
 }
 
+const MATCH_SAVE_TIMEOUT_MS = 15000
+
 interface LocalState {
   news: NewsArticle[]
   matches: Match[]
@@ -183,6 +185,15 @@ function shouldPreferSeedMatchDetail(seedMatch: Match, storedMatch: Match) {
   // La Historia River imports are source-of-truth snapshots; this keeps stale
   // Supabase rows from overriding corrected source data.
   return seedMatch.detail?.sourceUrl === storedMatch.detail?.sourceUrl
+}
+
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number, message: string) {
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error(message)), timeoutMs)
+    }),
+  ])
 }
 
 function getProfilePayload(user: User) {
@@ -669,11 +680,26 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       return { ok: true }
     },
     async updateMatch(match) {
-      const { data, error } = await supabase
-        .from("matches")
-        .upsert(mapMatchToPayload(match, currentUser?.id), { onConflict: "id" })
-        .select(MATCHES_SELECT)
-        .single<MatchRow>()
+      let result: { data: MatchRow | null; error: { message?: string } | null }
+
+      try {
+        result = await withTimeout(
+          supabase
+            .from("matches")
+            .upsert(mapMatchToPayload(match, currentUser?.id), { onConflict: "id" })
+            .select(MATCHES_SELECT)
+            .single<MatchRow>(),
+          MATCH_SAVE_TIMEOUT_MS,
+          "Supabase tardó demasiado en guardar el partido.",
+        )
+      } catch (error) {
+        return {
+          ok: false,
+          error: error instanceof Error ? error.message : "No se pudo guardar el partido.",
+        }
+      }
+
+      const { data, error } = result
 
       if (error) {
         return {

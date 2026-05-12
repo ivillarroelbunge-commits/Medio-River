@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import type { Competition, Match, MatchCardEvent, MatchDetail, MatchGoal, MatchSubstitution } from "@/lib/data/types"
 
+const MATCH_PAGE_TIMEOUT_MS = 8000
+
 interface AutofillRequest {
   match: Match
 }
@@ -64,6 +66,9 @@ function slugifyOpponent(value: string) {
 }
 
 async function fetchMatchPage(sourceUrl: string) {
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), MATCH_PAGE_TIMEOUT_MS)
+
   try {
     const response = await fetch(sourceUrl, {
       headers: {
@@ -71,6 +76,7 @@ async function fetchMatchPage(sourceUrl: string) {
         "User-Agent": "MedioRiverAdmin/1.0",
       },
       cache: "no-store",
+      signal: controller.signal,
     })
 
     if (!response.ok) return null
@@ -81,6 +87,8 @@ async function fetchMatchPage(sourceUrl: string) {
     return html
   } catch {
     return null
+  } finally {
+    clearTimeout(timeout)
   }
 }
 
