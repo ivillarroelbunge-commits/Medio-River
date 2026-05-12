@@ -65,6 +65,7 @@ interface ProfileActionResult {
 }
 
 const MATCH_SAVE_TIMEOUT_MS = 15000
+const AUTH_ACTION_TIMEOUT_MS = 15000
 
 interface LocalState {
   news: NewsArticle[]
@@ -179,12 +180,7 @@ function shouldPreferSeedMatchSnapshot(seedMatch: Match, storedMatch: Match) {
 
 function shouldPreferSeedMatchDetail(seedMatch: Match, storedMatch: Match) {
   if (seedMatch.detail?.penaltyShootout && !storedMatch.detail?.penaltyShootout) return true
-  if (seedMatch.detail?.sourceLabel !== "La Historia River") return false
-  if (storedMatch.detail?.sourceLabel !== "La Historia River") return true
-
-  // La Historia River imports are source-of-truth snapshots; this keeps stale
-  // Supabase rows from overriding corrected source data.
-  return seedMatch.detail?.sourceUrl === storedMatch.detail?.sourceUrl
+  return false
 }
 
 function withTimeout<T>(promise: Promise<T>, timeoutMs: number, message: string) {
@@ -479,26 +475,42 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     dailyTrivias: localState.dailyTrivias,
     triviaResults: localState.triviaResults,
     async login(email, password, captchaToken) {
-      const { error } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
-        password,
-        options: {
-          captchaToken,
-        },
-      })
+      try {
+        const { error } = await withTimeout(
+          supabase.auth.signInWithPassword({
+            email: email.trim(),
+            password,
+            options: {
+              captchaToken,
+            },
+          }),
+          AUTH_ACTION_TIMEOUT_MS,
+          "Supabase tardó demasiado en iniciar sesión.",
+        )
 
-      if (error) {
+        if (error) {
+          return {
+            ok: false,
+            error: error.message || "No se pudo iniciar sesión.",
+          }
+        }
+
+        await withTimeout(
+          Promise.all([refreshAuthState(), loadTriviaData()]),
+          AUTH_ACTION_TIMEOUT_MS,
+          "La sesión inició, pero tardó demasiado en cargar el perfil.",
+        )
+        return { ok: true, redirectTo: "/perfil" }
+      } catch (error) {
         return {
           ok: false,
-          error: error.message || "No se pudo iniciar sesión.",
+          error: error instanceof Error ? error.message : "No se pudo iniciar sesión.",
         }
       }
-
-      await Promise.all([refreshAuthState(), loadTriviaData()])
-      return { ok: true, redirectTo: "/perfil" }
     },
     async register(input) {
-      const { data, error } = await supabase.auth.signUp({
+      try {
+        const { data, error } = await withTimeout(supabase.auth.signUp({
         email: input.email.trim(),
         password: input.password,
         options: {
@@ -508,38 +520,55 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
           },
           captchaToken: input.captchaToken,
         },
-      })
+      }), AUTH_ACTION_TIMEOUT_MS, "Supabase tardó demasiado en crear la cuenta.")
 
-      if (error) {
+        if (error) {
+          return {
+            ok: false,
+            error: error.message || "No se pudo registrar el usuario.",
+          }
+        }
+
+        await withTimeout(
+          Promise.all([refreshAuthState(), loadTriviaData()]),
+          AUTH_ACTION_TIMEOUT_MS,
+          "La cuenta se creó, pero tardó demasiado en cargar el perfil.",
+        )
+
+        return {
+          ok: true,
+          redirectTo: data.session ? "/perfil" : `/confirmar-cuenta?email=${encodeURIComponent(input.email.trim())}`,
+        }
+      } catch (error) {
         return {
           ok: false,
-          error: error.message || "No se pudo registrar el usuario.",
+          error: error instanceof Error ? error.message : "No se pudo registrar el usuario.",
         }
-      }
-
-      await Promise.all([refreshAuthState(), loadTriviaData()])
-
-      return {
-        ok: true,
-        redirectTo: data.session ? "/perfil" : `/confirmar-cuenta?email=${encodeURIComponent(input.email.trim())}`,
       }
     },
     async loginWithProvider(provider) {
-      const { error } = await supabase.auth.signInWithOAuth({
+      try {
+        const { error } = await withTimeout(supabase.auth.signInWithOAuth({
         provider,
         options: {
           redirectTo: getAuthCallbackUrl("/perfil"),
         },
-      })
+      }), AUTH_ACTION_TIMEOUT_MS, `Supabase tardó demasiado en iniciar sesión con ${provider}.`)
 
-      if (error) {
+        if (error) {
+          return {
+            ok: false,
+            error: error.message || `No se pudo iniciar sesión con ${provider}.`,
+          }
+        }
+
+        return { ok: true }
+      } catch (error) {
         return {
           ok: false,
-          error: error.message || `No se pudo iniciar sesión con ${provider}.`,
+          error: error instanceof Error ? error.message : `No se pudo iniciar sesión con ${provider}.`,
         }
       }
-
-      return { ok: true }
     },
     async logout() {
       await supabase.auth.signOut()
@@ -711,7 +740,9 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       const savedMatch = data ? mapMatchRowToMatch(data) : match
       setLocalState((previous) => ({
         ...previous,
-        matches: mergeStoredMatches(previous.matches, [savedMatch]),
+        matches: previous.matches.some((item) => item.id === savedMatch.id)
+          ? previous.matches.map((item) => (item.id === savedMatch.id ? savedMatch : item))
+          : [...previous.matches, savedMatch],
       }))
 
       return { ok: true }
