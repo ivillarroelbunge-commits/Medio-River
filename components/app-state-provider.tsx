@@ -709,6 +709,13 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       return { ok: true }
     },
     async updateMatch(match) {
+      if (!currentUser || currentUser.role !== "admin") {
+        return {
+          ok: false,
+          error: "Tenés que iniciar sesión como administrador para guardar partidos.",
+        }
+      }
+
       let result: { data: MatchRow | null; error: { message?: string } | null }
 
       try {

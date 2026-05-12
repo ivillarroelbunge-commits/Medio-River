@@ -22,6 +22,11 @@ const competitions: Competition[] = ["Torneo Apertura", "Copa Sudamericana", "Co
 const playerLines: SquadPlayer["line"][] = ["Arqueros", "Defensores", "Mediocampistas", "Delanteros"]
 const MATCH_AUTOFILL_TIMEOUT_MS = 15000
 
+type MatchSaveResult = {
+  ok: boolean
+  error?: string
+}
+
 export function AdminPageClient() {
   const {
     currentUser,
@@ -402,9 +407,10 @@ export function AdminPageClient() {
                         const result = await updateMatch(updatedMatch)
                         if (!result.ok) {
                           setError(result.error ?? "No se pudo guardar el partido.")
-                          return
+                          return result
                         }
-                        setEditingMatch(null)
+                        setEditingMatch(updatedMatch)
+                        return result
                       }}
                     />
                   </div>
@@ -875,13 +881,14 @@ function MatchEditForm({
   match: Match
   onAutofill: (match: Match) => Promise<Match | null>
   onCancel: () => void
-  onSave: (match: Match) => Promise<void>
+  onSave: (match: Match) => Promise<MatchSaveResult>
 }) {
   const [isSaving, setIsSaving] = useState(false)
   const [isAutofilling, setIsAutofilling] = useState(false)
   const [status, setStatus] = useState<Match["status"]>(match.status)
   const [isHome, setIsHome] = useState(match.isHome ? "home" : "away")
   const [draft, setDraft] = useState(match)
+  const [formMessage, setFormMessage] = useState<{ type: "success" | "error" | "info"; text: string } | null>(null)
 
   return (
     <form
@@ -889,22 +896,41 @@ function MatchEditForm({
       onSubmit={async (event) => {
         event.preventDefault()
         setIsSaving(true)
-        const formData = new FormData(event.currentTarget)
-        const nextStatus = String(formData.get("status") || status) as Match["status"]
-        await onSave({
-          ...draft,
-          opponent: String(formData.get("opponent") || draft.opponent),
-          competition: String(formData.get("competition") || draft.competition) as Competition,
-          date: String(formData.get("date") || draft.date),
-          status: nextStatus,
-          isHome: formData.get("isHome") === "home",
-          stadium: String(formData.get("stadium") || draft.stadium),
-          referee: String(formData.get("referee") || "") || undefined,
-          tvChannel: String(formData.get("tvChannel") || "") || undefined,
-          riverScore: nextStatus === "played" ? Number(formData.get("riverScore") || 0) : undefined,
-          opponentScore: nextStatus === "played" ? Number(formData.get("opponentScore") || 0) : undefined,
-        })
-        setIsSaving(false)
+        setFormMessage(null)
+
+        try {
+          const formData = new FormData(event.currentTarget)
+          const nextStatus = String(formData.get("status") || status) as Match["status"]
+          const nextMatch: Match = {
+            ...draft,
+            opponent: String(formData.get("opponent") || draft.opponent),
+            competition: String(formData.get("competition") || draft.competition) as Competition,
+            date: String(formData.get("date") || draft.date),
+            status: nextStatus,
+            isHome: formData.get("isHome") === "home",
+            stadium: String(formData.get("stadium") || draft.stadium),
+            referee: String(formData.get("referee") || "") || undefined,
+            tvChannel: String(formData.get("tvChannel") || "") || undefined,
+            riverScore: nextStatus === "played" ? Number(formData.get("riverScore") || 0) : undefined,
+            opponentScore: nextStatus === "played" ? Number(formData.get("opponentScore") || 0) : undefined,
+          }
+          const result = await onSave(nextMatch)
+
+          if (!result.ok) {
+            setFormMessage({ type: "error", text: result.error ?? "No se pudo guardar el partido." })
+            return
+          }
+
+          setDraft(nextMatch)
+          setFormMessage({ type: "success", text: "Partido guardado en Supabase. Ya queda visible públicamente." })
+        } catch (error) {
+          setFormMessage({
+            type: "error",
+            text: error instanceof Error ? error.message : "No se pudo guardar el partido.",
+          })
+        } finally {
+          setIsSaving(false)
+        }
       }}
     >
       <div className="rounded-2xl border border-border bg-background p-3 md:col-span-2">
@@ -956,6 +982,11 @@ function MatchEditForm({
           Datos cargados desde <a href={draft.detail.sourceUrl} target="_blank" rel="noreferrer" className="font-semibold text-primary hover:underline">{draft.detail.sourceLabel ?? "fuente pública"}</a>. Revisalos y apretá Guardar partido para publicarlos en Supabase.
         </p>
       )}
+      {formMessage && (
+        <p className={`rounded-xl border px-3 py-2 text-sm md:col-span-2 ${formMessage.type === "success" ? "border-emerald-500/25 bg-emerald-500/10 text-emerald-700" : formMessage.type === "info" ? "border-primary/20 bg-primary/5 text-primary" : "border-destructive/25 bg-destructive/10 text-destructive"}`}>
+          {formMessage.text}
+        </p>
+      )}
       <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap md:col-span-2">
         <Button type="submit" className="w-full rounded-full sm:w-auto" disabled={isSaving || isAutofilling}>
           {isSaving ? "Guardando..." : "Guardar partido"}
@@ -967,13 +998,22 @@ function MatchEditForm({
           disabled={isSaving || isAutofilling}
           onClick={async () => {
             setIsAutofilling(true)
+            setFormMessage(null)
             try {
               const autofilledMatch = await onAutofill(draft)
               if (autofilledMatch) {
                 setDraft(autofilledMatch)
                 setStatus(autofilledMatch.status)
                 setIsHome(autofilledMatch.isHome ? "home" : "away")
+                setFormMessage({ type: "info", text: "Datos cargados en el formulario. Ahora apretá Guardar partido para publicarlos." })
+              } else {
+                setFormMessage({ type: "error", text: "No se pudieron cargar datos para este partido." })
               }
+            } catch (error) {
+              setFormMessage({
+                type: "error",
+                text: error instanceof Error ? error.message : "No se pudieron cargar los datos.",
+              })
             } finally {
               setIsAutofilling(false)
             }
