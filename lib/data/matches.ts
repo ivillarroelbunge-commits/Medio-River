@@ -278,6 +278,16 @@ export const matches: Match[] = [
     detail: matchDetailsById["match-25"],
   },
   {
+    id: "match-26",
+    date: "2026-05-13T21:30:00-03:00",
+    opponent: "Gimnasia y Esgrima La Plata",
+    competition: "Torneo Apertura",
+    status: "upcoming",
+    isHome: true,
+    stadium: "Mâs Monumental",
+    tvChannel: "ESPN Premium / TNT Sports",
+  },
+  {
     id: "match-21",
     date: "2026-05-07T21:30:00-03:00",
     opponent: "Carabobo",
