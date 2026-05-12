@@ -944,7 +944,7 @@ function MatchEditForm({
       )}
       {draft.detail?.sourceUrl && (
         <p className="rounded-xl border border-primary/20 bg-background px-3 py-2 text-xs leading-5 text-muted-foreground md:col-span-2">
-          Datos precargados desde <a href={draft.detail.sourceUrl} target="_blank" rel="noreferrer" className="font-semibold text-primary hover:underline">{draft.detail.sourceLabel ?? "fuente pública"}</a>. Revisalos y apretá Guardar partido para publicarlos.
+          Datos importados desde <a href={draft.detail.sourceUrl} target="_blank" rel="noreferrer" className="font-semibold text-primary hover:underline">{draft.detail.sourceLabel ?? "fuente pública"}</a>. Al usar el botón de importación se guardan en Supabase y quedan públicos.
         </p>
       )}
       <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap md:col-span-2">
@@ -963,11 +963,14 @@ function MatchEditForm({
               setDraft(autofilledMatch)
               setStatus(autofilledMatch.status)
               setIsHome(autofilledMatch.isHome ? "home" : "away")
+              setIsSaving(true)
+              await onSave(autofilledMatch)
+              setIsSaving(false)
             }
             setIsAutofilling(false)
           }}
         >
-          {isAutofilling ? "Buscando..." : "Precargar desde La Historia River"}
+          {isAutofilling || isSaving ? "Importando..." : "Importar y guardar desde La Historia River"}
         </Button>
         <Button type="button" variant="outline" className="w-full rounded-full sm:w-auto" onClick={onCancel}>Cancelar</Button>
       </div>
