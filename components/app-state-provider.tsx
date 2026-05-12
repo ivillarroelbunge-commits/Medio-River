@@ -18,7 +18,7 @@ import {
 } from "@/lib/app-state"
 import type { AppUser, DailyTrivia, Match, NewsArticle, SquadPlayer, TriviaQuestion, TriviaResult, UserRole } from "@/lib/data/types"
 import { createClient as createSupabaseBrowserClient } from "@/lib/supabase/client"
-import { fetchMatches, getMatchTableMissingMessage, mapMatchToPayload } from "@/lib/supabase/matches"
+import { fetchMatches, getMatchTableMissingMessage, mapMatchToPayload, MATCHES_SELECT } from "@/lib/supabase/matches"
 import { fetchNewsArticles, isMissingImageCropColumn, mapNewsRowToArticle, NEWS_SELECT } from "@/lib/supabase/news"
 import { mapProfileToAppUser, type ProfileRow } from "@/lib/supabase/profiles"
 import { normalizeNewsCategory } from "@/lib/news-taxonomy"
