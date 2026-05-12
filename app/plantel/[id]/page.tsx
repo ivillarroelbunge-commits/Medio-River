@@ -13,7 +13,6 @@ import {
   formatPlayerRating,
   getCompetitionStatLine,
   getPlayerTotalStats,
-  playerSeasonStats,
   playerStatsCompetitionLabels,
   playerStatsSourceUrl,
   playerStatsUpdatedAt,
@@ -23,7 +22,7 @@ const statTabs: Array<PlayerStatsCompetitionKey | "total"> = ["total", "apertura
 
 export default function PlayerProfilePage() {
   const params = useParams<{ id: string }>()
-  const { isHydrated, squadPlayers } = useAppState()
+  const { isHydrated, playerSeasonStats, squadPlayers } = useAppState()
   const player = squadPlayers.find((item) => item.id === params.id)
   const [activeTab, setActiveTab] = useState<PlayerStatsCompetitionKey | "total">("total")
 
@@ -50,9 +49,10 @@ export default function PlayerProfilePage() {
     )
   }
 
-  const stats = activeTab === "total" ? getPlayerTotalStats(player.id) : getCompetitionStatLine(player.id, activeTab)
-  const totalStats = getPlayerTotalStats(player.id)
+  const stats = activeTab === "total" ? getPlayerTotalStats(player.id, playerSeasonStats) : getCompetitionStatLine(player.id, activeTab, playerSeasonStats)
+  const totalStats = getPlayerTotalStats(player.id, playerSeasonStats)
   const sourceId = playerSeasonStats[player.id]?.sourceId
+  const updatedAt = playerSeasonStats[player.id]?.updatedAt ?? playerStatsUpdatedAt
   const isGoalkeeper = player.line === "Arqueros"
 
   return (
@@ -153,7 +153,7 @@ export default function PlayerProfilePage() {
 
             <p className="mt-6 text-xs leading-5 text-muted-foreground">
               Fuente base: <a href={playerStatsSourceUrl} target="_blank" rel="noreferrer" className="font-semibold text-primary hover:underline">FotMob River Plate stats</a>
-              {sourceId ? ` · ID jugador ${sourceId}` : ""} · actualizado el {playerStatsUpdatedAt}. FotMob no expone titulares en este endpoint, por eso se muestran PJ y minutos.
+              {sourceId ? ` · ID jugador ${sourceId}` : ""} · actualizado el {updatedAt}. FotMob no expone titulares en este endpoint, por eso se muestran PJ y minutos.
             </p>
           </section>
         </div>

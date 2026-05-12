@@ -6,7 +6,7 @@ import { useAppState } from "@/components/app-state-provider"
 import { EditorNewsForm } from "@/components/editor-news-form"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import type { Competition, DailyTrivia, Match, NewsArticle, SquadPlayer, TriviaQuestion, UserRole } from "@/lib/data/types"
+import type { Competition, DailyTrivia, Match, NewsArticle, PlayerSeasonStats, SquadPlayer, TriviaQuestion, UserRole } from "@/lib/data/types"
 import { getRoleBadgeClass, getRoleLabel } from "@/lib/roles"
 
 const roles: UserRole[] = ["admin", "editor", "user"]
@@ -21,9 +21,18 @@ const sections = [
 const competitions: Competition[] = ["Torneo Apertura", "Copa Sudamericana", "Copa Argentina"]
 const playerLines: SquadPlayer["line"][] = ["Arqueros", "Defensores", "Mediocampistas", "Delanteros"]
 const MATCH_AUTOFILL_TIMEOUT_MS = 15000
+const PLAYER_STATS_AUTOFILL_TIMEOUT_MS = 30000
 
 type MatchSaveResult = {
   ok: boolean
+  error?: string
+}
+
+type PlayerStatsAutofillResponse = {
+  ok: boolean
+  stats?: Record<string, PlayerSeasonStats>
+  updatedPlayers?: number
+  warning?: string
   error?: string
 }
 
@@ -44,6 +53,7 @@ export function AdminPageClient() {
     saveDailyTrivia,
     saveTriviaQuestion,
     updateMatch,
+    updatePlayerSeasonStats,
     updateSquadPlayer,
     updateUserRole,
   } = useAppState()
@@ -61,6 +71,8 @@ export function AdminPageClient() {
   const [newsQuery, setNewsQuery] = useState("")
   const [usersQuery, setUsersQuery] = useState("")
   const [matchesQuery, setMatchesQuery] = useState("")
+  const [isUpdatingPlayerStats, setIsUpdatingPlayerStats] = useState(false)
+  const [playerStatsMessage, setPlayerStatsMessage] = useState<string | null>(null)
 
   const orderedUsers = useMemo(() => {
     const order: Record<UserRole, number> = { admin: 0, editor: 1, user: 2 }
@@ -131,6 +143,43 @@ export function AdminPageClient() {
 
   const newsCategoryOptions = useMemo(() => getUniqueNewsOptions(news.map((article) => article.category)), [news])
   const newsCompetitionOptions = useMemo(() => getUniqueNewsOptions(news.map((article) => article.competition)), [news])
+
+  async function handleUpdateAllPlayerStats() {
+    setError(null)
+    setPlayerStatsMessage(null)
+    setIsUpdatingPlayerStats(true)
+
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), PLAYER_STATS_AUTOFILL_TIMEOUT_MS)
+
+    try {
+      const response = await fetch("/api/player-stats-autofill", {
+        method: "POST",
+        signal: controller.signal,
+      })
+      const data = await response.json() as PlayerStatsAutofillResponse
+
+      if (!response.ok || !data.ok || !data.stats) {
+        setError(data.error ?? "No se pudieron cargar las estadísticas desde FotMob.")
+        return
+      }
+
+      const result = await updatePlayerSeasonStats(data.stats)
+      if (!result.ok) {
+        setError(result.error ?? "No se pudieron guardar las estadísticas.")
+        return
+      }
+
+      setPlayerStatsMessage(`${data.updatedPlayers ?? Object.keys(data.stats).length} jugadores actualizados.${data.warning ? ` ${data.warning}` : ""}${result.warning ? ` ${result.warning}` : ""}`)
+    } catch (error) {
+      setError(error instanceof DOMException && error.name === "AbortError"
+        ? "La actualización de estadísticas tardó demasiado. Probá de nuevo en unos segundos."
+        : "No se pudo conectar con FotMob para actualizar estadísticas.")
+    } finally {
+      clearTimeout(timeout)
+      setIsUpdatingPlayerStats(false)
+    }
+  }
 
   const counts = {
     news: news.length,
@@ -310,10 +359,25 @@ export function AdminPageClient() {
 
       {active === "jugadores" && (
         <section className="space-y-4 rounded-2xl border border-border bg-card p-4 shadow-sm md:p-5">
-          <div>
-            <h2 className="font-display text-xl font-extrabold md:text-2xl">Jugadores</h2>
-            <p className="text-sm text-muted-foreground">Modificar datos del plantel que se ven en Plantel y Arma tu equipo.</p>
+          <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+            <div>
+              <h2 className="font-display text-xl font-extrabold md:text-2xl">Jugadores</h2>
+              <p className="text-sm text-muted-foreground">Modificar datos del plantel y actualizar estadísticas de temporada.</p>
+            </div>
+            <Button
+              type="button"
+              className="rounded-full"
+              onClick={handleUpdateAllPlayerStats}
+              disabled={isUpdatingPlayerStats}
+            >
+              {isUpdatingPlayerStats ? "Actualizando..." : "Actualizar estadísticas desde FotMob"}
+            </Button>
           </div>
+          {playerStatsMessage && (
+            <p className="rounded-2xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm font-medium text-primary">
+              {playerStatsMessage}
+            </p>
+          )}
 
           <div className="grid gap-3 md:grid-cols-2">
             {squadPlayers.map((player) => (

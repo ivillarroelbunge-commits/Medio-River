@@ -781,12 +781,18 @@ export function normalizeStatLine(line?: Partial<PlayerStatLine>): PlayerStatLin
   }
 }
 
-export function getCompetitionStatLine(playerId: string, competition: PlayerStatsCompetitionKey) {
-  return normalizeStatLine(playerSeasonStats[playerId]?.competitions[competition])
+type PlayerStatsMap = Record<string, PlayerSeasonStats>
+
+export function getCompetitionStatLine(
+  playerId: string,
+  competition: PlayerStatsCompetitionKey,
+  statsMap: PlayerStatsMap = playerSeasonStats,
+) {
+  return normalizeStatLine(statsMap[playerId]?.competitions[competition])
 }
 
-export function getPlayerTotalStats(playerId: string): PlayerStatLine {
-  const stats = playerSeasonStats[playerId]
+export function getPlayerTotalStats(playerId: string, statsMap: PlayerStatsMap = playerSeasonStats): PlayerStatLine {
+  const stats = statsMap[playerId]
   if (!stats) return emptyStatLine
 
   const total = { ...emptyStatLine }

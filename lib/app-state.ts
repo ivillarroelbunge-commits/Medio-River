@@ -1,5 +1,6 @@
 import { demoUsers, matches, newsArticles, squadPlayers, triviaQuestions } from "@/lib/data"
-import type { AppUser, DailyTrivia, Match, NewsArticle, SquadPlayer, TriviaQuestion, TriviaResult, UserRole } from "@/lib/data/types"
+import type { AppUser, DailyTrivia, Match, NewsArticle, PlayerSeasonStats, SquadPlayer, TriviaQuestion, TriviaResult, UserRole } from "@/lib/data/types"
+import { playerSeasonStats } from "@/lib/player-stats"
 
 export interface StoredAppState {
   users: AppUser[]
@@ -7,6 +8,7 @@ export interface StoredAppState {
   news: NewsArticle[]
   matches: Match[]
   squadPlayers: SquadPlayer[]
+  playerSeasonStats: Record<string, PlayerSeasonStats>
   triviaQuestions: TriviaQuestion[]
   dailyTrivias: DailyTrivia[]
   triviaResults: TriviaResult[]
@@ -21,6 +23,7 @@ export function createInitialState(): StoredAppState {
     news: newsArticles,
     matches,
     squadPlayers,
+    playerSeasonStats,
     triviaQuestions,
     dailyTrivias: [],
     triviaResults: [],

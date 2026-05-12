@@ -16,10 +16,17 @@ import {
   createTriviaResultId,
   STORAGE_KEY,
 } from "@/lib/app-state"
-import type { AppUser, DailyTrivia, Match, NewsArticle, SquadPlayer, TriviaQuestion, TriviaResult, UserRole } from "@/lib/data/types"
+import type { AppUser, DailyTrivia, Match, NewsArticle, PlayerSeasonStats, SquadPlayer, TriviaQuestion, TriviaResult, UserRole } from "@/lib/data/types"
 import { createClient as createSupabaseBrowserClient } from "@/lib/supabase/client"
 import { fetchMatches, getMatchTableMissingMessage, mapMatchRowToMatch, mapMatchToPayload, MATCHES_SELECT, type MatchRow } from "@/lib/supabase/matches"
 import { fetchNewsArticles, isMissingImageCropColumn, mapNewsRowToArticle, NEWS_SELECT } from "@/lib/supabase/news"
+import {
+  fetchPlayerSeasonStats,
+  getPlayerSeasonStatsTableMissingMessage,
+  mapPlayerStatsRowToSeasonStats,
+  upsertPlayerSeasonStats,
+  type PlayerSeasonStatsRow,
+} from "@/lib/supabase/player-stats"
 import { mapProfileToAppUser, type ProfileRow } from "@/lib/supabase/profiles"
 import { normalizeNewsCategory } from "@/lib/news-taxonomy"
 import {
@@ -62,6 +69,7 @@ interface AuthActionResult {
 interface ProfileActionResult {
   ok: boolean
   error?: string
+  warning?: string
 }
 
 const MATCH_SAVE_TIMEOUT_MS = 15000
@@ -71,6 +79,7 @@ interface LocalState {
   news: NewsArticle[]
   matches: Match[]
   squadPlayers: SquadPlayer[]
+  playerSeasonStats: Record<string, PlayerSeasonStats>
   triviaQuestions: TriviaQuestion[]
   dailyTrivias: DailyTrivia[]
   triviaResults: TriviaResult[]
@@ -83,6 +92,7 @@ interface AppStateContextValue {
   news: NewsArticle[]
   matches: Match[]
   squadPlayers: SquadPlayer[]
+  playerSeasonStats: Record<string, PlayerSeasonStats>
   triviaQuestions: TriviaQuestion[]
   dailyTrivias: DailyTrivia[]
   triviaResults: TriviaResult[]
@@ -95,6 +105,7 @@ interface AppStateContextValue {
   deleteNews: (id: string) => Promise<ProfileActionResult>
   updateMatch: (match: Match) => Promise<ProfileActionResult>
   updateSquadPlayer: (player: SquadPlayer) => void
+  updatePlayerSeasonStats: (stats: Record<string, PlayerSeasonStats>) => Promise<ProfileActionResult>
   saveTriviaQuestion: (question: TriviaQuestion) => Promise<ProfileActionResult>
   createTriviaQuestion: (question: Omit<TriviaQuestion, "id">) => Promise<ProfileActionResult>
   deleteTriviaQuestion: (id: string) => Promise<ProfileActionResult>
@@ -118,6 +129,7 @@ function createInitialLocalState(): LocalState {
     news: initialState.news,
     matches: initialState.matches,
     squadPlayers: initialState.squadPlayers,
+    playerSeasonStats: initialState.playerSeasonStats,
     triviaQuestions: initialState.triviaQuestions,
     dailyTrivias: initialState.dailyTrivias,
     triviaResults: initialState.triviaResults,
@@ -332,6 +344,27 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     }))
   }
 
+  async function loadPlayerStats() {
+    const { playerSeasonStats: loadedStats, error } = await fetchPlayerSeasonStats(supabase)
+    if (error) {
+      const message = getPlayerSeasonStatsTableMissingMessage(error.message)
+      if (!message?.startsWith("Falta aplicar")) {
+        console.warn(message ?? "No se pudieron cargar las estadísticas de jugadores desde Supabase.")
+      }
+      return
+    }
+
+    if (!loadedStats || Object.keys(loadedStats).length === 0) return
+
+    setLocalState((previous) => ({
+      ...previous,
+      playerSeasonStats: {
+        ...previous.playerSeasonStats,
+        ...loadedStats,
+      },
+    }))
+  }
+
   async function loadTriviaData() {
     const { questions, dailyTrivias, results, errors } = await fetchTriviaState(supabase)
 
@@ -375,6 +408,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
             news?: NewsArticle[]
             matches?: Match[]
             squadPlayers?: SquadPlayer[]
+            playerSeasonStats?: Record<string, PlayerSeasonStats>
             triviaQuestions?: TriviaQuestion[]
             dailyTrivias?: DailyTrivia[]
             triviaResults?: TriviaResult[]
@@ -392,6 +426,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
               news: Array.from(mergedNews.values()),
               matches: parsed.matches ? mergeStoredMatches(previous.matches, parsed.matches) : previous.matches,
               squadPlayers: parsed.squadPlayers ?? previous.squadPlayers,
+              playerSeasonStats: parsed.playerSeasonStats ?? previous.playerSeasonStats,
               triviaQuestions: parsed.triviaQuestions ?? previous.triviaQuestions,
               dailyTrivias: parsed.dailyTrivias ?? previous.dailyTrivias,
               triviaResults: parsed.triviaResults ?? previous.triviaResults,
@@ -408,7 +443,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         setIsHydrated(true)
       }
 
-      void Promise.all([refreshAuthState(), loadNews(), loadMatches(), loadTriviaData()]).catch((error) => {
+      void Promise.all([refreshAuthState(), loadNews(), loadMatches(), loadPlayerStats(), loadTriviaData()]).catch((error) => {
         if (!isExpectedRemoteSyncError(error)) {
           console.warn("No se pudieron sincronizar los datos remotos.", error)
         }
@@ -471,6 +506,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     news: localState.news.slice().sort((a, b) => +new Date(b.date) - +new Date(a.date)),
     matches: localState.matches,
     squadPlayers: localState.squadPlayers,
+    playerSeasonStats: localState.playerSeasonStats,
     triviaQuestions: localState.triviaQuestions,
     dailyTrivias: localState.dailyTrivias,
     triviaResults: localState.triviaResults,
@@ -759,6 +795,50 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         ...previous,
         squadPlayers: previous.squadPlayers.map((item) => (item.id === player.id ? player : item)),
       }))
+    },
+    async updatePlayerSeasonStats(stats) {
+      if (currentUser?.role !== "admin") {
+        return { ok: false, error: "Solo los administradores pueden actualizar estadísticas de jugadores." }
+      }
+
+      const { data, error } = await upsertPlayerSeasonStats(supabase, stats, currentUser.id)
+
+      if (error) {
+        const tableMissingMessage = getPlayerSeasonStatsTableMissingMessage(error.message)
+        if (tableMissingMessage?.startsWith("Falta aplicar")) {
+          setLocalState((previous) => ({
+            ...previous,
+            playerSeasonStats: {
+              ...previous.playerSeasonStats,
+              ...stats,
+            },
+          }))
+
+          return {
+            ok: true,
+            warning: `${tableMissingMessage} Por ahora se actualizó solo en esta sesión.`,
+          }
+        }
+
+        return {
+          ok: false,
+          error: tableMissingMessage ?? "No se pudieron guardar las estadísticas.",
+        }
+      }
+
+      const savedStats = data
+        ? Object.fromEntries((data as PlayerSeasonStatsRow[]).map((row) => [row.player_id, mapPlayerStatsRowToSeasonStats(row)]))
+        : stats
+
+      setLocalState((previous) => ({
+        ...previous,
+        playerSeasonStats: {
+          ...previous.playerSeasonStats,
+          ...savedStats,
+        },
+      }))
+
+      return { ok: true }
     },
     async saveTriviaQuestion(question) {
       const normalizedQuestion: TriviaQuestion = {
