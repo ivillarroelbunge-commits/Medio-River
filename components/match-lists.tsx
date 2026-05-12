@@ -147,7 +147,12 @@ function MatchTitle({ match }: { match: Match }) {
 function formatResultLine(match: Match, scoreClassName: string) {
   const riverScore = match.riverScore ?? 0
   const opponentScore = match.opponentScore ?? 0
-  const score = match.isHome ? `${riverScore} - ${opponentScore}` : `${opponentScore} - ${riverScore}`
+  const homeScore = match.isHome ? riverScore : opponentScore
+  const awayScore = match.isHome ? opponentScore : riverScore
+  const penaltyScore = getPenaltyScoreParts(match)
+  const score = penaltyScore
+    ? `(${penaltyScore.home}) ${homeScore}-${awayScore} (${penaltyScore.away})`
+    : `${homeScore} - ${awayScore}`
   const homeTeam = match.isHome ? "River Plate" : match.opponent
   const awayTeam = match.isHome ? match.opponent : "River Plate"
 
@@ -160,7 +165,20 @@ function formatResultLine(match: Match, scoreClassName: string) {
   )
 }
 
+function getPenaltyScoreParts(match: Match) {
+  const shootout = match.detail?.penaltyShootout
+  if (!shootout) return null
+
+  return {
+    home: match.isHome ? shootout.river : shootout.opponent,
+    away: match.isHome ? shootout.opponent : shootout.river,
+  }
+}
+
 function getRiverOutcome(match: Match): keyof typeof resultStyle {
+  if (match.detail?.penaltyShootout?.winner === "river") return "win"
+  if (match.detail?.penaltyShootout?.winner === "opponent") return "loss"
+
   const riverScore = match.riverScore ?? 0
   const opponentScore = match.opponentScore ?? 0
 

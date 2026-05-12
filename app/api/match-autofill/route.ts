@@ -98,11 +98,14 @@ function parseLaHistoriaRiverMatch(html: string, sourceUrl: string, seed: Match)
   const visitorFormation = parseFormation(html, "formacionVisitante")
   const riverFormation = isRiverHome ? localFormation : visitorFormation
   const opponentFormation = isRiverHome ? visitorFormation : localFormation
+  const penaltyShootout = parsePenaltyShootout(html)
 
   const detail: MatchDetail = {
     sourceLabel: "La Historia River",
     sourceUrl,
     referee,
+    wentToExtraTime: hasExtraTimeEvents(html),
+    penaltyShootout,
     goals: parseGoals(html),
     cards: parseCards(html),
     substitutions: parseSubstitutions(html),
@@ -183,6 +186,45 @@ function parseSubstitutions(html: string): MatchSubstitution[] {
   }))
 }
 
+function parsePenaltyShootout(html: string): MatchDetail["penaltyShootout"] {
+  const penaltyEvents = parseEvents(html, "Serie de penales")
+  if (penaltyEvents.length === 0) return undefined
+
+  const riverKicks = penaltyEvents
+    .filter((event) => event.team === "river")
+    .map((event) => ({
+      player: event.player,
+      scored: event.detail?.toLowerCase() === "gol",
+      detail: event.detail ?? undefined,
+    }))
+
+  const opponentKicks = penaltyEvents
+    .filter((event) => event.team === "opponent")
+    .map((event) => ({
+      player: event.player,
+      scored: event.detail?.toLowerCase() === "gol",
+      detail: event.detail ?? undefined,
+    }))
+
+  const riverScore = riverKicks.filter((kick) => kick.scored).length
+  const opponentScore = opponentKicks.filter((kick) => kick.scored).length
+
+  return {
+    river: riverScore,
+    opponent: opponentScore,
+    winner: riverScore >= opponentScore ? "river" : "opponent",
+    kicks: {
+      river: riverKicks,
+      opponent: opponentKicks,
+    },
+  }
+}
+
+function hasExtraTimeEvents(html: string) {
+  return ["Gol", "Cambio", "Tarjeta Amarilla", "Tarjeta Roja"]
+    .some((type) => parseEvents(html, type).some((event) => minuteValue(event.minute) > 90))
+}
+
 function parseEvents(html: string, type: string) {
   const events: Array<{
     team: "river" | "opponent"
@@ -242,7 +284,6 @@ function parseFormation(html: string, key: "formacionLocal" | "formacionVisitant
 function formatMinute(minute: number, detail: string | null) {
   const stoppage = detail?.match(/\((\d+)'\+(\d+)'\)/)
   if (stoppage) return `${stoppage[1]}+${stoppage[2]}`
-  if (minute > 90) return `90+${minute - 90}`
   return String(minute)
 }
 

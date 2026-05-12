@@ -70,6 +70,12 @@ export interface MatchSubstitution {
   detail?: string
 }
 
+export interface MatchPenaltyKick {
+  player: string
+  scored: boolean
+  detail?: string
+}
+
 export interface MatchLineup {
   coach: string
   starters: string[]
@@ -80,6 +86,17 @@ export interface MatchDetail {
   sourceLabel?: string
   sourceUrl?: string
   referee?: string
+  resultNote?: string
+  wentToExtraTime?: boolean
+  penaltyShootout?: {
+    river: number
+    opponent: number
+    winner: MatchTeamSide
+    kicks?: {
+      river: MatchPenaltyKick[]
+      opponent: MatchPenaltyKick[]
+    }
+  }
   goals: MatchGoal[]
   cards: MatchCardEvent[]
   substitutions: MatchSubstitution[]

@@ -148,6 +148,7 @@ function mergeStoredMatches(seedMatches: Match[], storedMatches: Match[]) {
     const storedMatch = storedById.get(seedMatch.id)
 
     if (!storedMatch) return seedMatch
+    if (shouldPreferSeedMatchSnapshot(seedMatch, storedMatch)) return seedMatch
 
     return {
       ...seedMatch,
@@ -167,7 +168,15 @@ function mergeStoredMatches(seedMatches: Match[], storedMatches: Match[]) {
   return merged
 }
 
+function shouldPreferSeedMatchSnapshot(seedMatch: Match, storedMatch: Match) {
+  return (
+    (seedMatch.status === "played" && storedMatch.status === "upcoming") ||
+    Boolean(seedMatch.detail?.penaltyShootout && !storedMatch.detail?.penaltyShootout)
+  )
+}
+
 function shouldPreferSeedMatchDetail(seedMatch: Match, storedMatch: Match) {
+  if (seedMatch.detail?.penaltyShootout && !storedMatch.detail?.penaltyShootout) return true
   if (seedMatch.detail?.sourceLabel !== "La Historia River") return false
   if (storedMatch.detail?.sourceLabel !== "La Historia River") return true
 

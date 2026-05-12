@@ -12,7 +12,7 @@ export interface StoredAppState {
   triviaResults: TriviaResult[]
 }
 
-export const STORAGE_KEY = "medio-river-state-v1"
+export const STORAGE_KEY = "medio-river-state-v2"
 
 export function createInitialState(): StoredAppState {
   return {

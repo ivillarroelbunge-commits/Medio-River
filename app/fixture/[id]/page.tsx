@@ -3,12 +3,12 @@
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import { useEffect, useRef, useState, type ReactNode } from "react"
-import { ArrowLeft, Clock3, Flag, MapPin, RefreshCw, Square } from "lucide-react"
+import { ArrowLeft, Check, Clock3, Flag, MapPin, RefreshCw, Square, X } from "lucide-react"
 import { SiteFooter } from "@/components/site-footer"
 import { SiteHeader } from "@/components/site-header"
 import { TeamCrest } from "@/components/team-crest"
 import { useAppState } from "@/components/app-state-provider"
-import type { Match, MatchCardEvent, MatchGoal, MatchLineup, MatchSubstitution, MatchTeamSide } from "@/lib/data/types"
+import type { Match, MatchCardEvent, MatchGoal, MatchLineup, MatchPenaltyKick, MatchSubstitution, MatchTeamSide } from "@/lib/data/types"
 import { formatDateLong, formatTime } from "@/lib/format"
 import { cn } from "@/lib/utils"
 
@@ -99,6 +99,11 @@ export default function MatchDetailPage() {
                     {homeScore ?? "-"} <span className="text-white/40">-</span> {awayScore ?? "-"}
                   </p>
                   <p className="mt-2 text-[0.65rem] font-bold uppercase tracking-[0.2em] text-white/65">Final</p>
+                  {detail?.penaltyShootout && (
+                    <p className="mt-1 text-[0.62rem] font-black uppercase tracking-[0.14em] text-white md:text-xs">
+                      Penales {getPenaltyScore(match)}
+                    </p>
+                  )}
                 </div>
                 <TeamBlock team={awayTeam} goals={awayGoals} align="right" />
               </div>
@@ -109,6 +114,8 @@ export default function MatchDetailPage() {
               </div>
             </div>
           </section>
+
+          {detail?.penaltyShootout && <PenaltyShootoutCard match={match} />}
 
           <section className="grid items-start gap-4 md:gap-6 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
             <MatchCard ref={formationsCardRef} title="Formaciones">
@@ -215,6 +222,85 @@ function GoalMini({ goal }: { goal: MatchGoal }) {
   )
 }
 
+function PenaltyShootoutCard({ match }: { match: Match }) {
+  const shootout = match.detail?.penaltyShootout
+  if (!shootout) return null
+
+  const homeTeam = match.isHome ? "River Plate" : match.opponent
+  const awayTeam = match.isHome ? match.opponent : "River Plate"
+  const homeKicks = match.isHome ? shootout.kicks?.river : shootout.kicks?.opponent
+  const awayKicks = match.isHome ? shootout.kicks?.opponent : shootout.kicks?.river
+  const homePenaltyScore = match.isHome ? shootout.river : shootout.opponent
+  const awayPenaltyScore = match.isHome ? shootout.opponent : shootout.river
+
+  return (
+    <section className="rounded-[1.35rem] border border-border bg-card p-3.5 shadow-sm md:rounded-[1.75rem] md:p-5">
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2 md:mb-3">
+        <div>
+          <h2 className="font-display text-lg font-extrabold uppercase tracking-tight md:text-2xl">Tanda de penales</h2>
+        </div>
+        <span className="rounded-full bg-primary/10 px-3 py-1 text-[0.68rem] font-bold uppercase tracking-[0.12em] text-primary">
+          Ganó River
+        </span>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2 md:gap-5">
+        <PenaltyTeamColumn team={homeTeam} score={homePenaltyScore} kicks={homeKicks ?? []} />
+        <PenaltyTeamColumn team={awayTeam} score={awayPenaltyScore} kicks={awayKicks ?? []} align="right" />
+      </div>
+    </section>
+  )
+}
+
+function PenaltyTeamColumn({ team, score, kicks, align = "left" }: { team: string; score: number; kicks: MatchPenaltyKick[]; align?: "left" | "right" }) {
+  return (
+    <div className="rounded-2xl border border-border bg-background p-2.5 md:p-4">
+      <div className={cn("mb-3 grid grid-cols-[auto_1fr_auto] items-center gap-1.5 md:gap-2", align === "right" && "grid-cols-[auto_1fr_auto] text-right")}>
+        {align === "left" && <TeamCrest team={team} size="sm" className="h-8 w-8" />}
+        {align === "right" && (
+          <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-zinc-950 text-sm font-black text-white md:h-9 md:w-9 md:text-base">
+            {score}
+          </span>
+        )}
+        <h3 className={cn("min-w-0 truncate font-display text-xs font-extrabold leading-tight md:text-lg", align === "right" && "text-right")}>{team}</h3>
+        {align === "right" && <TeamCrest team={team} size="sm" className="h-8 w-8" />}
+        {align === "left" && (
+          <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary text-sm font-black text-primary-foreground md:h-9 md:w-9 md:text-base">
+            {score}
+          </span>
+        )}
+      </div>
+
+      {kicks.length > 0 ? (
+        <div className="space-y-2">
+          {kicks.map((kick, index) => (
+            <PenaltyKickRow key={`${team}-${kick.player}-${index}`} kick={kick} align={align} />
+          ))}
+        </div>
+      ) : (
+        <EmptyState text="Pateadores sin cargar." />
+      )}
+    </div>
+  )
+}
+
+function PenaltyKickRow({ kick, align }: { kick: MatchPenaltyKick; align: "left" | "right" }) {
+  const icon = kick.scored ? (
+    <Check className="h-3.5 w-3.5" />
+  ) : (
+    <X className="h-3.5 w-3.5" />
+  )
+
+  return (
+    <div className={cn("flex items-center gap-1.5 rounded-xl border px-1.5 py-1.5 text-[0.68rem] md:gap-2 md:px-2.5 md:py-2 md:text-sm", kick.scored ? "border-emerald-200 bg-emerald-50 text-emerald-950" : "border-red-200 bg-red-50 text-red-950", align === "right" && "flex-row-reverse text-right")}>
+      <span className={cn("inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full md:h-6 md:w-6", kick.scored ? "bg-emerald-600 text-white" : "bg-red-600 text-white")}>
+        {icon}
+      </span>
+      <span className="min-w-0 flex-1 whitespace-normal break-words font-semibold leading-tight">{kick.player}</span>
+    </div>
+  )
+}
+
 function Timeline({ goals, cards, substitutions, opponent }: { goals: MatchGoal[]; cards: MatchCardEvent[]; substitutions: MatchSubstitution[]; opponent: string }) {
   const events = [
     ...goals.map((goal) => ({ type: "goal" as const, minute: goal.minute, team: goal.team, payload: goal })),
@@ -282,7 +368,7 @@ function LineupPanel({ title, lineup, tone }: { title: string; lineup?: MatchLin
     <section className="space-y-3 md:space-y-4">
       <h3 className="font-display text-lg font-extrabold text-foreground md:text-xl">{title}</h3>
 
-      {lineup ? (
+      {lineup && lineup.starters.length > 0 ? (
         <div className="rounded-2xl border border-border bg-background p-3.5 md:p-5">
           <PlayerList title="Titulares" players={lineup.starters} tone={tone} />
           <div className="mt-5 rounded-2xl bg-muted/50 p-3 md:mt-7 md:bg-transparent md:p-0">
@@ -419,4 +505,13 @@ function EmptyState({ text }: { text: string }) {
 
 function teamLabel(team: MatchTeamSide, opponent: Match["opponent"]) {
   return team === "river" ? "River Plate" : opponent
+}
+
+function getPenaltyScore(match: Match) {
+  const shootout = match.detail?.penaltyShootout
+  if (!shootout) return ""
+
+  return match.isHome
+    ? `${shootout.river}-${shootout.opponent}`
+    : `${shootout.opponent}-${shootout.river}`
 }
