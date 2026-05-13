@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { useParams } from "next/navigation"
+import { useEffect, useState } from "react"
 import { SiteFooter } from "@/components/site-footer"
 import { SiteHeader } from "@/components/site-header"
 import { useAppState } from "@/components/app-state-provider"
@@ -10,11 +11,16 @@ import { NewsImage } from "@/components/news-image"
 import { ShareButtons } from "@/components/share-buttons"
 import { formatDateLong } from "@/lib/format"
 import { normalizeNewsCategory } from "@/lib/news-taxonomy"
+import type { NewsArticle } from "@/lib/data/types"
+import { createClient as createSupabaseBrowserClient } from "@/lib/supabase/client"
+import { fetchNewsArticleBySlug } from "@/lib/supabase/news"
 
 export default function NoticiaDetallePage() {
   const params = useParams<{ slug: string }>()
   const { news, isHydrated } = useAppState()
-  const article = news.find((item) => item.slug === params.slug)
+  const stateArticle = news.find((item) => item.slug === params.slug)
+  const [loadedArticle, setLoadedArticle] = useState<NewsArticle | null>(null)
+  const article = loadedArticle ?? stateArticle
   const relatedArticles = article
     ? news
         .filter((item) => item.id !== article.id)
@@ -30,6 +36,27 @@ export default function NoticiaDetallePage() {
         .slice(0, 3)
         .map((item) => item.article)
     : []
+
+  useEffect(() => {
+    setLoadedArticle(null)
+  }, [params.slug])
+
+  useEffect(() => {
+    if (!isHydrated) return
+    if (article?.content.length) return
+
+    let active = true
+    const supabase = createSupabaseBrowserClient()
+
+    void fetchNewsArticleBySlug(supabase, params.slug).then(({ article: fullArticle }) => {
+      if (!active || !fullArticle) return
+      setLoadedArticle(fullArticle)
+    })
+
+    return () => {
+      active = false
+    }
+  }, [article?.content.length, isHydrated, params.slug])
 
   if (!isHydrated) {
     return <div className="min-h-dvh bg-background" />

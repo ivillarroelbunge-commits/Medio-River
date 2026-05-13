@@ -6,7 +6,13 @@ import { Check, Clock, Flame, LockKeyhole, Medal, ShieldQuestion, Trophy, X } fr
 import { useAppState } from "@/components/app-state-provider"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { getDailyTriviaQuestions, getTriviaDailyKey } from "@/lib/trivia-daily"
+import {
+  getTriviaWeeklyKey,
+  getWeeklyTriviaQuestions,
+  getWeeklyTriviaStartDate,
+  isWeeklyTriviaAvailable,
+  WEEKLY_TRIVIA_SIZE,
+} from "@/lib/trivia-daily"
 
 type Phase = "start" | "playing" | "finished"
 
@@ -15,27 +21,30 @@ export function TriviaGame() {
     addTriviaResult,
     currentUser,
     dailyTrivias,
-    getDailyRanking,
+    getWeeklyRanking,
     hasPlayedDailyTrivia,
     ranking,
     triviaQuestions,
   } = useAppState()
-  const dailyKey = useMemo(() => getTriviaDailyKey(), [])
-  const dailyQuestions = useMemo(() => {
-    const programmedTrivia = dailyTrivias.find((item) => item.dailyKey === dailyKey)
+  const weeklyKey = useMemo(() => getTriviaWeeklyKey(), [])
+  const triviaAvailable = useMemo(() => isWeeklyTriviaAvailable(), [])
+  const weeklyQuestions = useMemo(() => {
+    if (!triviaAvailable) return []
+
+    const programmedTrivia = dailyTrivias.find((item) => item.dailyKey === weeklyKey)
     if (programmedTrivia?.questionIds.length) {
       const questionById = new Map(triviaQuestions.map((question) => [question.id, question]))
       const programmedQuestions = programmedTrivia.questionIds
         .map((questionId) => questionById.get(questionId))
         .filter((question) => Boolean(question))
 
-      if (programmedQuestions.length > 0) return programmedQuestions.slice(0, 5)
+      if (programmedQuestions.length > 0) return programmedQuestions.slice(0, WEEKLY_TRIVIA_SIZE)
     }
 
-    return getDailyTriviaQuestions(triviaQuestions, dailyKey)
-  }, [dailyKey, dailyTrivias, triviaQuestions])
-  const alreadyPlayed = currentUser ? hasPlayedDailyTrivia(currentUser.id, dailyKey) : false
-  const dailyRanking = getDailyRanking(dailyKey)
+    return getWeeklyTriviaQuestions(triviaQuestions, weeklyKey)
+  }, [weeklyKey, dailyTrivias, triviaAvailable, triviaQuestions])
+  const alreadyPlayed = currentUser ? hasPlayedDailyTrivia(currentUser.id, weeklyKey) : false
+  const weeklyRanking = getWeeklyRanking(weeklyKey)
   const [phase, setPhase] = useState<Phase>("start")
   const [current, setCurrent] = useState(0)
   const [selected, setSelected] = useState<number | null>(null)
@@ -44,8 +53,8 @@ export function TriviaGame() {
   const [saveError, setSaveError] = useState<string | null>(null)
   const [isSaving, setIsSaving] = useState(false)
 
-  const total = dailyQuestions.length
-  const question = dailyQuestions[current]
+  const total = weeklyQuestions.length
+  const question = weeklyQuestions[current]
   const progress = useMemo(() => (total > 0 ? Math.round(((current + (revealed ? 1 : 0)) / total) * 100) : 0), [current, revealed, total])
 
   const start = () => {
@@ -65,13 +74,30 @@ export function TriviaGame() {
     if (index === question.correctIndex) setScore((value) => value + 1)
   }
 
+  if (!triviaAvailable) {
+    const startDate = getWeeklyTriviaStartDate()
+    return (
+      <div className="space-y-6">
+        <GameHero icon={<Clock className="h-8 w-8" />} eyebrow="Trivia semanal en pausa" title="Arranca el lunes 18/05">
+          <p className="mx-auto mt-2 max-w-md text-muted-foreground">
+            El ranking se reinicia y la primera trivia semanal va a estar disponible desde el lunes 18/05/2026 a las 00:00.
+          </p>
+          <p className="mt-4 text-sm font-semibold text-primary">
+            Inicio: {startDate.toLocaleString("es-AR", { dateStyle: "long", timeStyle: "short" })} hs
+          </p>
+        </GameHero>
+        <RankingBlocks weeklyRanking={[]} globalRanking={ranking} />
+      </div>
+    )
+  }
+
   if (total === 0 || !question) {
     return (
       <div className="space-y-6">
         <GameHero icon={<ShieldQuestion className="h-8 w-8" />} eyebrow="Trivia en preparación" title="Todavía no hay preguntas cargadas">
-          <p className="mx-auto mt-2 max-w-md text-muted-foreground">Un administrador tiene que cargar preguntas desde el panel admin para activar la trivia diaria.</p>
+          <p className="mx-auto mt-2 max-w-md text-muted-foreground">Un administrador tiene que cargar preguntas desde el panel admin para activar la trivia semanal.</p>
         </GameHero>
-        <RankingBlocks dailyRanking={dailyRanking} globalRanking={ranking} />
+        <RankingBlocks weeklyRanking={weeklyRanking} globalRanking={ranking} />
       </div>
     )
   }
@@ -81,7 +107,7 @@ export function TriviaGame() {
       if (currentUser) {
         setIsSaving(true)
         setSaveError(null)
-        const result = await addTriviaResult(score, total, dailyKey)
+        const result = await addTriviaResult(score, total, weeklyKey)
         setIsSaving(false)
 
         if (!result.ok) {
@@ -100,13 +126,13 @@ export function TriviaGame() {
   if (!currentUser) {
     return (
       <div className="space-y-6">
-        <GameHero icon={<LockKeyhole className="h-8 w-8" />} eyebrow="Acceso requerido" title="Trivia diaria para usuarios">
-          <p className="mx-auto mt-2 max-w-md text-muted-foreground">Iniciá sesión para jugar las 5 preguntas del día, guardar tu puntaje y entrar al ranking.</p>
+        <GameHero icon={<LockKeyhole className="h-8 w-8" />} eyebrow="Acceso requerido" title="Trivia semanal para usuarios">
+          <p className="mx-auto mt-2 max-w-md text-muted-foreground">Iniciá sesión para jugar las 10 preguntas de la semana, guardar tu puntaje y entrar al ranking.</p>
           <Button asChild size="lg" className="mt-6 rounded-full px-10">
             <Link href="/iniciar-sesion">Iniciar sesión</Link>
           </Button>
         </GameHero>
-        <RankingBlocks dailyRanking={dailyRanking} globalRanking={ranking} />
+        <RankingBlocks weeklyRanking={weeklyRanking} globalRanking={ranking} />
       </div>
     )
   }
@@ -114,10 +140,10 @@ export function TriviaGame() {
   if (alreadyPlayed && phase !== "finished") {
     return (
       <div className="space-y-6">
-        <GameHero icon={<Clock className="h-8 w-8" />} eyebrow={`Trivia del día · ${dailyKey}`} title="Ya jugaste la trivia de hoy">
-          <p className="mx-auto mt-2 max-w-md text-muted-foreground">Volvé mañana para una nueva trivia de 5 preguntas. Tu resultado de hoy ya cuenta para el ranking diario y el general.</p>
+        <GameHero icon={<Clock className="h-8 w-8" />} eyebrow={`Trivia semanal · ${weeklyKey}`} title="Ya jugaste la trivia de esta semana">
+          <p className="mx-auto mt-2 max-w-md text-muted-foreground">Volvé el próximo lunes para una nueva trivia de 10 preguntas. Tu resultado ya cuenta para el ranking semanal y el general.</p>
         </GameHero>
-        <RankingBlocks dailyRanking={dailyRanking} globalRanking={ranking} />
+        <RankingBlocks weeklyRanking={weeklyRanking} globalRanking={ranking} />
       </div>
     )
   }
@@ -125,29 +151,29 @@ export function TriviaGame() {
   if (phase === "start") {
     return (
       <div className="space-y-6">
-        <GameHero icon={<ShieldQuestion className="h-8 w-8" />} eyebrow={`Trivia del día · ${dailyKey}`} title="5 preguntas, un solo intento">
-          <p className="mx-auto mt-2 max-w-md text-muted-foreground">Cada usuario puede jugar una vez por día. El puntaje suma al ranking diario y al ranking general acumulado.</p>
+        <GameHero icon={<ShieldQuestion className="h-8 w-8" />} eyebrow={`Trivia semanal · ${weeklyKey}`} title="10 preguntas, un solo intento">
+          <p className="mx-auto mt-2 max-w-md text-muted-foreground">Cada usuario puede jugar una vez por semana. El puntaje suma al ranking semanal y al ranking general acumulado.</p>
           <div className="mx-auto mt-6 grid max-w-xl gap-3 sm:grid-cols-3">
-            <RulePill label="Preguntas" value="5" />
+            <RulePill label="Preguntas" value="10" />
             <RulePill label="Intentos" value="1" />
-            <RulePill label="Ranking" value="Diario" />
+            <RulePill label="Ranking" value="Semanal" />
           </div>
-          <Button onClick={start} size="lg" className="mt-6 rounded-full px-10">Jugar trivia diaria</Button>
+          <Button onClick={start} size="lg" className="mt-6 rounded-full px-10">Jugar trivia semanal</Button>
         </GameHero>
-        <RankingBlocks dailyRanking={dailyRanking} globalRanking={ranking} />
+        <RankingBlocks weeklyRanking={weeklyRanking} globalRanking={ranking} />
       </div>
     )
   }
 
   if (phase === "finished") {
-    const updatedDailyRanking = getDailyRanking(dailyKey)
+    const updatedWeeklyRanking = getWeeklyRanking(weeklyKey)
     return (
       <div className="space-y-6">
-        <GameHero icon={<Trophy className="h-8 w-8" />} eyebrow="Resultado guardado" title="Resultado de hoy">
+        <GameHero icon={<Trophy className="h-8 w-8" />} eyebrow="Resultado guardado" title="Resultado de la semana">
           <p className="mt-3 font-display text-5xl font-extrabold text-primary md:text-6xl">{score}<span className="text-3xl text-muted-foreground">/{total}</span></p>
-          <p className="mt-3 text-muted-foreground">Tu resultado quedó guardado. Mañana vas a tener una trivia nueva.</p>
+          <p className="mt-3 text-muted-foreground">Tu resultado quedó guardado. La próxima trivia abre el lunes que viene.</p>
         </GameHero>
-        <RankingBlocks dailyRanking={updatedDailyRanking} globalRanking={ranking} />
+        <RankingBlocks weeklyRanking={updatedWeeklyRanking} globalRanking={ranking} />
       </div>
     )
   }
@@ -158,7 +184,7 @@ export function TriviaGame() {
         <div className="absolute inset-0 opacity-20 [background-image:linear-gradient(115deg,transparent_0%,transparent_45%,white_46%,white_49%,transparent_50%,transparent_100%)]" />
         <div className="relative flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.22em] text-white/60">Trivia diaria · {dailyKey}</p>
+            <p className="text-xs font-bold uppercase tracking-[0.22em] text-white/60">Trivia semanal · {weeklyKey}</p>
             <h2 className="mt-1 font-display text-xl font-extrabold md:text-3xl">Pregunta {current + 1} de {total}</h2>
           </div>
           <div className="rounded-2xl bg-white/10 px-3 py-2 text-right ring-1 ring-white/15 md:px-4 md:py-3">
@@ -254,24 +280,24 @@ function RulePill({ label, value }: { label: string; value: string }) {
 }
 
 function RankingBlocks({
-  dailyRanking,
+  weeklyRanking,
   globalRanking,
 }: {
-  dailyRanking: Array<{ user: { id: string; name: string }; score: number; totalQuestions: number }>
+  weeklyRanking: Array<{ user: { id: string; name: string }; score: number; totalQuestions: number }>
   globalRanking: Array<{ user: { id: string; name: string }; totalScore: number; gamesPlayed: number }>
 }) {
   return (
     <div className="grid gap-4 md:gap-6 lg:grid-cols-2">
       <div className="overflow-hidden rounded-[1.5rem] border border-border bg-card shadow-sm md:rounded-[2rem]">
         <div className="flex items-center justify-between bg-secondary px-4 py-3 text-secondary-foreground md:px-5 md:py-4">
-          <h3 className="font-display text-lg font-extrabold md:text-xl">Ranking diario</h3>
+          <h3 className="font-display text-lg font-extrabold md:text-xl">Ranking semanal</h3>
           <Medal className="h-5 w-5 text-primary" />
         </div>
         <div className="p-4 md:p-5">
         <div className="space-y-2 md:mt-4">
-          {dailyRanking.length === 0 ? (
-            <p className="rounded-xl border border-dashed border-border p-4 text-sm text-muted-foreground">Todavía nadie jugó hoy.</p>
-          ) : dailyRanking.slice(0, 10).map((entry, index) => (
+          {weeklyRanking.length === 0 ? (
+            <p className="rounded-xl border border-dashed border-border p-4 text-sm text-muted-foreground">Todavía nadie jugó esta semana.</p>
+          ) : weeklyRanking.slice(0, 10).map((entry, index) => (
             <div key={entry.user.id} className="flex items-center justify-between gap-3 rounded-xl border border-border bg-background px-3 py-2.5 text-sm md:px-4 md:py-3">
               <span className="font-semibold">{index + 1}. {entry.user.name}</span>
               <span className="font-semibold text-primary">{entry.score}/{entry.totalQuestions}</span>

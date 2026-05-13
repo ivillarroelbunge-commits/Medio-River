@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import type { Competition, DailyTrivia, Match, NewsArticle, PlayerSeasonStats, SquadPlayer, TriviaQuestion, UserRole } from "@/lib/data/types"
 import { getRoleBadgeClass, getRoleLabel } from "@/lib/roles"
+import { getTriviaWeeklyKey, getWeeklyTriviaStartDate, WEEKLY_TRIVIA_SIZE } from "@/lib/trivia-daily"
 
 const roles: UserRole[] = ["admin", "editor", "user"]
 const sections = [
@@ -489,8 +490,8 @@ export function AdminPageClient() {
         <section className="space-y-5 rounded-2xl border border-border bg-card p-4 shadow-sm md:space-y-6 md:p-5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="font-display text-xl font-extrabold md:text-2xl">Trivia diaria</h2>
-              <p className="text-sm text-muted-foreground">Primero cargá preguntas. Después armá la trivia de cada día con 5 preguntas.</p>
+              <h2 className="font-display text-xl font-extrabold md:text-2xl">Trivia semanal</h2>
+              <p className="text-sm text-muted-foreground">Primero cargá preguntas. Después armá la trivia de cada semana con 10 preguntas.</p>
             </div>
           </div>
 
@@ -598,8 +599,8 @@ export function AdminPageClient() {
           <div className="space-y-4 rounded-2xl border border-border bg-background p-3 md:p-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h3 className="font-display text-lg font-extrabold md:text-xl">Trivias por día</h3>
-                <p className="text-sm text-muted-foreground">Elegí un día y seleccioná sus 5 preguntas.</p>
+                <h3 className="font-display text-lg font-extrabold md:text-xl">Trivias por semana</h3>
+                <p className="text-sm text-muted-foreground">Elegí una semana y seleccioná sus 10 preguntas.</p>
               </div>
               <div className="flex flex-wrap gap-2 text-xs font-bold uppercase tracking-[0.14em]">
                 <span className="rounded-full bg-primary px-3 py-1 text-primary-foreground">
@@ -643,7 +644,7 @@ export function AdminPageClient() {
 
                     {day.trivia && !isActive && (
                       <div className="grid gap-2 md:grid-cols-5">
-                        {[0, 1, 2, 3, 4].map((index) => (
+                        {Array.from({ length: WEEKLY_TRIVIA_SIZE }, (_, index) => (
                           <div key={index} className="rounded-xl border border-border bg-background px-3 py-2 text-xs font-semibold text-foreground">
                             <span className="text-primary">{index + 1}.</span> {programmedQuestions[index]?.question ?? "Sin definir"}
                           </div>
@@ -663,7 +664,7 @@ export function AdminPageClient() {
                           setError(null)
                           const result = await saveDailyTrivia(dailyTrivia)
                           if (!result.ok) {
-                            setError(result.error ?? "No se pudo guardar la trivia diaria.")
+                            setError(result.error ?? "No se pudo guardar la trivia semanal.")
                             return
                           }
                           setActiveTriviaDay(null)
@@ -694,32 +695,29 @@ interface TriviaPlannerDay {
   trivia?: DailyTrivia
 }
 
-const triviaPlannerDaysCount = 14
+const triviaPlannerDaysCount = 8
 
 function buildTriviaPlannerDays(dailyTrivias: DailyTrivia[]): TriviaPlannerDay[] {
   const programmedByDay = new Map(dailyTrivias.map((dailyTrivia) => [dailyTrivia.dailyKey, dailyTrivia]))
-  const today = new Date()
-  today.setHours(12, 0, 0, 0)
+  const startDate = getWeeklyTriviaStartDate()
+  const todayWeeklyKey = getTriviaWeeklyKey()
+  const firstWeekKey = todayWeeklyKey < getTriviaWeeklyKey(startDate) ? getTriviaWeeklyKey(startDate) : todayWeeklyKey
+  const firstWeek = new Date(`${firstWeekKey}T12:00:00.000Z`)
 
   return Array.from({ length: triviaPlannerDaysCount }, (_, index) => {
-    const date = new Date(today)
-    date.setDate(today.getDate() + index)
-    const dailyKey = getDateInputValue(date)
+    const date = new Date(firstWeek)
+    date.setUTCDate(firstWeek.getUTCDate() + index * 7)
+    const dailyKey = date.toISOString().slice(0, 10)
+    const endDate = new Date(date)
+    endDate.setUTCDate(date.getUTCDate() + 6)
 
     return {
       dailyKey,
-      label: date.toLocaleDateString("es-AR", { day: "numeric", month: "long" }),
-      weekday: date.toLocaleDateString("es-AR", { weekday: "long" }),
+      label: `${date.toLocaleDateString("es-AR", { day: "numeric", month: "long" })} al ${endDate.toLocaleDateString("es-AR", { day: "numeric", month: "long" })}`,
+      weekday: "Semana",
       trivia: programmedByDay.get(dailyKey),
     }
   })
-}
-
-function getDateInputValue(date: Date) {
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, "0")
-  const day = String(date.getDate()).padStart(2, "0")
-  return `${year}-${month}-${day}`
 }
 
 function TriviaQuestionForm({
@@ -843,13 +841,13 @@ function DailyTriviaForm({
       onSubmit={(event) => {
         event.preventDefault()
         const formData = new FormData(event.currentTarget)
-        const questionIds = [0, 1, 2, 3, 4]
+        const questionIds = Array.from({ length: WEEKLY_TRIVIA_SIZE }, (_, index) => index)
           .map((index) => String(formData.get(`question-${index}`) || ""))
           .filter(Boolean)
         const uniqueQuestionIds = Array.from(new Set(questionIds))
 
-        if (uniqueQuestionIds.length !== 5) {
-          setFormError("Elegí 5 preguntas distintas.")
+        if (uniqueQuestionIds.length !== WEEKLY_TRIVIA_SIZE) {
+          setFormError("Elegí 10 preguntas distintas.")
           return
         }
 
@@ -863,11 +861,11 @@ function DailyTriviaForm({
         </p>
       )}
       <div className="rounded-xl border border-border bg-card px-3 py-2 text-sm">
-        <span className="font-semibold text-foreground">Fecha: </span>
+        <span className="font-semibold text-foreground">Semana: </span>
         <span className="text-muted-foreground">{dailyKey}</span>
       </div>
       <div className="space-y-2">
-        {[0, 1, 2, 3, 4].map((index) => (
+        {Array.from({ length: WEEKLY_TRIVIA_SIZE }, (_, index) => (
           <label key={index} className="space-y-1.5 text-sm font-semibold text-foreground">
             <span>Pregunta {index + 1}</span>
             <select

@@ -71,7 +71,7 @@ export function HomeTriviaPanel() {
         </div>
         <div>
           <h2 className="font-display text-[1.05rem] font-extrabold leading-tight text-white sm:text-xl md:text-3xl">¿Cuánto sabés de River?</h2>
-          <p className="mt-1 text-xs leading-5 text-white/78 md:text-sm md:leading-6">Trivia diaria de 5 preguntas, un intento por usuario y ranking actualizado.</p>
+          <p className="mt-1 text-xs leading-5 text-white/78 md:text-sm md:leading-6">Trivia semanal de 10 preguntas, un intento por usuario y ranking actualizado.</p>
         </div>
       </div>
     </section>

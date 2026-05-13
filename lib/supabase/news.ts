@@ -4,8 +4,12 @@ import { normalizeNewsCategory } from "@/lib/news-taxonomy"
 
 export const NEWS_SELECT =
   "id, slug, title, excerpt, intro, content, image, image_focus_x, image_focus_y, image_zoom, author, published_at, category, competition, tag, featured"
+const NEWS_SUMMARY_SELECT =
+  "id, slug, title, excerpt, intro, image, image_focus_x, image_focus_y, image_zoom, author, published_at, category, competition, tag, featured"
 const LEGACY_NEWS_SELECT =
   "id, slug, title, excerpt, intro, content, image, author, published_at, category, competition, tag, featured"
+const LEGACY_NEWS_SUMMARY_SELECT =
+  "id, slug, title, excerpt, intro, image, author, published_at, category, competition, tag, featured"
 
 interface NewsRow {
   id: string
@@ -47,6 +51,13 @@ export function mapNewsRowToArticle(row: NewsRow): NewsArticle {
   }
 }
 
+function mapNewsSummaryRowToArticle(row: Omit<NewsRow, "content">): NewsArticle {
+  return mapNewsRowToArticle({
+    ...row,
+    content: [],
+  })
+}
+
 export async function fetchNewsArticles(supabase: SupabaseClient) {
   let { data, error } = await supabase
     .from("news_articles")
@@ -73,6 +84,68 @@ export async function fetchNewsArticles(supabase: SupabaseClient) {
 
   return {
     articles: (data as NewsRow[]).map(mapNewsRowToArticle),
+    error: null,
+  }
+}
+
+export async function fetchNewsSummaries(supabase: SupabaseClient) {
+  let { data, error } = await supabase
+    .from("news_articles")
+    .select(NEWS_SUMMARY_SELECT)
+    .order("published_at", { ascending: false })
+
+  if (error && isMissingImageCropColumn(error.message)) {
+    const fallback = await supabase
+      .from("news_articles")
+      .select(LEGACY_NEWS_SUMMARY_SELECT)
+      .order("published_at", { ascending: false })
+    data = fallback.data?.map((row) => ({
+      ...row,
+      image_focus_x: null,
+      image_focus_y: null,
+      image_zoom: null,
+    })) ?? null
+    error = fallback.error
+  }
+
+  if (error || !data) {
+    return { articles: null, error }
+  }
+
+  return {
+    articles: (data as Omit<NewsRow, "content">[]).map(mapNewsSummaryRowToArticle),
+    error: null,
+  }
+}
+
+export async function fetchNewsArticleBySlug(supabase: SupabaseClient, slug: string) {
+  let { data, error } = await supabase
+    .from("news_articles")
+    .select(NEWS_SELECT)
+    .eq("slug", slug)
+    .single<NewsRow>()
+
+  if (error && isMissingImageCropColumn(error.message)) {
+    const fallback = await supabase
+      .from("news_articles")
+      .select(LEGACY_NEWS_SELECT)
+      .eq("slug", slug)
+      .single<Omit<NewsRow, "image_focus_x" | "image_focus_y" | "image_zoom">>()
+    data = fallback.data ? {
+      ...fallback.data,
+      image_focus_x: null,
+      image_focus_y: null,
+      image_zoom: null,
+    } : null
+    error = fallback.error
+  }
+
+  if (error || !data) {
+    return { article: null, error }
+  }
+
+  return {
+    article: mapNewsRowToArticle(data),
     error: null,
   }
 }

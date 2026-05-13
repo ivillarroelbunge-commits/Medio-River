@@ -13,9 +13,9 @@ export default function TriviaPage() {
             <div className="absolute -right-20 -top-24 h-64 w-64 rounded-full bg-primary/40 blur-3xl" />
             <div className="absolute -bottom-24 -left-16 h-56 w-56 rounded-full bg-white/20 blur-3xl" />
             <div className="relative">
-              <p className="text-[0.68rem] font-bold uppercase tracking-[0.22em] text-white/70 md:text-xs md:tracking-[0.28em]">Juego diario</p>
+              <p className="text-[0.68rem] font-bold uppercase tracking-[0.22em] text-white/70 md:text-xs md:tracking-[0.28em]">Juego semanal</p>
               <h1 className="mx-auto mt-3 max-w-3xl font-display text-[2.35rem] font-extrabold tracking-tight leading-none md:text-6xl">Trivia Millonaria</h1>
-              <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-white/78 md:text-base md:leading-7">Cinco preguntas nuevas cada día, un solo intento y dos rankings para picantear la tabla: diario y general acumulado.</p>
+              <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-white/78 md:text-base md:leading-7">Diez preguntas nuevas cada semana, un solo intento y dos rankings para picantear la tabla: semanal y general acumulado.</p>
             </div>
           </header>
           <TriviaGame />

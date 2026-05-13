@@ -182,7 +182,7 @@ export function ProfilePageClient() {
             results.map((result) => (
               <div key={result.id} className="flex items-center justify-between gap-3 rounded-2xl border border-border px-3 py-3 md:px-4">
                 <div>
-                  <p className="font-semibold text-foreground">{result.dailyKey ? `Trivia diaria · ${result.dailyKey}` : "Partida jugada"}</p>
+                  <p className="font-semibold text-foreground">{result.dailyKey ? `Trivia semanal · ${result.dailyKey}` : "Partida jugada"}</p>
                   <p className="text-sm text-muted-foreground">{new Date(result.playedAt).toLocaleString("es-AR")}</p>
                 </div>
                 <p className="shrink-0 font-display text-xl font-extrabold text-primary md:text-2xl">{result.score}/{result.totalQuestions}</p>

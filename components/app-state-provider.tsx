@@ -19,7 +19,7 @@ import {
 import type { AppUser, DailyTrivia, Match, NewsArticle, PlayerSeasonStats, SquadPlayer, TriviaQuestion, TriviaResult, UserRole } from "@/lib/data/types"
 import { createClient as createSupabaseBrowserClient } from "@/lib/supabase/client"
 import { fetchMatches, getMatchTableMissingMessage, mapMatchRowToMatch, mapMatchToPayload, MATCHES_SELECT, type MatchRow } from "@/lib/supabase/matches"
-import { fetchNewsArticles, isMissingImageCropColumn, mapNewsRowToArticle, NEWS_SELECT } from "@/lib/supabase/news"
+import { fetchNewsArticles, fetchNewsSummaries, isMissingImageCropColumn, mapNewsRowToArticle, NEWS_SELECT } from "@/lib/supabase/news"
 import {
   fetchPlayerSeasonStats,
   getPlayerSeasonStatsTableMissingMessage,
@@ -29,6 +29,7 @@ import {
 } from "@/lib/supabase/player-stats"
 import { mapProfileToAppUser, type ProfileRow } from "@/lib/supabase/profiles"
 import { normalizeNewsCategory } from "@/lib/news-taxonomy"
+import { WEEKLY_TRIVIA_START_AT } from "@/lib/trivia-daily"
 import {
   DAILY_TRIVIAS_SELECT,
   fetchTriviaState,
@@ -87,6 +88,7 @@ interface LocalState {
 
 interface AppStateContextValue {
   isHydrated: boolean
+  hasSyncedNews: boolean
   currentUser: AppUser | null
   users: AppUser[]
   news: NewsArticle[]
@@ -115,6 +117,7 @@ interface AppStateContextValue {
   getUserResults: (userId: string) => TriviaResult[]
   getUserTotalScore: (userId: string) => number
   ranking: Array<{ user: AppUser; totalScore: number; gamesPlayed: number }>
+  getWeeklyRanking: (weeklyKey: string) => Array<{ user: AppUser; score: number; totalQuestions: number; playedAt: string }>
   getDailyRanking: (dailyKey: string) => Array<{ user: AppUser; score: number; totalQuestions: number; playedAt: string }>
   hasPlayedDailyTrivia: (userId: string, dailyKey: string) => boolean
 }
@@ -183,6 +186,23 @@ function mergeStoredMatches(seedMatches: Match[], storedMatches: Match[]) {
   return merged
 }
 
+function mergeNewsKeepingLoadedContent(currentNews: NewsArticle[], incomingNews: NewsArticle[]) {
+  const currentById = new Map(currentNews.map((article) => [article.id, article]))
+
+  return incomingNews.map((article) => {
+    const currentArticle = currentById.get(article.id)
+
+    if (!currentArticle?.content.length || article.content.length > 0) {
+      return article
+    }
+
+    return {
+      ...article,
+      content: currentArticle.content,
+    }
+  })
+}
+
 function shouldPreferSeedMatchSnapshot(seedMatch: Match, storedMatch: Match) {
   return (
     (seedMatch.status === "played" && storedMatch.status === "upcoming") ||
@@ -240,6 +260,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const [users, setUsers] = useState<AppUser[]>([])
   const [currentUser, setCurrentUser] = useState<AppUser | null>(null)
   const [isHydrated, setIsHydrated] = useState(false)
+  const [hasSyncedNews, setHasSyncedNews] = useState(false)
   const supabase = useMemo(() => createSupabaseBrowserClient(), [])
 
   async function ensureProfile(user: User) {
@@ -320,13 +341,32 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   }
 
   async function loadNews() {
-    const { articles } = await fetchNewsArticles(supabase)
-    if (!articles) return
+    const { articles: summaries } = await fetchNewsSummaries(supabase)
+    if (!summaries) {
+      setHasSyncedNews(true)
+      return
+    }
 
     setLocalState((previous) => ({
       ...previous,
-      news: articles,
+      news: mergeNewsKeepingLoadedContent(previous.news, summaries),
     }))
+    setHasSyncedNews(true)
+
+    window.setTimeout(() => {
+      void fetchNewsArticles(supabase).then(({ articles }) => {
+        if (!articles) return
+
+        setLocalState((previous) => ({
+          ...previous,
+          news: articles,
+        }))
+      }).catch((error) => {
+        if (!isExpectedRemoteSyncError(error)) {
+          console.warn("No se pudo completar la carga de noticias.", error)
+        }
+      })
+    }, 800)
   }
 
   async function loadMatches() {
@@ -381,8 +421,8 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     setLocalState((previous) => ({
       ...previous,
       triviaQuestions: questions && questions.length > 0 ? questions : previous.triviaQuestions,
-      dailyTrivias: dailyTrivias ?? previous.dailyTrivias,
-      triviaResults: results ?? previous.triviaResults,
+      dailyTrivias: (dailyTrivias ?? previous.dailyTrivias).filter(isActiveTriviaPlan),
+      triviaResults: (results ?? previous.triviaResults).filter(isActiveTriviaResult),
     }))
   }
 
@@ -428,8 +468,8 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
               squadPlayers: parsed.squadPlayers ?? previous.squadPlayers,
               playerSeasonStats: parsed.playerSeasonStats ?? previous.playerSeasonStats,
               triviaQuestions: parsed.triviaQuestions ?? previous.triviaQuestions,
-              dailyTrivias: parsed.dailyTrivias ?? previous.dailyTrivias,
-              triviaResults: parsed.triviaResults ?? previous.triviaResults,
+              dailyTrivias: (parsed.dailyTrivias ?? previous.dailyTrivias).filter(isActiveTriviaPlan),
+              triviaResults: (parsed.triviaResults ?? previous.triviaResults).filter(isActiveTriviaResult),
             }
           })
         }
@@ -501,6 +541,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
 
   const value = useMemo<AppStateContextValue>(() => ({
     isHydrated,
+    hasSyncedNews,
     currentUser,
     users,
     news: localState.news.slice().sort((a, b) => +new Date(b.date) - +new Date(a.date)),
@@ -937,7 +978,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     async saveDailyTrivia(dailyTrivia) {
       const normalizedDailyTrivia: DailyTrivia = {
         dailyKey: dailyTrivia.dailyKey,
-        questionIds: Array.from(new Set(dailyTrivia.questionIds)).slice(0, 5),
+        questionIds: Array.from(new Set(dailyTrivia.questionIds)).slice(0, 10),
       }
 
       const { error } = await supabase
@@ -952,7 +993,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       if (error) {
         return {
           ok: false,
-          error: getTriviaTableMissingMessage(error.message) ?? "No se pudo guardar la trivia diaria.",
+          error: getTriviaTableMissingMessage(error.message) ?? "No se pudo guardar la trivia semanal.",
         }
       }
 
@@ -991,7 +1032,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       if (!currentUser) return { ok: false, error: "Tenés que iniciar sesión para guardar el resultado." }
       const resultDailyKey = dailyKey ?? new Date().toISOString().slice(0, 10)
       if (localState.triviaResults.some((result) => result.userId === currentUser.id && result.dailyKey === resultDailyKey)) {
-        return { ok: false, error: "Ya jugaste la trivia de hoy." }
+        return { ok: false, error: "Ya jugaste la trivia de esta semana." }
       }
       const result: TriviaResult = {
         id: createTriviaResultId(),
@@ -1022,7 +1063,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         return {
           ok: false,
           error: duplicateAttempt
-            ? "Ya jugaste la trivia de hoy."
+            ? "Ya jugaste la trivia de esta semana."
             : getTriviaTableMissingMessage(error.message) ?? "No se pudo guardar el resultado.",
         }
       }
@@ -1048,6 +1089,25 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         .filter((result) => result.userId === userId)
         .reduce((total, result) => total + result.score, 0)
     },
+    getWeeklyRanking(dailyKey) {
+      return localState.triviaResults
+        .filter((result) => result.dailyKey === dailyKey)
+        .map((result) => {
+          const user = users.find((candidate) => candidate.id === result.userId)
+          if (!user) return null
+          return {
+            user,
+            score: result.score,
+            totalQuestions: result.totalQuestions,
+            playedAt: result.playedAt,
+          }
+        })
+        .filter((entry): entry is { user: AppUser; score: number; totalQuestions: number; playedAt: string } => Boolean(entry))
+        .sort((a, b) => {
+          if (b.score !== a.score) return b.score - a.score
+          return +new Date(a.playedAt) - +new Date(b.playedAt)
+        })
+    },
     getDailyRanking(dailyKey) {
       return localState.triviaResults
         .filter((result) => result.dailyKey === dailyKey)
@@ -1071,7 +1131,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       return localState.triviaResults.some((result) => result.userId === userId && result.dailyKey === dailyKey)
     },
     ranking,
-  }), [currentUser, isHydrated, localState, ranking, supabase, users])
+  }), [currentUser, hasSyncedNews, isHydrated, localState, ranking, supabase, users])
 
   return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>
 }
@@ -1098,4 +1158,12 @@ function getNewsSaveErrorMessage(message?: string) {
   }
 
   return message || "No se pudo guardar la noticia."
+}
+
+function isActiveTriviaResult(result: TriviaResult) {
+  return new Date(result.playedAt).getTime() >= new Date(WEEKLY_TRIVIA_START_AT).getTime()
+}
+
+function isActiveTriviaPlan(dailyTrivia: DailyTrivia) {
+  return dailyTrivia.dailyKey >= WEEKLY_TRIVIA_START_AT.slice(0, 10)
 }

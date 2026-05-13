@@ -26,7 +26,7 @@ export default function CuentaConfirmadaPage() {
                 Tu cuenta ha sido confirmada
               </h1>
               <p className="mx-auto mt-4 max-w-xl text-sm leading-6 text-white/78 md:text-base">
-                Ya podés iniciar sesión, completar tu perfil, jugar la trivia diaria y participar del ranking de Medio River.
+                Ya podés iniciar sesión, completar tu perfil, jugar la trivia semanal y participar del ranking de Medio River.
               </p>
             </div>
 
