@@ -11,8 +11,7 @@ import { SiteHeader } from "@/components/site-header"
 import { useAppState } from "@/components/app-state-provider"
 
 export default function HomePage() {
-  const { news, matches, isHydrated, hasSyncedNews } = useAppState()
-  const canShowNews = isHydrated && hasSyncedNews
+  const { news, matches, isHydrated } = useAppState()
   const carouselItems = news.filter((article) => article.featured).slice(0, 5)
   const featured = carouselItems.length > 0 ? carouselItems : news.slice(0, 5)
   const latest = news.slice(0, 6)
@@ -23,7 +22,7 @@ export default function HomePage() {
       <SiteHeader />
       <main className="flex-1">
         <div className="container-prose space-y-7 py-5 md:space-y-10 md:py-12">
-          {canShowNews ? (
+          {isHydrated ? (
             <NewsCarousel items={featured} />
           ) : (
             <div className="min-h-[17rem] animate-pulse rounded-[1.5rem] bg-muted md:min-h-[28rem] md:rounded-[2rem] lg:min-h-[30rem]" />
@@ -48,7 +47,7 @@ export default function HomePage() {
               </Link>
             </div>
 
-            {canShowNews ? (
+            {isHydrated ? (
               <ul className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 md:mt-6 md:gap-6 lg:grid-cols-3">
                 {latest.map((article) => (
                   <li key={article.id} className="flex">

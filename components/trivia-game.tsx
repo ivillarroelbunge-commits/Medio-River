@@ -127,7 +127,7 @@ export function TriviaGame() {
     return (
       <div className="space-y-6">
         <GameHero icon={<LockKeyhole className="h-8 w-8" />} eyebrow="Acceso requerido" title="Trivia semanal para usuarios">
-          <p className="mx-auto mt-2 max-w-md text-muted-foreground">Iniciá sesión para jugar las 10 preguntas de la semana, guardar tu puntaje y entrar al ranking.</p>
+          <p className="mx-auto mt-2 max-w-md text-muted-foreground">Iniciá sesión para jugar las {WEEKLY_TRIVIA_SIZE} preguntas de la semana, guardar tu puntaje y entrar al ranking.</p>
           <Button asChild size="lg" className="mt-6 rounded-full px-10">
             <Link href="/iniciar-sesion">Iniciar sesión</Link>
           </Button>
@@ -141,7 +141,7 @@ export function TriviaGame() {
     return (
       <div className="space-y-6">
         <GameHero icon={<Clock className="h-8 w-8" />} eyebrow={`Trivia semanal · ${weeklyKey}`} title="Ya jugaste la trivia de esta semana">
-          <p className="mx-auto mt-2 max-w-md text-muted-foreground">Volvé el próximo lunes para una nueva trivia de 10 preguntas. Tu resultado ya cuenta para el ranking semanal y el general.</p>
+          <p className="mx-auto mt-2 max-w-md text-muted-foreground">Volvé el próximo lunes para una nueva trivia de {WEEKLY_TRIVIA_SIZE} preguntas. Tu resultado ya cuenta para el ranking semanal y el general.</p>
         </GameHero>
         <RankingBlocks weeklyRanking={weeklyRanking} globalRanking={ranking} />
       </div>
@@ -151,10 +151,10 @@ export function TriviaGame() {
   if (phase === "start") {
     return (
       <div className="space-y-6">
-        <GameHero icon={<ShieldQuestion className="h-8 w-8" />} eyebrow={`Trivia semanal · ${weeklyKey}`} title="10 preguntas, un solo intento">
-          <p className="mx-auto mt-2 max-w-md text-muted-foreground">Cada usuario puede jugar una vez por semana. El puntaje suma al ranking semanal y al ranking general acumulado.</p>
+        <GameHero icon={<ShieldQuestion className="h-8 w-8" />} eyebrow={`Trivia semanal · ${weeklyKey}`} title={`${WEEKLY_TRIVIA_SIZE} preguntas, un solo intento`}>
+          <p className="mx-auto mt-2 max-w-md text-muted-foreground">Cada usuario puede jugar una vez por semana, cualquier día entre lunes y domingo. El puntaje suma al ranking semanal y al ranking general acumulado.</p>
           <div className="mx-auto mt-6 grid max-w-xl gap-3 sm:grid-cols-3">
-            <RulePill label="Preguntas" value="10" />
+            <RulePill label="Preguntas" value={String(WEEKLY_TRIVIA_SIZE)} />
             <RulePill label="Intentos" value="1" />
             <RulePill label="Ranking" value="Semanal" />
           </div>

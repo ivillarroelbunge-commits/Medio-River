@@ -491,7 +491,7 @@ export function AdminPageClient() {
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h2 className="font-display text-xl font-extrabold md:text-2xl">Trivia semanal</h2>
-              <p className="text-sm text-muted-foreground">Primero cargá preguntas. Después armá la trivia de cada semana con 10 preguntas.</p>
+              <p className="text-sm text-muted-foreground">Primero cargá preguntas. Después armá la trivia de cada semana con {WEEKLY_TRIVIA_SIZE} preguntas.</p>
             </div>
           </div>
 
@@ -600,7 +600,7 @@ export function AdminPageClient() {
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h3 className="font-display text-lg font-extrabold md:text-xl">Trivias por semana</h3>
-                <p className="text-sm text-muted-foreground">Elegí una semana y seleccioná sus 10 preguntas.</p>
+                <p className="text-sm text-muted-foreground">Elegí una semana y seleccioná sus {WEEKLY_TRIVIA_SIZE} preguntas.</p>
               </div>
               <div className="flex flex-wrap gap-2 text-xs font-bold uppercase tracking-[0.14em]">
                 <span className="rounded-full bg-primary px-3 py-1 text-primary-foreground">
@@ -847,7 +847,7 @@ function DailyTriviaForm({
         const uniqueQuestionIds = Array.from(new Set(questionIds))
 
         if (uniqueQuestionIds.length !== WEEKLY_TRIVIA_SIZE) {
-          setFormError("Elegí 10 preguntas distintas.")
+          setFormError(`Elegí ${WEEKLY_TRIVIA_SIZE} preguntas distintas.`)
           return
         }
 

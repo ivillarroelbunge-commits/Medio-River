@@ -1,6 +1,6 @@
 import type { TriviaQuestion } from "@/lib/data/types"
 
-export const WEEKLY_TRIVIA_SIZE = 10
+export const WEEKLY_TRIVIA_SIZE = 5
 export const WEEKLY_TRIVIA_START_AT = "2026-05-18T00:00:00-03:00"
 
 export function getTriviaDailyKey(date = new Date()) {

@@ -15,7 +15,7 @@ export default function TriviaPage() {
             <div className="relative">
               <p className="text-[0.68rem] font-bold uppercase tracking-[0.22em] text-white/70 md:text-xs md:tracking-[0.28em]">Juego semanal</p>
               <h1 className="mx-auto mt-3 max-w-3xl font-display text-[2.35rem] font-extrabold tracking-tight leading-none md:text-6xl">Trivia Millonaria</h1>
-              <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-white/78 md:text-base md:leading-7">Diez preguntas nuevas cada semana, un solo intento y dos rankings para picantear la tabla: semanal y general acumulado.</p>
+              <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-white/78 md:text-base md:leading-7">Cinco preguntas nuevas cada semana, disponibles de lunes a domingo, un solo intento y dos rankings para picantear la tabla: semanal y general acumulado.</p>
             </div>
           </header>
           <TriviaGame />

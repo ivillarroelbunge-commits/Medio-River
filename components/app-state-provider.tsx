@@ -29,7 +29,7 @@ import {
 } from "@/lib/supabase/player-stats"
 import { mapProfileToAppUser, type ProfileRow } from "@/lib/supabase/profiles"
 import { normalizeNewsCategory } from "@/lib/news-taxonomy"
-import { WEEKLY_TRIVIA_START_AT } from "@/lib/trivia-daily"
+import { WEEKLY_TRIVIA_SIZE, WEEKLY_TRIVIA_START_AT } from "@/lib/trivia-daily"
 import {
   DAILY_TRIVIAS_SELECT,
   fetchTriviaState,
@@ -978,7 +978,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     async saveDailyTrivia(dailyTrivia) {
       const normalizedDailyTrivia: DailyTrivia = {
         dailyKey: dailyTrivia.dailyKey,
-        questionIds: Array.from(new Set(dailyTrivia.questionIds)).slice(0, 10),
+        questionIds: Array.from(new Set(dailyTrivia.questionIds)).slice(0, WEEKLY_TRIVIA_SIZE),
       }
 
       const { error } = await supabase
