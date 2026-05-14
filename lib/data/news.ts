@@ -2,132 +2,141 @@ import type { NewsArticle } from "@/lib/data/types"
 
 export const newsArticles: NewsArticle[] = [
   {
-    id: "news-latest-20260428-1",
-    slug: "river-viaja-a-brasil-con-la-tabla-y-el-grupo-en-la-cabeza",
-    title: "River viaja a Brasil con la tabla y el grupo en la cabeza",
+    id: "news-rp7dvg4f",
+    slug: "anibal-moreno-equilibrio-y-presencia-en-la-mitad-de-la-cancha",
+    title: "Aníbal Moreno, equilibrio y presencia en la mitad de la cancha",
     excerpt:
-      "El cruce con Red Bull Bragantino aparece como una parada decisiva para acomodar el Grupo H de la Sudamericana.",
+      "Aníbal Moreno tuvo un partido importante en la victoria de River ante Gimnasia.",
     intro:
-      "Después de volver al triunfo en el Monumental, River cambia rápido el chip y apunta a un partido internacional que puede marcar el pulso del grupo.",
+      "Aníbal Moreno tuvo un partido importante en la victoria de River ante Gimnasia. Sin brillar desde lo vistoso, el mediocampista fue clave para sostener el orden del equipo, recuperar pelotas y darle equilibrio a una mitad de cancha que necesitaba firmeza.",
     content: [
-      "La visita a Red Bull Bragantino llega en un momento sensible: River necesita sostener el envión del 3-1 ante Aldosivi y transformar esa recuperación doméstica en autoridad copera.",
-      "El rival brasileño también llega con urgencias. Bragantino ya mostró capacidad de reacción en la zona y el partido en Brasil puede empezar a ordenar quiénes pelearán arriba hasta el cierre de la fase.",
-      "Para el cuerpo técnico, la prioridad pasa por equilibrar cargas, elegir bien los retornos y no perder agresividad en una cancha que exigirá concentración desde el primer minuto.",
+      "Aníbal Moreno tuvo un partido importante en la victoria de River ante Gimnasia. Sin brillar desde lo vistoso, el mediocampista fue clave para sostener el orden del equipo, recuperar pelotas y darle equilibrio a una mitad de cancha que necesitaba firmeza.",
+      "En un cruce de eliminación directa, su presencia ayudó a que River no se partiera y pudiera sostener mejor los momentos del partido.",
     ],
     image:
-      "https://upload.wikimedia.org/wikipedia/commons/3/37/Estadio_Monumental_Antonio_Vespucio_Liberti_2024.jpg",
-    author: "Redacción Medio River",
-    date: "2026-04-28T17:40:00-03:00",
+      "https://media.lapaginamillonaria.com/wp-content/uploads/sites/15/2026/05/14122028/anibal-moreno-3-1200x740.webp",
+    imageFocusX: 50,
+    imageFocusY: 1,
+    imageZoom: 1,
+    author: "Medio River",
+    date: "2026-05-14T13:56:08-03:00",
     category: "Partidos",
-    competition: "Copa Sudamericana",
-    tag: "Información",
-    featured: true,
-  },
-  {
-    id: "news-latest-20260428-2",
-    slug: "sin-nuevos-lesionados-river-espera-por-regresos-importantes",
-    title: "Sin nuevos lesionados, River espera por regresos importantes",
-    excerpt:
-      "El plantel retomó las prácticas con normalidad y el foco está puesto en recuperar piezas para el tramo más cargado.",
-    intro:
-      "La buena noticia después de Aldosivi fue que no aparecieron nuevos problemas físicos, aunque todavía hay nombres clave en observación.",
-    content: [
-      "River volvió al trabajo con una prioridad clara: llegar entero al viaje por Sudamericana y administrar a los futbolistas que arrastran molestias o vienen de cargas altas.",
-      "La evolución de Franco Armani, Fausto Vera, Juan Fernando Quintero, Maximiliano Meza y Sebastián Driussi será determinante para saber cuánto margen tiene el cuerpo técnico para rotar sin bajar jerarquía.",
-      "La semana obliga a tomar decisiones finas: competir fuerte en Brasil, cerrar bien la fase regular del Apertura y no comprometer jugadores que pueden ser decisivos en los playoffs.",
-    ],
-    image:
-      "https://upload.wikimedia.org/wikipedia/commons/f/f4/Monumental_River_Plate.jpg",
-    author: "Redacción Medio River",
-    date: "2026-04-28T15:25:00-03:00",
-    category: "Partidos",
-    competition: "Copa Sudamericana",
-    tag: "Información",
-    featured: true,
-  },
-  {
-    id: "news-latest-20260428-3",
-    slug: "kendry-paez-rompio-el-hielo-y-le-dio-otra-carta-a-coudet",
-    title: "Kendry Páez rompió el hielo y le dio otra carta a Coudet",
-    excerpt:
-      "El ecuatoriano convirtió su primer gol en River y dejó una señal positiva para pelear minutos en la recta final.",
-    intro:
-      "El gol ante Aldosivi puede ser mucho más que una estadística: Kendry necesitaba una jugada que lo soltara.",
-    content: [
-      "Páez entró en un partido incómodo, con River obligado a cerrar una victoria que se había enredado más de la cuenta, y respondió con una definición de zurda para liquidar la noche.",
-      "Su aparición alimenta una competencia interna interesante: puede jugar entre líneas, atacar el área desde segunda línea y darle pausa o desequilibrio a un equipo que busca variantes.",
-      "Para Coudet, el desafío será darle continuidad sin apurarlo. Para el jugador, el gol funciona como punto de partida en una etapa en la que cada minuto pesa.",
-    ],
-    image:
-      "https://upload.wikimedia.org/wikipedia/commons/6/69/Antonio_Vespucio_Liberti_%28River_Plate%29.jpg",
-    author: "Redacción Medio River",
-    date: "2026-04-28T12:10:00-03:00",
-    category: "Juveniles",
-    tag: "Información",
-    featured: true,
-  },
-  {
-    id: "news-latest-20260428-4",
-    slug: "la-victoria-ante-aldosivi-dejo-alivio-pero-tambien-tareas",
-    title: "La victoria ante Aldosivi dejó alivio, pero también tareas",
-    excerpt:
-      "River ganó 3-1, volvió a sumar después del Superclásico y quedó bien perfilado, aunque el rendimiento dejó puntos para corregir.",
-    intro:
-      "El triunfo era necesario por contexto, tabla y ánimo. River lo consiguió, pero el desarrollo mostró que todavía hay ajustes pendientes.",
-    content: [
-      "Los goles de Giuliano Galoppo, Facundo Colidio y Kendry Páez sostuvieron una noche que tuvo momentos de control y otros de duda, especialmente después del empate parcial de Aldosivi.",
-      "El resultado devolvió tranquilidad tras la caída contra Boca y le permitió al equipo mantenerse arriba en la Zona B, con margen para pensar en el cierre de la fase regular.",
-      "La lectura puertas adentro no debería ser solo el alivio: River necesita defender mejor sus ventajas, simplificar algunos pasajes con pelota y transformar sus ráfagas buenas en dominio más largo.",
-    ],
-    image:
-      "https://upload.wikimedia.org/wikipedia/commons/8/8d/River_Plate_vs_Boca_Juniors_-_Supercl%C3%A1sico_2023.jpg",
-    author: "Redacción Medio River",
-    date: "2026-04-27T20:30:00-03:00",
-    category: "Análisis",
     competition: "Torneo Apertura",
     tag: "Opinión",
     featured: true,
   },
   {
-    id: "news-latest-20260428-5",
-    slug: "bragantino-tambien-llega-con-ruido-propio-antes-de-recibir-a-river",
-    title: "Bragantino también llega con ruido propio antes de recibir a River",
+    id: "news-6xiwpa29",
+    slug: "river-le-gano-a-gimnasia-y-se-metio-en-semifinales",
+    title: "River le ganó a Gimnasia y se metió en semifinales",
     excerpt:
-      "El equipo brasileño viene de una semana movida y tendrá ante River una prueba fuerte para reposicionarse en el grupo.",
+      "River venció 2-0 a Gimnasia de La Plata en el Monumental y avanzó a las semifinales del Torneo Apertura.",
     intro:
-      "El rival de River no aparece como un trámite: Bragantino tiene intensidad, urgencia y una estructura que obliga a jugar con atención.",
+      "River venció 2-0 a Gimnasia de La Plata en el Monumental y avanzó a las semifinales del Torneo Apertura. Con goles de Sebastián Driussi y Lucas Martínez Quarta, el equipo de Eduardo Coudet superó al Lobo y ahora enfrentará a Rosario Central por un lugar en la final.",
     content: [
-      "El conjunto brasileño consiguió meterse otra vez en carrera en la Sudamericana después de ganarle a Blooming, pero también llega de caer por el Brasileirao ante Palmeiras.",
-      "La presencia de Jürgen Klopp en el entorno Red Bull durante la semana agregó un condimento externo, aunque lo central para River estará en la presión alta y los ritmos que pueda proponer el local.",
-      "Si River logra superar la primera línea de presión y administrar los momentos del partido, puede encontrar espacios. Si se parte, Bragantino tiene herramientas para hacerlo sufrir.",
+      "River venció 2-0 a Gimnasia de La Plata en el Monumental y avanzó a las semifinales del Torneo Apertura. Con goles de Sebastián Driussi y Lucas Martínez Quarta, el equipo de Eduardo Coudet superó al Lobo y ahora enfrentará a Rosario Central por un lugar en la final.",
+      "El Millonario resolvió una noche exigente con autoridad y volvió a sostener una ventaja en un partido decisivo.",
     ],
     image:
-      "https://upload.wikimedia.org/wikipedia/commons/0/0f/Estadio_Monumental_tribuna.jpg",
-    author: "Redacción Medio River",
-    date: "2026-04-27T18:15:00-03:00",
+      "https://cdnartic.ar/pggktXNjmN8GKcT7yT-oo92AYHc=/1500x0/filters:no_upscale():format(webp):quality(40)/https://elheraldocdn.eleco.com.ar/media/2026/05/river_le_gano_a_gimnasia_y_accedio_a_la_semifinal_del_torneo_apertura.jpg",
+    imageFocusX: 50,
+    imageFocusY: 62,
+    imageZoom: 1,
+    author: "Medio River",
+    date: "2026-05-14T13:51:05-03:00",
     category: "Partidos",
-    competition: "Copa Sudamericana",
+    competition: "Torneo Apertura",
     tag: "Información",
+    featured: true,
   },
   {
-    id: "news-latest-20260428-6",
-    slug: "coudet-defendio-el-proceso-y-river-entra-en-una-semana-bisagra",
-    title: "Coudet defendió el proceso y River entra en una semana bisagra",
+    id: "news-cv3pxju1",
+    slug: "armani-vuelve-a-estar-a-disposicion",
+    title: "Armani vuelve a estar a disposición",
     excerpt:
-      "El entrenador respaldó el crecimiento del equipo después de Aldosivi, pero el calendario pondrá rápido a prueba esa evolución.",
+      "Franco Armani recibió el alta médica y volvió a aparecer en la lista de convocados de River.",
     intro:
-      "El mensaje de Coudet fue hacia adentro y hacia afuera: River mejoró, pero todavía tiene que demostrarlo en partidos de mayor exigencia.",
+      "Franco Armani recibió el alta médica y volvió a aparecer en la lista de convocados de River para el partido de este miércoles ante Gimnasia de La Plata, por los cuartos de final del Torneo Apertura. El capitán regresa después de casi tres meses de inactividad, aunque Santiago Beltrán se mantendría como titular.",
     content: [
-      "La conferencia posterior al triunfo ante Aldosivi dejó una idea fuerte: el cuerpo técnico entiende que el equipo avanzó desde su llegada y que el análisis no debe quedarse únicamente en la estética de una noche puntual.",
-      "Ese respaldo, sin embargo, convive con una realidad concreta. River tendrá Sudamericana, cierre del Apertura y playoffs en una secuencia que no perdona distracciones.",
-      "La semana aparece como una bisagra: si River consigue competir bien en Brasil y sostener resultados en el torneo, el ciclo puede ganar respaldo. Si vuelve a mostrarse irregular, las preguntas regresarán rápido.",
+      "Franco Armani recibió el alta médica y volvió a aparecer en la lista de convocados de River para el partido de este miércoles ante Gimnasia de La Plata, por los cuartos de final del Torneo Apertura.",
+      "El capitán regresa después de casi tres meses de inactividad, aunque Santiago Beltrán se mantendría como titular.",
     ],
     image:
-      "https://upload.wikimedia.org/wikipedia/commons/2/20/Argentina_national_football_team_training_2018.jpg",
-    author: "Redacción Medio River",
-    date: "2026-04-27T11:50:00-03:00",
-    category: "Análisis",
-    tag: "Opinión",
+      "https://elintransigente.com/wp-content/uploads/2025/08/Franco-Armani-1.png.webp",
+    imageFocusX: 50,
+    imageFocusY: 9,
+    imageZoom: 1,
+    author: "Medio River",
+    date: "2026-05-13T13:41:41-03:00",
+    category: "Lesiones",
+    tag: "Información",
+    featured: true,
+  },
+  {
+    id: "news-q1cch0pn",
+    slug: "river-va-por-gimnasia-para-meterse-en-semifinales",
+    title: "River va por Gimnasia para meterse en semifinales",
+    excerpt:
+      "Después de eliminar a San Lorenzo, River ya tiene el próximo objetivo: Gimnasia de La Plata.",
+    intro:
+      "Después de eliminar a San Lorenzo en una noche cargada de tensión, River ya tiene el próximo objetivo: Gimnasia de La Plata. El Millonario recibirá al Lobo este miércoles a las 21:30 en el Monumental, por los cuartos de final del Torneo Apertura.",
+    content: [
+      "Después de eliminar a San Lorenzo en una noche cargada de tensión, River ya tiene el próximo objetivo: Gimnasia de La Plata.",
+      "El Millonario recibirá al Lobo este miércoles a las 21:30 en el Monumental, por los cuartos de final del Torneo Apertura.",
+    ],
+    image:
+      "https://pbs.twimg.com/media/HID50wXXsAAZjVe?format=jpg&name=medium",
+    imageFocusX: 50,
+    imageFocusY: 3,
+    imageZoom: 1,
+    author: "Medio River",
+    date: "2026-05-11T17:52:53-03:00",
+    category: "Partidos",
+    competition: "Torneo Apertura",
+    tag: "Información",
+    featured: true,
+  },
+  {
+    id: "news-yzg6a83k",
+    slug: "juanfer-aparecio-cuando-river-mas-lo-necesitaba",
+    title: "Juanfer apareció cuando River más lo necesitaba",
+    excerpt:
+      "Juan Fernando Quintero fue uno de los nombres propios de la clasificación de River ante San Lorenzo.",
+    intro:
+      "Juan Fernando Quintero fue uno de los nombres propios de la clasificación de River ante San Lorenzo. En una noche cargada de tensión, el colombiano apareció en el momento límite y marcó el 2-2 en la última jugada del alargue, el gol que llevó la definición a los penales y mantuvo con vida al Millonario.",
+    content: [
+      "Juan Fernando Quintero fue uno de los nombres propios de la clasificación de River ante San Lorenzo.",
+      "En una noche cargada de tensión, el colombiano apareció en el momento límite y marcó el 2-2 en la última jugada del alargue, el gol que llevó la definición a los penales y mantuvo con vida al Millonario.",
+    ],
+    image:
+      "https://upload.wikimedia.org/wikipedia/commons/8/8d/River_Plate_vs_Boca_Juniors_-_Supercl%C3%A1sico_2023.jpg",
+    author: "Medio River",
+    date: "2026-05-11T00:30:39-03:00",
+    category: "Partidos",
+    competition: "Torneo Apertura",
+    tag: "Información",
+    featured: true,
+  },
+  {
+    id: "news-jsd3yma0",
+    slug: "beltran-se-vistio-de-heroe",
+    title: "Beltrán se vistió de héroe",
+    excerpt:
+      "Santiago Beltrán volvió a responder en un partido decisivo ante San Lorenzo.",
+    intro:
+      "Santiago Beltrán volvió a responder en un partido decisivo. En el clásico ante San Lorenzo, el arquero de River tuvo una actuación clave y fue protagonista en la definición por penales que le dio al Millonario la clasificación a los cuartos de final del Torneo Apertura.",
+    content: [
+      "Santiago Beltrán volvió a responder en un partido decisivo. En el clásico ante San Lorenzo, el arquero de River tuvo una actuación clave y fue protagonista en la definición por penales.",
+      "Su actuación le dio al Millonario una clasificación agónica a los cuartos de final del Torneo Apertura.",
+    ],
+    image:
+      "https://upload.wikimedia.org/wikipedia/commons/f/f4/Monumental_River_Plate.jpg",
+    author: "Medio River",
+    date: "2026-05-11T00:26:26-03:00",
+    category: "Partidos",
+    competition: "Torneo Apertura",
+    tag: "Información",
+    featured: true,
   },
   {
     id: "news-1",

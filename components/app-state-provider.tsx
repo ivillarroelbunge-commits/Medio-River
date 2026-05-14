@@ -125,6 +125,8 @@ interface AppStateContextValue {
 const AppStateContext = createContext<AppStateContextValue | null>(null)
 
 const PROFILE_SELECT = "id, email, display_name, avatar_url, role, created_at"
+const NEWS_SUMMARY_CACHE_KEY = "medio-river-news-summaries-v1"
+const NEWS_SUMMARY_CACHE_MAX_AGE_MS = 24 * 60 * 60 * 1000
 
 function createInitialLocalState(): LocalState {
   const initialState = createInitialState()
@@ -152,6 +154,32 @@ function clearStoredState() {
     window.localStorage.removeItem(STORAGE_KEY)
   } catch {
     // Storage can be unavailable in private/mobile contexts.
+  }
+}
+
+function getCachedNewsSummaries() {
+  try {
+    const raw = window.localStorage.getItem(NEWS_SUMMARY_CACHE_KEY)
+    if (!raw) return null
+
+    const parsed = JSON.parse(raw) as { savedAt?: number; articles?: NewsArticle[] }
+    if (!parsed.savedAt || !Array.isArray(parsed.articles)) return null
+    if (Date.now() - parsed.savedAt > NEWS_SUMMARY_CACHE_MAX_AGE_MS) return null
+
+    return parsed.articles
+  } catch {
+    return null
+  }
+}
+
+function saveCachedNewsSummaries(articles: NewsArticle[]) {
+  try {
+    window.localStorage.setItem(NEWS_SUMMARY_CACHE_KEY, JSON.stringify({
+      savedAt: Date.now(),
+      articles: articles.map((article) => ({ ...article, content: [] })),
+    }))
+  } catch {
+    // Ignore cache writes in private/mobile contexts.
   }
 }
 
@@ -351,6 +379,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       ...previous,
       news: mergeNewsKeepingLoadedContent(previous.news, summaries),
     }))
+    saveCachedNewsSummaries(summaries)
     setHasSyncedNews(true)
 
     window.setTimeout(() => {
@@ -430,13 +459,10 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     let active = true
 
     async function hydrate() {
-      await new Promise<void>((resolve) => {
-        window.setTimeout(resolve, 50)
-      })
-
       if (!active) return
 
       try {
+        const cachedNews = getCachedNewsSummaries()
         const raw = window.localStorage.getItem(STORAGE_KEY)
         if (raw) {
           if (isLegacyStoredStateTooLarge(raw)) {
@@ -457,13 +483,8 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
           if (!active) return
 
           setLocalState((previous) => {
-            const mergedNews = new Map(previous.news.map((article) => [article.id, article]))
-            for (const article of parsed.news ?? []) {
-              mergedNews.set(article.id, article)
-            }
-
             return {
-              news: Array.from(mergedNews.values()),
+              news: cachedNews?.length ? mergeNewsKeepingLoadedContent(previous.news, cachedNews) : previous.news,
               matches: parsed.matches ? mergeStoredMatches(previous.matches, parsed.matches) : previous.matches,
               squadPlayers: parsed.squadPlayers ?? previous.squadPlayers,
               playerSeasonStats: parsed.playerSeasonStats ?? previous.playerSeasonStats,
@@ -472,6 +493,11 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
               triviaResults: (parsed.triviaResults ?? previous.triviaResults).filter(isActiveTriviaResult),
             }
           })
+        } else if (cachedNews?.length) {
+          setLocalState((previous) => ({
+            ...previous,
+            news: mergeNewsKeepingLoadedContent(previous.news, cachedNews),
+          }))
         }
       } catch {
         if (!active) return
@@ -483,11 +509,27 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         setIsHydrated(true)
       }
 
-      void Promise.all([refreshAuthState(), loadNews(), loadMatches(), loadPlayerStats(), loadTriviaData()]).catch((error) => {
+      void loadNews().catch((error) => {
+        if (!isExpectedRemoteSyncError(error)) {
+          console.warn("No se pudieron sincronizar las noticias.", error)
+        }
+      })
+
+      void Promise.all([refreshAuthState(), loadMatches()]).catch((error) => {
         if (!isExpectedRemoteSyncError(error)) {
           console.warn("No se pudieron sincronizar los datos remotos.", error)
         }
       })
+
+      window.setTimeout(() => {
+        if (!active) return
+
+        void Promise.all([loadPlayerStats(), loadTriviaData()]).catch((error) => {
+          if (!isExpectedRemoteSyncError(error)) {
+            console.warn("No se pudieron sincronizar los datos secundarios.", error)
+          }
+        })
+      }, 1200)
     }
 
     const {

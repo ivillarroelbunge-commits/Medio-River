@@ -22,13 +22,13 @@ export default function HomePage() {
       <SiteHeader />
       <main className="flex-1">
         <div className="container-prose space-y-7 py-5 md:space-y-10 md:py-12">
-          {isHydrated ? (
+          {featured.length > 0 ? (
             <NewsCarousel items={featured} />
           ) : (
             <div className="min-h-[17rem] animate-pulse rounded-[1.5rem] bg-muted md:min-h-[28rem] md:rounded-[2rem] lg:min-h-[30rem]" />
           )}
 
-          {isHydrated && nextMatch && (
+          {nextMatch && (
             <div className="grid items-stretch gap-3 sm:gap-4 md:grid-cols-2 md:gap-6">
               <HomeNextMatchPanel match={nextMatch} />
               <HomeTriviaPanel />
@@ -47,7 +47,7 @@ export default function HomePage() {
               </Link>
             </div>
 
-            {isHydrated ? (
+            {latest.length > 0 ? (
               <ul className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 md:mt-6 md:gap-6 lg:grid-cols-3">
                 {latest.map((article) => (
                   <li key={article.id} className="flex">
