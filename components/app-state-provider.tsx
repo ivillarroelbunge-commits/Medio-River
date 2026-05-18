@@ -283,6 +283,22 @@ function isExpectedRemoteSyncError(error: unknown) {
   )
 }
 
+function getAuthActionErrorMessage(error: { message?: string; code?: string; status?: number } | null | undefined, fallback: string) {
+  const message = error?.message ?? ""
+  const normalized = message.toLowerCase()
+
+  if (
+    error?.status === 429 ||
+    normalized.includes("rate limit") ||
+    normalized.includes("too many") ||
+    normalized.includes("email rate limit")
+  ) {
+    return "Estamos recibiendo muchos registros por email y Supabase limitó temporalmente los correos de confirmación. Probá registrarte con Google o X, o intentá de nuevo en unos minutos."
+  }
+
+  return message || fallback
+}
+
 export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const [localState, setLocalState] = useState<LocalState>(createInitialLocalState)
   const [users, setUsers] = useState<AppUser[]>([])
@@ -610,7 +626,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         if (error) {
           return {
             ok: false,
-            error: error.message || "No se pudo iniciar sesión.",
+            error: getAuthActionErrorMessage(error, "No se pudo iniciar sesión."),
           }
         }
 
@@ -644,7 +660,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         if (error) {
           return {
             ok: false,
-            error: error.message || "No se pudo registrar el usuario.",
+            error: getAuthActionErrorMessage(error, "No se pudo registrar el usuario."),
           }
         }
 
@@ -677,7 +693,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         if (error) {
           return {
             ok: false,
-            error: error.message || `No se pudo iniciar sesión con ${provider}.`,
+            error: getAuthActionErrorMessage(error, `No se pudo iniciar sesión con ${provider}.`),
           }
         }
 

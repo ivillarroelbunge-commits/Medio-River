@@ -97,6 +97,7 @@ export function RegisterForm() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [captchaToken, setCaptchaToken] = useState<string | null>(null)
   const [pendingProvider, setPendingProvider] = useState<SocialProvider | null>(null)
+  const isEmailRateLimited = Boolean(error?.toLowerCase().includes("limitó temporalmente"))
 
   const handleOAuth = async (provider: SocialProvider) => {
     setError(null)
@@ -158,6 +159,11 @@ export function RegisterForm() {
       </div>
       <AuthCaptcha onTokenChange={setCaptchaToken} />
       {error && <p className="rounded-xl border border-primary/20 bg-primary/5 px-3 py-2 text-sm text-primary">{error}</p>}
+      {isEmailRateLimited && (
+        <p className="rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs leading-5 text-muted-foreground">
+          El registro con Google o X no depende del envío de email de confirmación y suele funcionar aunque el correo esté limitado.
+        </p>
+      )}
       <Button type="submit" className="h-11 w-full rounded-full" disabled={isSubmitting}>
         <UserPlus className="h-4 w-4" />
         {isSubmitting ? "Creando cuenta..." : "Crear cuenta"}
