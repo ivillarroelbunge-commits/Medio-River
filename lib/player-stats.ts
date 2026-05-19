@@ -85,6 +85,11 @@ export const playerSeasonStats: Record<string, PlayerSeasonStats> = {
       },
     },
   },
+  "player-ulises-gimenez": {
+    sourceId: 1609439,
+    updatedAt: playerStatsUpdatedAt,
+    competitions: {},
+  },
   "player-rivero": {
     sourceId: 1649321,
     updatedAt: playerStatsUpdatedAt,

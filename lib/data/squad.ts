@@ -164,6 +164,18 @@ export const squadPlayers: SquadPlayer[] = [
     image: fotmobPlayerImage(1610373),
   },
   {
+    id: "player-ulises-gimenez",
+    name: "Ulises Giménez",
+    number: 36,
+    line: "Defensores",
+    position: "Defensor central",
+    age: 20,
+    nationality: "Argentina",
+    foot: "Diestro",
+    fromAcademy: true,
+    image: fotmobPlayerImage(1609439),
+  },
+  {
     id: "player-quintero",
     name: "Juan Fernando Quintero",
     number: 10,

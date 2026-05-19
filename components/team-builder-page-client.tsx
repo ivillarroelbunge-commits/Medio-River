@@ -9,6 +9,7 @@ import type { FormationCode, SquadPlayer, TeamBuilderSlot } from "@/lib/data/typ
 export function TeamBuilderPageClient() {
   const { squadPlayers } = useAppState()
   const [formation, setFormation] = useState<FormationCode>("4-3-3")
+  const [teamName, setTeamName] = useState("Mi equipo")
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null)
   const [assignments, setAssignments] = useState<Record<string, string>>({})
   const [isExporting, setIsExporting] = useState(false)
@@ -36,6 +37,7 @@ export function TeamBuilderPageClient() {
     try {
       const pngBlob = await buildTeamImagePngBlob({
         formation,
+        teamName,
         slots,
         assignments,
         players: squadPlayers,
@@ -91,6 +93,16 @@ export function TeamBuilderPageClient() {
             <h1 className="mt-3 font-display text-2xl font-extrabold tracking-tight md:text-4xl">Arma tu equipo</h1>
             <p className="mt-1 text-sm text-white/60">{completedCount}/11 jugadores elegidos · Formación {formation}</p>
           </div>
+          <label className="w-full max-w-sm space-y-2 md:ml-auto">
+            <span className="text-[0.65rem] font-black uppercase tracking-[0.18em] text-white/55">Nombre del equipo</span>
+            <input
+              value={teamName}
+              onChange={(event) => setTeamName(event.target.value)}
+              maxLength={28}
+              placeholder="Mi equipo"
+              className="h-11 w-full rounded-full border border-white/15 bg-white/10 px-4 text-sm font-bold text-white placeholder:text-white/35 outline-none transition focus:border-primary focus:bg-white/15"
+            />
+          </label>
           <div className="flex w-full flex-wrap items-center gap-2 md:w-auto md:justify-end">
             <button
               type="button"
@@ -134,22 +146,21 @@ export function TeamBuilderPageClient() {
             className="relative aspect-[10/13] overflow-hidden rounded-[1rem] border-2 border-white/95 md:rounded-[1.35rem] md:border-[3px]"
             style={{
               backgroundImage:
-                "radial-gradient(circle at 50% 18%, rgba(255,255,255,0.16), transparent 16%), linear-gradient(90deg, rgba(255,255,255,0.09) 1px, transparent 1px), repeating-linear-gradient(90deg, #10842b 0 12.5%, #0a7425 12.5% 25%)",
-              backgroundSize: "100% 100%, 25% 100%, 100% 100%",
+                "linear-gradient(90deg, rgba(255,255,255,0.09) 1px, transparent 1px), repeating-linear-gradient(90deg, #10842b 0 12.5%, #0a7425 12.5% 25%)",
+              backgroundSize: "25% 100%, 100% 100%",
             }}
           >
             <div className="absolute inset-x-0 top-[50%] border-t-[3px] border-white/90" />
             <div className="absolute left-1/2 top-[50%] h-[18%] w-[30%] -translate-x-1/2 -translate-y-1/2 rounded-full border-[3px] border-white/90" />
             <div className="absolute left-1/2 top-[50%] h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/95" />
 
-            <div className="absolute inset-x-0 top-0 h-[10%] border-b-[3px] border-white/90" />
             <div className="absolute left-1/2 top-0 h-[18%] w-[46%] -translate-x-1/2 border-x-[3px] border-b-[3px] border-white/90" />
             <div className="absolute left-1/2 top-0 h-[8%] w-[22%] -translate-x-1/2 border-x-[3px] border-b-[3px] border-white/90" />
-            <div className="absolute left-1/2 top-[18%] h-[12%] w-[24%] -translate-x-1/2 -translate-y-1/2 rounded-full border-[3px] border-white/70" />
+            <div className="absolute left-1/2 top-[18%] h-[12%] w-[24%] -translate-x-1/2 -translate-y-1/2 rounded-full border-[3px] border-white/70 [clip-path:inset(50%_0_0_0)]" />
 
             <div className="absolute bottom-0 left-1/2 h-[24%] w-[62%] -translate-x-1/2 border-x-[3px] border-t-[3px] border-white/90" />
             <div className="absolute bottom-0 left-1/2 h-[10%] w-[30%] -translate-x-1/2 border-x-[3px] border-t-[3px] border-white/90" />
-            <div className="absolute bottom-[24%] left-1/2 h-[13%] w-[26%] -translate-x-1/2 translate-y-1/2 rounded-full border-[3px] border-white/70" />
+            <div className="absolute bottom-[24%] left-1/2 h-[13%] w-[26%] -translate-x-1/2 translate-y-1/2 rounded-full border-[3px] border-white/70 [clip-path:inset(0_0_50%_0)]" />
             <div className="absolute bottom-[16%] left-1/2 h-1.5 w-1.5 -translate-x-1/2 rounded-full bg-white/95" />
 
             {slots.map((slot) => {
@@ -298,6 +309,11 @@ function shortPlayerName(name: string) {
   return parts.length > 1 ? parts.at(-1) ?? name : name
 }
 
+function normalizeExportTeamName(teamName: string) {
+  const normalized = teamName.trim().replace(/\s+/g, " ")
+  return (normalized || "Mi equipo").toUpperCase()
+}
+
 function sortPlayersForSlot(a: SquadPlayer, b: SquadPlayer, slot?: TeamBuilderSlot | null) {
   const byFit = playerSlotScore(a, slot) - playerSlotScore(b, slot)
   if (byFit !== 0) return byFit
@@ -432,11 +448,13 @@ function formationSlotTransferScore(player: SquadPlayer, previousSlot: TeamBuild
 
 async function buildTeamImagePngBlob({
   formation,
+  teamName,
   slots,
   assignments,
   players,
 }: {
   formation: FormationCode
+  teamName: string
   slots: TeamBuilderSlot[]
   assignments: Record<string, string>
   players: SquadPlayer[]
@@ -450,10 +468,10 @@ async function buildTeamImagePngBlob({
   const context = canvas.getContext("2d")
   if (!context) throw new Error("No se pudo crear el canvas para exportar el equipo.")
 
-  const pitchX = 96
-  const pitchY = 176
-  const pitchWidth = 888
-  const pitchHeight = 1000
+  const pitchX = 72
+  const pitchY = 166
+  const pitchWidth = 936
+  const pitchHeight = 1120
   const getPlayer = (slot: TeamBuilderSlot) => players.find((player) => player.id === assignments[slot.id])
 
   const playerImages = new Map<string, HTMLImageElement>()
@@ -467,7 +485,7 @@ async function buildTeamImagePngBlob({
   )
 
   drawExportBackground(context, width, height)
-  drawExportHeader(context, formation, Object.keys(assignments).length)
+  drawExportHeader(context, formation, teamName)
   drawExportPitch(context, pitchX, pitchY, pitchWidth, pitchHeight)
 
   for (const slot of slots) {
@@ -482,8 +500,6 @@ async function buildTeamImagePngBlob({
       image,
     })
   }
-
-  drawExportFooter(context)
 
   return await new Promise<Blob>((resolve, reject) => {
     canvas.toBlob((blob) => {
@@ -525,7 +541,7 @@ function drawExportBackground(context: CanvasRenderingContext2D, width: number, 
   context.globalAlpha = 1
 }
 
-function drawExportHeader(context: CanvasRenderingContext2D, formation: FormationCode, selectedCount: number) {
+function drawExportHeader(context: CanvasRenderingContext2D, formation: FormationCode, teamName: string) {
   fillRoundRect(context, 64, 54, 952, 86, 34, "rgba(11,11,13,0.82)")
   strokeRoundRect(context, 64, 54, 952, 86, 34, "rgba(255,255,255,0.12)", 1)
 
@@ -539,12 +555,7 @@ function drawExportHeader(context: CanvasRenderingContext2D, formation: Formatio
   context.textAlign = "left"
   context.fillStyle = "#ffffff"
   context.font = "900 33px Arial, Helvetica, sans-serif"
-  context.fillText(`MI EQUIPO · ${formation}`, 168, 101)
-
-  context.textAlign = "right"
-  context.fillStyle = "rgba(255,255,255,0.72)"
-  context.font = "900 20px Arial, Helvetica, sans-serif"
-  context.fillText(`${selectedCount}/11`, 958, 101)
+  context.fillText(`${normalizeExportTeamName(teamName)} · ${formation}`, 168, 101, 800)
 }
 
 function drawExportPitch(context: CanvasRenderingContext2D, x: number, y: number, width: number, height: number) {
@@ -680,20 +691,6 @@ function drawExportPlayer({
   context.fillText(label, 0, 54)
 
   context.restore()
-}
-
-function drawExportFooter(context: CanvasRenderingContext2D) {
-  fillRoundRect(context, 90, 1228, 900, 72, 36, "rgba(255,255,255,0.09)")
-  strokeRoundRect(context, 90, 1228, 900, 72, 36, "rgba(255,255,255,0.2)", 1)
-
-  context.textAlign = "center"
-  context.textBaseline = "middle"
-  context.fillStyle = "#df1724"
-  context.font = "900 18px Arial, Helvetica, sans-serif"
-  context.fillText("PIZARRA TÁCTICA", 540, 1255)
-  context.fillStyle = "#ffffff"
-  context.font = "900 22px Arial, Helvetica, sans-serif"
-  context.fillText("GENERADO EN MEDIO RIVER", 540, 1284)
 }
 
 async function loadExportImage(src: string) {
