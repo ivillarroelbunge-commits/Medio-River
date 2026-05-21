@@ -40,18 +40,31 @@ export async function POST(request: NextRequest) {
 }
 
 function buildLaHistoriaRiverCandidates(match: Match) {
-  const opponentSlug = slugifyOpponent(match.opponent)
+  const opponentSlugs = getOpponentSlugs(match.opponent)
   const competition = competitionSlug[match.competition]
   const base = "https://lahistoriariver.com/partidos"
 
-  const primary = match.isHome
-    ? `river-plate-${opponentSlug}-${competition}-2026`
-    : `${opponentSlug}-river-plate-${competition}-2026`
-  const secondary = match.isHome
-    ? `river-${opponentSlug}-${competition}-2026`
-    : `${opponentSlug}-river-${competition}-2026`
+  const candidates = opponentSlugs.flatMap((opponentSlug) => {
+    const primary = match.isHome
+      ? `river-plate-${opponentSlug}-${competition}-2026`
+      : `${opponentSlug}-river-plate-${competition}-2026`
+    const secondary = match.isHome
+      ? `river-${opponentSlug}-${competition}-2026`
+      : `${opponentSlug}-river-${competition}-2026`
 
-  return Array.from(new Set([`${base}/${primary}`, `${base}/${secondary}`]))
+    return [`${base}/${primary}`, `${base}/${secondary}`]
+  })
+
+  return Array.from(new Set(candidates))
+}
+
+function getOpponentSlugs(opponent: string) {
+  const primary = slugifyOpponent(opponent)
+  const aliases: Record<string, string[]> = {
+    "red-bull-bragantino": ["bragantino"],
+  }
+
+  return Array.from(new Set([primary, ...(aliases[primary] ?? [])]))
 }
 
 function slugifyOpponent(value: string) {
@@ -268,7 +281,7 @@ function orderKnownRiverSanLorenzoPenaltyKicks(kicks: Array<{ player: string; sc
 
 function hasExtraTimeEvents(html: string) {
   return ["Gol", "Cambio", "Tarjeta Amarilla", "Tarjeta Roja"]
-    .some((type) => parseEvents(html, type).some((event) => minuteValue(event.minute) > 90))
+    .some((type) => parseEvents(html, type).some((event) => isExtraTimeMinute(event.minute)))
 }
 
 function parseEvents(html: string, type: string) {
@@ -338,6 +351,11 @@ function formatMinute(minute: number, detail: string | null) {
 function minuteValue(value: string) {
   const [base, extra] = value.split("+").map(Number)
   return base + (extra ? extra / 100 : 0)
+}
+
+function isExtraTimeMinute(value: string) {
+  const [base] = value.split("+").map(Number)
+  return base > 90
 }
 
 function unescapeJsonText(value: string) {
