@@ -7,10 +7,10 @@ interface AutofillRequest {
   match: Match
 }
 
-const competitionSlug: Record<Competition, string> = {
-  "Torneo Apertura": "torneo-apertura",
-  "Copa Sudamericana": "sudamericana",
-  "Copa Argentina": "copa-argentina",
+const competitionSlugs: Record<Competition, string[]> = {
+  "Torneo Apertura": ["torneo-apertura"],
+  "Copa Sudamericana": ["copa-sudamericana", "sudamericana"],
+  "Copa Argentina": ["copa-argentina"],
 }
 
 export async function POST(request: NextRequest) {
@@ -41,18 +41,20 @@ export async function POST(request: NextRequest) {
 
 function buildLaHistoriaRiverCandidates(match: Match) {
   const opponentSlugs = getOpponentSlugs(match.opponent)
-  const competition = competitionSlug[match.competition]
+  const competitions = competitionSlugs[match.competition]
   const base = "https://lahistoriariver.com/partidos"
 
   const candidates = opponentSlugs.flatMap((opponentSlug) => {
-    const primary = match.isHome
-      ? `river-plate-${opponentSlug}-${competition}-2026`
-      : `${opponentSlug}-river-plate-${competition}-2026`
-    const secondary = match.isHome
-      ? `river-${opponentSlug}-${competition}-2026`
-      : `${opponentSlug}-river-${competition}-2026`
+    return competitions.flatMap((competition) => {
+      const primary = match.isHome
+        ? `river-plate-${opponentSlug}-${competition}-2026`
+        : `${opponentSlug}-river-plate-${competition}-2026`
+      const secondary = match.isHome
+        ? `river-${opponentSlug}-${competition}-2026`
+        : `${opponentSlug}-river-${competition}-2026`
 
-    return [`${base}/${primary}`, `${base}/${secondary}`]
+      return [`${base}/${primary}`, `${base}/${secondary}`]
+    })
   })
 
   return Array.from(new Set(candidates))
