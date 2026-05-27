@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import type { Competition, Match, MatchCardEvent, MatchDetail, MatchGoal, MatchSubstitution } from "@/lib/data/types"
 
 const MATCH_PAGE_TIMEOUT_MS = 8000
+const ARGENTINA_TIME_ZONE = "America/Argentina/Buenos_Aires"
 
 interface AutofillRequest {
   match: Match
@@ -21,10 +22,17 @@ export async function POST(request: NextRequest) {
   }
 
   const candidates = buildLaHistoriaRiverCandidates(match)
+  const dateMismatches: Array<{ sourceUrl: string; sourceDate: string }> = []
 
   for (const sourceUrl of candidates) {
     const html = await fetchMatchPage(sourceUrl)
     if (!html) continue
+
+    const sourceDate = parseLaHistoriaRiverDate(html)
+    if (!doesSourceDateMatchSeed(sourceDate, match.date)) {
+      if (sourceDate) dateMismatches.push({ sourceUrl, sourceDate: formatDateKey(sourceDate) })
+      continue
+    }
 
     const parsedMatch = parseLaHistoriaRiverMatch(html, sourceUrl, match)
     if (parsedMatch) {
@@ -34,8 +42,11 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({
     ok: false,
-    error: "No encontré una ficha pública disponible para este partido en La Historia River.",
+    error: dateMismatches.length > 0
+      ? "Encontré una ficha en La Historia River, pero la fecha no coincide con este partido."
+      : "No encontré una ficha pública disponible para este partido en La Historia River.",
     tried: candidates,
+    dateMismatches,
   })
 }
 
@@ -46,14 +57,15 @@ function buildLaHistoriaRiverCandidates(match: Match) {
 
   const candidates = opponentSlugs.flatMap((opponentSlug) => {
     return competitions.flatMap((competition) => {
+      const competitionVariants = [competition, `final-${competition}`]
       const primary = match.isHome
-        ? `river-plate-${opponentSlug}-${competition}-2026`
-        : `${opponentSlug}-river-plate-${competition}-2026`
+        ? competitionVariants.map((variant) => `river-plate-${opponentSlug}-${variant}-2026`)
+        : competitionVariants.map((variant) => `${opponentSlug}-river-plate-${variant}-2026`)
       const secondary = match.isHome
-        ? `river-${opponentSlug}-${competition}-2026`
-        : `${opponentSlug}-river-${competition}-2026`
+        ? competitionVariants.map((variant) => `river-${opponentSlug}-${variant}-2026`)
+        : competitionVariants.map((variant) => `${opponentSlug}-river-${variant}-2026`)
 
-      return [`${base}/${primary}`, `${base}/${secondary}`]
+      return [...primary, ...secondary].map((slug) => `${base}/${slug}`)
     })
   })
 
@@ -162,6 +174,61 @@ function parseScoreFromTitle(html: string) {
     awayScore: Number(match[3]),
     awayTeam: cleanText(match[4]),
   }
+}
+
+function parseLaHistoriaRiverDate(html: string) {
+  const months: Record<string, number> = {
+    enero: 1,
+    febrero: 2,
+    marzo: 3,
+    abril: 4,
+    mayo: 5,
+    junio: 6,
+    julio: 7,
+    agosto: 8,
+    septiembre: 9,
+    setiembre: 9,
+    octubre: 10,
+    noviembre: 11,
+    diciembre: 12,
+  }
+  const text = cleanText(html).toLowerCase()
+  const match = text.match(/\b(?:lunes|martes|miércoles|miercoles|jueves|viernes|sábado|sabado|domingo),?\s+(\d{1,2})\s+de\s+([a-záéíóú]+)\s+de\s+(\d{4})\b/)
+  if (!match) return null
+
+  const month = months[normalizeName(match[2])]
+  if (!month) return null
+
+  return {
+    year: Number(match[3]),
+    month,
+    day: Number(match[1]),
+  }
+}
+
+function doesSourceDateMatchSeed(sourceDate: ReturnType<typeof parseLaHistoriaRiverDate>, seedDate: string) {
+  if (!sourceDate) return false
+  return formatDateKey(sourceDate) === getArgentinaDateKey(seedDate)
+}
+
+function formatDateKey(date: { year: number; month: number; day: number }) {
+  return [
+    String(date.year).padStart(4, "0"),
+    String(date.month).padStart(2, "0"),
+    String(date.day).padStart(2, "0"),
+  ].join("-")
+}
+
+function getArgentinaDateKey(isoDate: string) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: ARGENTINA_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date(isoDate))
+  const valueByType = Object.fromEntries(parts.map((part) => [part.type, part.value]))
+
+  return `${valueByType.year}-${valueByType.month}-${valueByType.day}`
 }
 
 function readHtmlField(html: string, label: string) {
