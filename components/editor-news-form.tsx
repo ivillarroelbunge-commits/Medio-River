@@ -11,7 +11,7 @@ import { defaultNewsCategories, normalizeNewsCategory } from "@/lib/news-taxonom
 import { getNewsImageStyle } from "@/lib/news-media"
 
 const defaultCategories = defaultNewsCategories
-const defaultCompetitions = ["Torneo Apertura", "Copa Sudamericana", "Copa Argentina"]
+const defaultCompetitions = ["Torneo Clausura", "Copa Sudamericana", "Copa Argentina", "Torneo Apertura"]
 
 export function EditorNewsForm({
   initialArticle,

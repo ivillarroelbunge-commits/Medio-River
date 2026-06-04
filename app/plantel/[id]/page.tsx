@@ -18,7 +18,7 @@ import {
   playerStatsUpdatedAt,
 } from "@/lib/player-stats"
 
-const statTabs: Array<PlayerStatsCompetitionKey | "total"> = ["total", "apertura", "sudamericana", "copaArgentina"]
+const statTabs: Array<PlayerStatsCompetitionKey | "total"> = ["total", "clausura", "sudamericana", "copaArgentina", "apertura"]
 
 export default function PlayerProfilePage() {
   const params = useParams<{ id: string }>()

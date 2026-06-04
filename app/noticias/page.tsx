@@ -14,7 +14,7 @@ import { timeAgo } from "@/lib/format"
 import { defaultNewsCategories, normalizeNewsCategory } from "@/lib/news-taxonomy"
 
 const defaultCategories = defaultNewsCategories
-const defaultCompetitions = ["Torneo Apertura", "Copa Sudamericana", "Copa Argentina"]
+const defaultCompetitions = ["Torneo Clausura", "Copa Sudamericana", "Copa Argentina", "Torneo Apertura"]
 const INITIAL_VISIBLE = 9
 const LOAD_MORE_STEP = 6
 

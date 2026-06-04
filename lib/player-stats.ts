@@ -5,6 +5,7 @@ export const playerStatsSourceUrl = "https://www.fotmob.com/teams/10076/stats/ri
 
 export const playerStatsCompetitionLabels: Record<PlayerStatsCompetitionKey | "total", string> = {
   total: "Total temporada",
+  clausura: "Torneo Clausura",
   apertura: "Torneo Apertura",
   sudamericana: "Copa Sudamericana",
   copaArgentina: "Copa Argentina",

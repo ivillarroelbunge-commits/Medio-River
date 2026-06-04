@@ -3,6 +3,7 @@ export type UserRole = "admin" | "editor" | "user"
 export type NewsCategory = string
 
 export type Competition =
+  | "Torneo Clausura"
   | "Torneo Apertura"
   | "Copa Sudamericana"
   | "Copa Argentina"
@@ -37,6 +38,8 @@ export interface Match {
   status: "upcoming" | "played"
   isHome: boolean
   stadium: string
+  dateTbd?: boolean
+  timeTbd?: boolean
   tvChannel?: string
   riverScore?: number
   opponentScore?: number
@@ -123,8 +126,8 @@ export interface TopScorerRow {
 }
 
 export interface CompetitionPanelData {
-  key: "apertura" | "sudamericana" | "copa-argentina"
-  label: Competition
+  key: "clausura" | "anual" | "apertura" | "sudamericana" | "copa-argentina"
+  label: string
   title: string
   subtitle: string
   standings: StandingRow[]
@@ -177,7 +180,7 @@ export interface SquadPlayer {
   image?: string
 }
 
-export type PlayerStatsCompetitionKey = "apertura" | "sudamericana" | "copaArgentina"
+export type PlayerStatsCompetitionKey = "clausura" | "apertura" | "sudamericana" | "copaArgentina"
 
 export interface PlayerStatLine {
   matches: number

@@ -7,7 +7,7 @@ import { defaultNewsCategories, normalizeNewsCategory } from "@/lib/news-taxonom
 import { cn } from "@/lib/utils"
 
 const defaultCategories = defaultNewsCategories
-const defaultCompetitions = ["Torneo Apertura", "Copa Sudamericana", "Copa Argentina"]
+const defaultCompetitions = ["Torneo Clausura", "Copa Sudamericana", "Copa Argentina", "Torneo Apertura"]
 
 export function NewsList({ articles }: { articles: NewsArticle[] }) {
   const [tag, setTag] = useState("Todas")

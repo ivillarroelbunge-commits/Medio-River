@@ -21,6 +21,7 @@ const TEAM_CRESTS: Record<string, string> = {
   "Estudiantes de Río Cuarto": espnCrest(19685),
   "Estudiantes BA": "/crests/estudiantes-ba.jpg",
   Gimnasia: espnCrest(9),
+  "Gimnasia La Plata": espnCrest(9),
   "Gimnasia y Esgrima La Plata": espnCrest(9),
   Huracán: espnCrest(10),
   Independiente: espnCrest(11),

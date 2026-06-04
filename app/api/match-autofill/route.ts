@@ -9,6 +9,7 @@ interface AutofillRequest {
 }
 
 const competitionSlugs: Record<Competition, string[]> = {
+  "Torneo Clausura": ["torneo-clausura"],
   "Torneo Apertura": ["torneo-apertura"],
   "Copa Sudamericana": ["copa-sudamericana", "sudamericana"],
   "Copa Argentina": ["copa-argentina"],

@@ -8,17 +8,20 @@ import { formatTime, formatWeekdayDate } from "@/lib/format"
 import { TeamCrest } from "@/components/team-crest"
 import { cn } from "@/lib/utils"
 
-const filters: Array<Competition | "Todas"> = ["Todas", "Torneo Apertura", "Copa Sudamericana", "Copa Argentina"]
+const filters: Array<Competition | "Todas"> = ["Todas", "Torneo Clausura", "Copa Sudamericana", "Copa Argentina", "Torneo Apertura"]
 
 const filterShortLabels: Record<(typeof filters)[number], string> = {
   Todas: "Todas",
-  "Torneo Apertura": "Apertura",
+  "Torneo Clausura": "Clausura",
   "Copa Sudamericana": "Sudamericana",
   "Copa Argentina": "Copa Arg.",
+  "Torneo Apertura": "Apertura",
 }
 
 const shortTeamNames: Record<string, string> = {
   "River Plate": "River Plate",
+  "A definir": "A definir",
+  "Gimnasia La Plata": "Gimnasia LP",
   "Gimnasia y Esgrima La Plata": "Gimnasia LP",
   "Independiente Rivadavia": "Ind. Rivadavia",
   "Argentinos Juniors": "Argentinos",
@@ -34,9 +37,10 @@ const shortTeamNames: Record<string, string> = {
 }
 
 const competitionStyle: Record<Competition, string> = {
-  "Torneo Apertura": "border-l-border bg-card",
+  "Torneo Clausura": "border-l-primary bg-primary/5",
   "Copa Sudamericana": "border-l-primary bg-primary/5",
   "Copa Argentina": "border-l-black bg-black/5",
+  "Torneo Apertura": "border-l-border bg-card",
 }
 
 const resultStyle = {
@@ -80,8 +84,8 @@ export function UpcomingMatches({ matches }: { matches: Match[] }) {
               </div>
             </div>
             <div className="flex flex-wrap items-center justify-start gap-x-3 gap-y-1 pl-2 text-[0.66rem] md:pl-0 md:text-xs">
-              <InfoMini icon={<Calendar className="h-3.5 w-3.5" />} value={formatWeekdayDate(match.date)} />
-              <InfoMini icon={<Clock className="h-3.5 w-3.5" />} value={`${formatTime(match.date)} hs`} />
+              <InfoMini icon={<Calendar className="h-3.5 w-3.5" />} value={match.dateTbd ? "Fecha a confirmar" : formatWeekdayDate(match.date)} />
+              {!match.dateTbd && <InfoMini icon={<Clock className="h-3.5 w-3.5" />} value={match.timeTbd ? "Horario a confirmar" : `${formatTime(match.date)} hs`} />}
               {match.tvChannel && <InfoMini icon={<Tv className="h-3.5 w-3.5" />} value={match.tvChannel} />}
             </div>
           </article>
@@ -213,9 +217,9 @@ function TeamName({ team, className }: { team: string; className?: string }) {
 
 function FilterBar({ active, onChange }: { active: (typeof filters)[number]; onChange: (value: (typeof filters)[number]) => void }) {
   return (
-    <div className="grid grid-cols-4 gap-1 rounded-2xl border border-border bg-card p-1 shadow-sm md:inline-flex md:flex-wrap md:rounded-full">
+    <div className="mx-auto flex w-fit max-w-full flex-nowrap gap-1 overflow-x-auto rounded-2xl border border-border bg-card p-1 shadow-sm md:rounded-full">
       {filters.map((filter) => (
-        <button key={filter} type="button" onClick={() => onChange(filter)} className={`min-w-0 rounded-xl px-1 py-1.5 text-[0.52rem] font-bold leading-tight md:rounded-full md:px-3 md:text-xs ${filter === active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
+        <button key={filter} type="button" onClick={() => onChange(filter)} className={`mx-0.5 w-max shrink-0 rounded-xl px-2 py-1.5 text-[0.52rem] font-bold leading-tight md:rounded-full md:px-3 md:text-xs ${filter === active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
           <span className="md:hidden">{filterShortLabels[filter]}</span>
           <span className="hidden md:inline">{filter}</span>
         </button>
