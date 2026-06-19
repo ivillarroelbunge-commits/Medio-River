@@ -42,7 +42,7 @@ export function HomeNextMatchPanel({ match }: { match: Match }) {
         </div>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-white/86 md:gap-x-4 md:gap-y-2 md:text-sm">
           <span className="inline-flex items-center gap-1.5"><Calendar className="h-4 w-4 text-primary" /> <span className="font-semibold">{formatWeekdayDate(match.date)}</span></span>
-          <span className="inline-flex items-center gap-1.5"><Clock className="h-4 w-4 text-primary" /> <span className="font-semibold">{formatTime(match.date)} hs</span></span>
+          <span className="inline-flex items-center gap-1.5"><Clock className="h-4 w-4 text-primary" /> <span className="font-semibold">{match.timeTbd ? "--:--" : `${formatTime(match.date)} hs`}</span></span>
         </div>
       </div>
     </section>

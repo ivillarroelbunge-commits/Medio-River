@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import type { Competition, DailyTrivia, Match, NewsArticle, PlayerSeasonStats, SquadPlayer, TriviaQuestion, UserRole } from "@/lib/data/types"
 import { getRoleBadgeClass, getRoleLabel } from "@/lib/roles"
-import { getTriviaWeeklyKey, getWeeklyTriviaStartDate, WEEKLY_TRIVIA_SIZE } from "@/lib/trivia-daily"
+import { getTriviaWeeklyKey, getWeeklyTriviaQuestions, getWeeklyTriviaStartDate, WEEKLY_TRIVIA_SIZE } from "@/lib/trivia-daily"
 
 const roles: UserRole[] = ["admin", "editor", "user"]
 const sections = [
@@ -74,6 +74,8 @@ export function AdminPageClient() {
   const [matchesQuery, setMatchesQuery] = useState("")
   const [isUpdatingPlayerStats, setIsUpdatingPlayerStats] = useState(false)
   const [playerStatsMessage, setPlayerStatsMessage] = useState<string | null>(null)
+  const [isAutoProgrammingTrivia, setIsAutoProgrammingTrivia] = useState(false)
+  const [triviaProgrammingMessage, setTriviaProgrammingMessage] = useState<string | null>(null)
 
   const orderedUsers = useMemo(() => {
     const order: Record<UserRole, number> = { admin: 0, editor: 1, user: 2 }
@@ -128,19 +130,65 @@ export function AdminPageClient() {
     () => buildTriviaPlannerDays(dailyTrivias),
     [dailyTrivias],
   )
+  const currentTriviaWeekKey = useMemo(() => getTriviaWeeklyKey(), [])
 
   const triviaQuestionById = useMemo(
     () => new Map(triviaQuestions.map((question) => [question.id, question])),
     [triviaQuestions],
   )
-  const usedTriviaQuestionIds = useMemo(
-    () => new Set(dailyTrivias.flatMap((dailyTrivia) => dailyTrivia.questionIds)),
-    [dailyTrivias],
-  )
   const lockedTriviaDays = useMemo(
     () => new Set(triviaResults.map((result) => result.dailyKey).filter((dailyKey): dailyKey is string => Boolean(dailyKey))),
     [triviaResults],
   )
+  const usedTriviaQuestionIds = useMemo(() => {
+    const ids = new Set(dailyTrivias.flatMap((dailyTrivia) => dailyTrivia.questionIds))
+    const programmedDays = new Set(dailyTrivias.map((dailyTrivia) => dailyTrivia.dailyKey))
+    const automaticDays = new Set([...lockedTriviaDays, currentTriviaWeekKey])
+
+    automaticDays.forEach((dailyKey) => {
+      if (programmedDays.has(dailyKey)) return
+      getWeeklyTriviaQuestions(triviaQuestions, dailyKey).forEach((question) => ids.add(question.id))
+    })
+
+    return ids
+  }, [currentTriviaWeekKey, dailyTrivias, lockedTriviaDays, triviaQuestions])
+  const autoProgramTriviaWeeks = async () => {
+    setError(null)
+    setTriviaProgrammingMessage(null)
+    setIsAutoProgrammingTrivia(true)
+
+    const usedIds = new Set(usedTriviaQuestionIds)
+    const upcomingUnprogrammedWeeks = triviaPlannerDays.filter((day) => !day.trivia && day.dailyKey > currentTriviaWeekKey)
+    let programmedWeeks = 0
+
+    try {
+      for (const day of upcomingUnprogrammedWeeks) {
+        const selectedQuestions = triviaQuestions.filter((question) => !usedIds.has(question.id)).slice(0, WEEKLY_TRIVIA_SIZE)
+        if (selectedQuestions.length < WEEKLY_TRIVIA_SIZE) break
+
+        const result = await saveDailyTrivia({
+          dailyKey: day.dailyKey,
+          questionIds: selectedQuestions.map((question) => question.id),
+        })
+
+        if (!result.ok) {
+          setError(result.error ?? "No se pudo programar una de las semanas.")
+          return
+        }
+
+        selectedQuestions.forEach((question) => usedIds.add(question.id))
+        programmedWeeks += 1
+      }
+
+      setTriviaProgrammingMessage(
+        programmedWeeks > 0
+          ? `Se programaron ${programmedWeeks} semana${programmedWeeks === 1 ? "" : "s"} sin repetir preguntas.`
+          : `No quedan ${WEEKLY_TRIVIA_SIZE} preguntas libres para programar otra semana.`,
+      )
+    } finally {
+      setIsAutoProgrammingTrivia(false)
+    }
+  }
 
   const newsCategoryOptions = useMemo(() => getUniqueNewsOptions(news.map((article) => article.category)), [news])
   const newsCompetitionOptions = useMemo(() => getUniqueNewsOptions(news.map((article) => article.competition)), [news])
@@ -602,23 +650,41 @@ export function AdminPageClient() {
                 <h3 className="font-display text-lg font-extrabold md:text-xl">Trivias por semana</h3>
                 <p className="text-sm text-muted-foreground">Elegí una semana y seleccioná sus {WEEKLY_TRIVIA_SIZE} preguntas.</p>
               </div>
-              <div className="flex flex-wrap gap-2 text-xs font-bold uppercase tracking-[0.14em]">
-                <span className="rounded-full bg-primary px-3 py-1 text-primary-foreground">
-                  {triviaPlannerDays.filter((day) => day.trivia).length} programados
-                </span>
-                <span className="rounded-full bg-muted px-3 py-1 text-muted-foreground">
-                  {triviaPlannerDays.filter((day) => !day.trivia).length} pendientes
-                </span>
+              <div className="flex flex-col gap-2 sm:items-end">
+                <div className="flex flex-wrap gap-2 text-xs font-bold uppercase tracking-[0.14em]">
+                  <span className="rounded-full bg-primary px-3 py-1 text-primary-foreground">
+                    {triviaPlannerDays.filter((day) => day.trivia).length} programados
+                  </span>
+                  <span className="rounded-full bg-muted px-3 py-1 text-muted-foreground">
+                    {triviaPlannerDays.filter((day) => !day.trivia).length} pendientes
+                  </span>
+                </div>
+                <Button type="button" variant="outline" className="rounded-full" disabled={isAutoProgrammingTrivia} onClick={autoProgramTriviaWeeks}>
+                  {isAutoProgrammingTrivia ? "Programando..." : "Programar próximas semanas"}
+                </Button>
               </div>
             </div>
+            {triviaProgrammingMessage && (
+              <p className="rounded-xl border border-primary/20 bg-primary/5 px-3 py-2 text-sm font-semibold text-primary">
+                {triviaProgrammingMessage}
+              </p>
+            )}
 
             <div className="space-y-3">
               {triviaPlannerDays.map((day) => {
-                const programmedQuestions = day.trivia?.questionIds
+                const automaticQuestions = !day.trivia && day.dailyKey <= currentTriviaWeekKey
+                  ? getWeeklyTriviaQuestions(triviaQuestions, day.dailyKey)
+                  : []
+                const automaticTrivia = automaticQuestions.length > 0
+                  ? { dailyKey: day.dailyKey, questionIds: automaticQuestions.map((question) => question.id) }
+                  : null
+                const effectiveTrivia = day.trivia ?? automaticTrivia
+                const visibleQuestions = effectiveTrivia?.questionIds
                   .map((questionId) => triviaQuestionById.get(questionId))
                   .filter((question): question is TriviaQuestion => Boolean(question)) ?? []
                 const isActive = activeTriviaDay === day.dailyKey
-                const isLocked = lockedTriviaDays.has(day.dailyKey)
+                const isAutomatic = Boolean(automaticTrivia)
+                const isLocked = lockedTriviaDays.has(day.dailyKey) || isAutomatic
 
                 return (
                   <article key={day.dailyKey} className={`space-y-3 rounded-2xl border p-3 md:p-4 ${isLocked ? "border-zinc-900/20 bg-zinc-900/[0.03]" : day.trivia ? "border-primary/30 bg-primary/5" : "border-border bg-card"}`}>
@@ -633,20 +699,20 @@ export function AdminPageClient() {
                             Con participantes
                           </Badge>
                         )}
-                        <Badge variant="outline" className={`rounded-full ${day.trivia ? "border-primary/30 bg-primary text-primary-foreground" : "border-border bg-muted text-muted-foreground"}`}>
-                          {day.trivia ? "Programada" : "Sin programar"}
+                        <Badge variant="outline" className={`rounded-full ${day.trivia ? "border-primary/30 bg-primary text-primary-foreground" : isAutomatic ? "border-zinc-900/15 bg-zinc-900 text-white" : "border-border bg-muted text-muted-foreground"}`}>
+                          {day.trivia ? "Programada" : isAutomatic ? "Automática" : "Sin programar"}
                         </Badge>
-                        <Button type="button" variant={day.trivia ? "outline" : "default"} className="rounded-full" onClick={() => setActiveTriviaDay(isActive ? null : day.dailyKey)}>
+                        <Button type="button" variant={effectiveTrivia ? "outline" : "default"} className="rounded-full" onClick={() => setActiveTriviaDay(isActive ? null : day.dailyKey)}>
                           {isActive ? "Cerrar" : isLocked ? "Ver preguntas" : day.trivia ? "Editar" : "Programar"}
                         </Button>
                       </div>
                     </div>
 
-                    {day.trivia && !isActive && (
+                    {effectiveTrivia && !isActive && (
                       <div className="grid gap-2 md:grid-cols-5">
                         {Array.from({ length: WEEKLY_TRIVIA_SIZE }, (_, index) => (
                           <div key={index} className="rounded-xl border border-border bg-background px-3 py-2 text-xs font-semibold text-foreground">
-                            <span className="text-primary">{index + 1}.</span> {programmedQuestions[index]?.question ?? "Sin definir"}
+                            <span className="text-primary">{index + 1}.</span> {visibleQuestions[index]?.question ?? "Sin definir"}
                           </div>
                         ))}
                       </div>
@@ -655,7 +721,7 @@ export function AdminPageClient() {
                     {isActive && (
                       <DailyTriviaForm
                         dailyKey={day.dailyKey}
-                        dailyTrivia={day.trivia ?? null}
+                        dailyTrivia={effectiveTrivia}
                         isLocked={isLocked}
                         questions={triviaQuestions}
                         usedQuestionIds={usedTriviaQuestionIds}
@@ -857,7 +923,7 @@ function DailyTriviaForm({
     >
       {isLocked && (
         <p className="rounded-xl border border-zinc-900/15 bg-zinc-900 px-3 py-2 text-sm font-semibold text-white">
-          Esta trivia ya tiene participantes: no se puede cambiar la selección de preguntas. Sí podés corregir redacción o respuesta correcta editando cada pregunta desde el banco.
+          Esta trivia ya está activa o tiene participantes: no se puede cambiar la selección de preguntas. Sí podés corregir redacción o respuesta correcta editando cada pregunta desde el banco.
         </p>
       )}
       <div className="rounded-xl border border-border bg-card px-3 py-2 text-sm">

@@ -86,7 +86,7 @@ export function TriviaGame() {
             Inicio: {startDate.toLocaleString("es-AR", { dateStyle: "long", timeStyle: "short" })} hs
           </p>
         </GameHero>
-        <RankingBlocks weeklyRanking={[]} globalRanking={ranking} />
+        <RankingBlocks currentUserId={currentUser?.id} weeklyRanking={[]} globalRanking={ranking} />
       </div>
     )
   }
@@ -97,7 +97,7 @@ export function TriviaGame() {
         <GameHero icon={<ShieldQuestion className="h-8 w-8" />} eyebrow="Trivia en preparación" title="Todavía no hay preguntas cargadas">
           <p className="mx-auto mt-2 max-w-md text-muted-foreground">Un administrador tiene que cargar preguntas desde el panel admin para activar la trivia semanal.</p>
         </GameHero>
-        <RankingBlocks weeklyRanking={weeklyRanking} globalRanking={ranking} />
+        <RankingBlocks currentUserId={currentUser?.id} weeklyRanking={weeklyRanking} globalRanking={ranking} />
       </div>
     )
   }
@@ -132,7 +132,7 @@ export function TriviaGame() {
             <Link href="/iniciar-sesion">Iniciar sesión</Link>
           </Button>
         </GameHero>
-        <RankingBlocks weeklyRanking={weeklyRanking} globalRanking={ranking} />
+        <RankingBlocks currentUserId={currentUser?.id} weeklyRanking={weeklyRanking} globalRanking={ranking} />
       </div>
     )
   }
@@ -143,7 +143,7 @@ export function TriviaGame() {
         <GameHero icon={<Clock className="h-8 w-8" />} eyebrow={`Trivia semanal · ${weeklyKey}`} title="Ya jugaste la trivia de esta semana">
           <p className="mx-auto mt-2 max-w-md text-muted-foreground">Volvé el próximo lunes para una nueva trivia de {WEEKLY_TRIVIA_SIZE} preguntas. Tu resultado ya cuenta para el ranking semanal y el general.</p>
         </GameHero>
-        <RankingBlocks weeklyRanking={weeklyRanking} globalRanking={ranking} />
+        <RankingBlocks currentUserId={currentUser?.id} weeklyRanking={weeklyRanking} globalRanking={ranking} />
       </div>
     )
   }
@@ -160,7 +160,7 @@ export function TriviaGame() {
           </div>
           <Button onClick={start} size="lg" className="mt-6 rounded-full px-10">Jugar trivia semanal</Button>
         </GameHero>
-        <RankingBlocks weeklyRanking={weeklyRanking} globalRanking={ranking} />
+        <RankingBlocks currentUserId={currentUser?.id} weeklyRanking={weeklyRanking} globalRanking={ranking} />
       </div>
     )
   }
@@ -173,7 +173,7 @@ export function TriviaGame() {
           <p className="mt-3 font-display text-5xl font-extrabold text-primary md:text-6xl">{score}<span className="text-3xl text-muted-foreground">/{total}</span></p>
           <p className="mt-3 text-muted-foreground">Tu resultado quedó guardado. La próxima trivia abre el lunes que viene.</p>
         </GameHero>
-        <RankingBlocks weeklyRanking={updatedWeeklyRanking} globalRanking={ranking} />
+        <RankingBlocks currentUserId={currentUser?.id} weeklyRanking={updatedWeeklyRanking} globalRanking={ranking} />
       </div>
     )
   }
@@ -280,12 +280,25 @@ function RulePill({ label, value }: { label: string; value: string }) {
 }
 
 function RankingBlocks({
+  currentUserId,
   weeklyRanking,
   globalRanking,
 }: {
+  currentUserId?: string
   weeklyRanking: Array<{ user: { id: string; name: string }; score: number; totalQuestions: number }>
   globalRanking: Array<{ user: { id: string; name: string }; totalScore: number; gamesPlayed: number }>
 }) {
+  const weeklyRows = buildRankingRows(
+    weeklyRanking,
+    currentUserId,
+    (entry) => `${entry.score}/${entry.totalQuestions}`,
+  )
+  const globalRows = buildRankingRows(
+    globalRanking,
+    currentUserId,
+    (entry) => `${entry.totalScore} pts`,
+  )
+
   return (
     <div className="grid gap-4 md:gap-6 lg:grid-cols-2">
       <div className="overflow-hidden rounded-[1.5rem] border border-border bg-card shadow-sm md:rounded-[2rem]">
@@ -297,12 +310,7 @@ function RankingBlocks({
         <div className="space-y-2 md:mt-4">
           {weeklyRanking.length === 0 ? (
             <p className="rounded-xl border border-dashed border-border p-4 text-sm text-muted-foreground">Todavía nadie jugó esta semana.</p>
-          ) : weeklyRanking.slice(0, 10).map((entry, index) => (
-            <div key={entry.user.id} className="flex items-center justify-between gap-3 rounded-xl border border-border bg-background px-3 py-2.5 text-sm md:px-4 md:py-3">
-              <span className="font-semibold">{index + 1}. {entry.user.name}</span>
-              <span className="font-semibold text-primary">{entry.score}/{entry.totalQuestions}</span>
-            </div>
-          ))}
+          ) : <RankingRows rows={weeklyRows} />}
         </div>
         </div>
       </div>
@@ -314,15 +322,66 @@ function RankingBlocks({
         </div>
         <div className="p-4 md:p-5">
         <div className="space-y-2 md:mt-4">
-          {globalRanking.slice(0, 10).map((entry, index) => (
-            <div key={entry.user.id} className="flex items-center justify-between gap-3 rounded-xl border border-border bg-background px-3 py-2.5 text-sm md:px-4 md:py-3">
-              <span className="font-semibold">{index + 1}. {entry.user.name}</span>
-              <span className="font-semibold text-primary">{entry.totalScore} pts</span>
-            </div>
-          ))}
+          {globalRows.length === 0 ? (
+            <p className="rounded-xl border border-dashed border-border p-4 text-sm text-muted-foreground">Todavía no hay puntajes acumulados.</p>
+          ) : <RankingRows rows={globalRows} />}
         </div>
         </div>
       </div>
     </div>
+  )
+}
+
+type RankingRow = {
+  id: string
+  name: string
+  position: number
+  value: string
+  isCurrentUser: boolean
+  isSeparated: boolean
+}
+
+function buildRankingRows<Entry extends { user: { id: string; name: string } }>(
+  entries: Entry[],
+  currentUserId: string | undefined,
+  formatValue: (entry: Entry) => string,
+): RankingRow[] {
+  const rows = entries.map((entry, index) => ({
+    id: entry.user.id,
+    name: entry.user.name,
+    position: index + 1,
+    value: formatValue(entry),
+    isCurrentUser: entry.user.id === currentUserId,
+    isSeparated: false,
+  }))
+  const topRows = rows.slice(0, 10)
+  const currentUserRow = rows.find((row) => row.isCurrentUser)
+
+  if (currentUserRow && currentUserRow.position > 10) {
+    return [...topRows, { ...currentUserRow, isSeparated: true }]
+  }
+
+  return topRows
+}
+
+function RankingRows({ rows }: { rows: RankingRow[] }) {
+  return (
+    <>
+      {rows.map((row) => (
+        <div
+          key={`${row.id}-${row.isSeparated ? "current" : "top"}`}
+          className={cn(
+            "flex items-center justify-between gap-3 rounded-xl border px-3 py-2.5 text-sm md:px-4 md:py-3",
+            row.isCurrentUser
+              ? "border-primary/40 bg-primary/10 shadow-sm"
+              : "border-border bg-background",
+            row.isSeparated && "mt-3 border-dashed",
+          )}
+        >
+          <span className={cn("font-semibold", row.isCurrentUser && "text-primary")}>{row.position}. {row.name}</span>
+          <span className="font-semibold text-primary">{row.value}</span>
+        </div>
+      ))}
+    </>
   )
 }

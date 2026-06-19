@@ -88,7 +88,7 @@ export function UpcomingMatches({ matches }: { matches: Match[] }) {
             </div>
             <div className="flex flex-wrap items-center justify-start gap-x-3 gap-y-1 pl-2 text-[0.66rem] md:pl-0 md:text-xs">
               <InfoMini icon={<Calendar className="h-3.5 w-3.5" />} value={match.dateTbd ? "Fecha a confirmar" : formatWeekdayDate(match.date)} />
-              {!match.dateTbd && <InfoMini icon={<Clock className="h-3.5 w-3.5" />} value={match.timeTbd ? "Horario a confirmar" : `${formatTime(match.date)} hs`} />}
+              {!match.dateTbd && <InfoMini icon={<Clock className="h-3.5 w-3.5" />} value={match.timeTbd ? "--:--" : `${formatTime(match.date)} hs`} />}
               {match.tvChannel && <InfoMini icon={<Tv className="h-3.5 w-3.5" />} value={match.tvChannel} />}
             </div>
           </article>

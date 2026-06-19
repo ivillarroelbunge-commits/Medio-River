@@ -2,13 +2,13 @@
 
 import Link from "next/link"
 import { useEffect, useState } from "react"
-import { CalendarDays, Camera, FilePenLine, Mail, ShieldCheck, Sparkles, Trophy, UserRound } from "lucide-react"
+import { CalendarDays, Camera, FilePenLine, Mail, ShieldCheck } from "lucide-react"
 import { useAppState } from "@/components/app-state-provider"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { getRoleBadgeClass, getRoleDescription, getRoleLabel } from "@/lib/roles"
+import { getRoleBadgeClass, getRoleLabel } from "@/lib/roles"
 
 export function ProfilePageClient() {
   const { currentUser, ranking, getUserResults, getUserTotalScore, updateProfile } = useAppState()
@@ -27,7 +27,6 @@ export function ProfilePageClient() {
   const results = getUserResults(currentUser.id)
   const totalScore = getUserTotalScore(currentUser.id)
   const position = ranking.findIndex((entry) => entry.user.id === currentUser.id) + 1
-  const bestResult = results.reduce((best, result) => Math.max(best, result.score), 0)
   const averageScore = results.length > 0
     ? (results.reduce((total, result) => total + result.score, 0) / results.length).toLocaleString("es-AR", {
         maximumFractionDigits: 1,
@@ -47,7 +46,6 @@ export function ProfilePageClient() {
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.24em] text-white/70">Mi cuenta</p>
               <h1 className="mt-2 break-words font-display text-[2rem] font-extrabold tracking-tight leading-none md:text-5xl">{currentUser.name}</h1>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-white/76">{getRoleDescription(currentUser.role)}</p>
             </div>
             <Badge variant="outline" className="w-fit rounded-full border-white/20 bg-white/10 px-4 py-1.5 text-white">
               {getRoleLabel(currentUser.role)}
@@ -67,17 +65,32 @@ export function ProfilePageClient() {
                 <div className="mt-3 space-y-2 text-sm text-muted-foreground">
                   <InfoLine icon={<Mail className="h-4 w-4" />} text={currentUser.email} />
                   <InfoLine icon={<CalendarDays className="h-4 w-4" />} text={`Miembro desde ${memberSince}`} />
-                  <InfoLine icon={<UserRound className="h-4 w-4" />} text={`ID de usuario ${currentUser.id.slice(0, 8)}`} />
                 </div>
               </div>
             </div>
-
-            <div className="grid grid-cols-2 gap-2 md:gap-3">
-              <Metric label="Puntaje total" value={String(totalScore)} />
-              <Metric label="Ranking global" value={`#${position || "-"}`} />
-              <Metric label="Partidas" value={String(results.length)} />
-              <Metric label="Promedio" value={String(averageScore)} />
-            </div>
+            {(currentUser.role === "editor" || currentUser.role === "admin") && (
+              <div className="rounded-2xl border border-border bg-background p-4">
+                <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">Herramientas</p>
+                <div className="mt-4 flex flex-wrap gap-3">
+                  {currentUser.role === "editor" && (
+                    <Button asChild variant="outline" className="rounded-full">
+                      <Link href="/editor/crear-noticia">
+                        <FilePenLine className="h-4 w-4" />
+                        Panel editor
+                      </Link>
+                    </Button>
+                  )}
+                  {currentUser.role === "admin" && (
+                    <Button asChild className="rounded-full">
+                      <Link href="/admin">
+                        <ShieldCheck className="h-4 w-4" />
+                        Panel admin
+                      </Link>
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="space-y-5">
@@ -129,50 +142,21 @@ export function ProfilePageClient() {
                 {isSaving ? "Guardando..." : "Guardar perfil"}
               </Button>
             </form>
-
-            <div className="rounded-2xl border border-border bg-background p-4">
-              <div className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-primary" />
-                <p className="font-semibold">Resumen millonario</p>
-              </div>
-              <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                Tu mejor trivia fue de <span className="font-semibold text-foreground">{bestResult}</span> respuestas correctas.
-                {results.length > 0 ? " Seguí jugando para subir en el ranking global." : " Jugá tu primera trivia para empezar a sumar puntos."}
-              </p>
-            </div>
           </div>
         </div>
       </section>
 
-      <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
-        {(currentUser.role === "editor" || currentUser.role === "admin") && (
-          <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">Herramientas</p>
-            <div className="mt-4 flex flex-wrap gap-3">
-              {currentUser.role === "editor" && (
-                <Button asChild variant="outline" className="rounded-full">
-                  <Link href="/editor/crear-noticia">
-                    <FilePenLine className="h-4 w-4" />
-                    Panel editor
-                  </Link>
-                </Button>
-              )}
-              {currentUser.role === "admin" && (
-                <Button asChild className="rounded-full">
-                  <Link href="/admin">
-                    <ShieldCheck className="h-4 w-4" />
-                    Panel admin
-                  </Link>
-                </Button>
-              )}
-            </div>
-          </section>
-        )}
-
-        <section id="resultados" className="space-y-5 rounded-2xl border border-border bg-card p-4 shadow-sm md:space-y-6 md:p-6">
+      <section id="resultados" className="space-y-5 rounded-2xl border border-border bg-card p-4 shadow-sm md:space-y-6 md:p-6">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Trivia</p>
           <h2 className="mt-1 font-display text-2xl font-extrabold">Historial y ranking</h2>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2 md:gap-3">
+          <Metric label="Puntaje total" value={String(totalScore)} />
+          <Metric label="Ranking global" value={`#${position || "-"}`} />
+          <Metric label="Partidas" value={String(results.length)} />
+          <Metric label="Promedio" value={String(averageScore)} />
         </div>
 
         <div className="space-y-3">
@@ -191,22 +175,7 @@ export function ProfilePageClient() {
           )}
         </div>
 
-        <div className="rounded-2xl border border-border bg-muted/30 p-4">
-          <div className="flex items-center gap-2">
-            <Trophy className="h-4 w-4 text-primary" />
-            <p className="font-semibold">Top 10 general acumulado</p>
-          </div>
-          <div className="mt-4 space-y-2">
-            {ranking.slice(0, 10).map((entry, index) => (
-              <div key={entry.user.id} className="flex items-center justify-between rounded-xl bg-background px-3 py-2 text-sm">
-                <span>{index + 1}. {entry.user.name}</span>
-                <span className="font-semibold text-primary">{entry.totalScore} pts</span>
-              </div>
-            ))}
-          </div>
-        </div>
-        </section>
-      </div>
+      </section>
     </div>
   )
 }

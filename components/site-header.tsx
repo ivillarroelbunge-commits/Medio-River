@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useEffect, useState } from "react"
-import { FilePenLine, Menu, ShieldCheck, X } from "lucide-react"
+import { ChevronDown, FilePenLine, LogOut, Menu, ShieldCheck, User2, X } from "lucide-react"
 import { HeaderUserMenu } from "@/components/header-user-menu"
 import { Logo } from "@/components/logo"
 import { cn } from "@/lib/utils"
@@ -21,6 +21,7 @@ const navItems = [
 export function SiteHeader() {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
+  const [mobileUserOpen, setMobileUserOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
   const { currentUser, isHydrated, logout } = useAppState()
 
@@ -55,7 +56,10 @@ export function SiteHeader() {
 
         <button
           type="button"
-          onClick={() => setOpen((value) => !value)}
+          onClick={() => {
+            setOpen((value) => !value)
+            setMobileUserOpen(false)
+          }}
           aria-label={open ? "Cerrar menú" : "Abrir menú"}
           className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border text-foreground md:hidden"
         >
@@ -86,24 +90,50 @@ export function SiteHeader() {
               </>
             ) : (
               <>
-                <div className="rounded-xl border border-border bg-card px-3 py-3">
-                  <p className="font-semibold text-foreground">{currentUser.name}</p>
-                  <p className="text-sm text-muted-foreground">{getRoleLabel(currentUser.role)}</p>
-                </div>
-                <Link href="/perfil" onClick={() => setOpen(false)} className="rounded-md px-3 py-2.5 text-sm font-medium text-foreground hover:bg-muted">Mi perfil</Link>
-                {currentUser.role === "editor" && (
-                  <Link href="/editor/crear-noticia" onClick={() => setOpen(false)} className="flex items-center gap-2 rounded-md px-3 py-2.5 text-sm font-medium text-foreground hover:bg-muted">
-                    <FilePenLine className="h-4 w-4 text-primary" />
-                    Panel editor
-                  </Link>
+                <button
+                  type="button"
+                  onClick={() => setMobileUserOpen((value) => !value)}
+                  aria-expanded={mobileUserOpen}
+                  className="flex w-full items-center justify-between gap-3 rounded-xl border border-border bg-card px-3 py-3 text-left"
+                >
+                  <span className="min-w-0">
+                    <span className="block truncate font-semibold text-foreground">{currentUser.name}</span>
+                    <span className="block text-sm text-muted-foreground">{getRoleLabel(currentUser.role)}</span>
+                  </span>
+                  <ChevronDown className={cn("h-4 w-4 shrink-0 text-muted-foreground transition", mobileUserOpen && "rotate-180")} />
+                </button>
+                {mobileUserOpen && (
+                  <div className="space-y-1 rounded-xl border border-border bg-muted/30 p-1">
+                    <Link href="/perfil" onClick={() => { setOpen(false); setMobileUserOpen(false) }} className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-foreground hover:bg-background">
+                      <User2 className="h-4 w-4 text-primary" />
+                      Mi perfil
+                    </Link>
+                    {currentUser.role === "editor" && (
+                      <Link href="/editor/crear-noticia" onClick={() => { setOpen(false); setMobileUserOpen(false) }} className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-foreground hover:bg-background">
+                        <FilePenLine className="h-4 w-4 text-primary" />
+                        Panel editor
+                      </Link>
+                    )}
+                    {currentUser.role === "admin" && (
+                      <Link href="/admin" onClick={() => { setOpen(false); setMobileUserOpen(false) }} className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-foreground hover:bg-background">
+                        <ShieldCheck className="h-4 w-4 text-primary" />
+                        Panel admin
+                      </Link>
+                    )}
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        await logout()
+                        setOpen(false)
+                        setMobileUserOpen(false)
+                      }}
+                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-foreground hover:bg-background"
+                    >
+                      <LogOut className="h-4 w-4 text-primary" />
+                      Cerrar sesión
+                    </button>
+                  </div>
                 )}
-                {currentUser.role === "admin" && (
-                  <Link href="/admin" onClick={() => setOpen(false)} className="flex items-center gap-2 rounded-md px-3 py-2.5 text-sm font-medium text-foreground hover:bg-muted">
-                    <ShieldCheck className="h-4 w-4 text-primary" />
-                    Panel admin
-                  </Link>
-                )}
-                <button type="button" onClick={async () => { await logout(); setOpen(false) }} className="rounded-md px-3 py-2.5 text-left text-sm font-medium text-foreground hover:bg-muted">Cerrar sesión</button>
               </>
             )}
           </nav>

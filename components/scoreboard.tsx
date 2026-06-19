@@ -91,7 +91,7 @@ export function Scoreboard({ match, variant = "hero" }: ScoreboardProps) {
               {!match.dateTbd && (
                 <InfoInline
                   icon={<Clock className="h-3.5 w-3.5" />}
-                  value={match.timeTbd ? "Horario a confirmar" : `${formatTime(match.date)} hs`}
+                  value={match.timeTbd ? "--:--" : `${formatTime(match.date)} hs`}
                 />
               )}
               {match.tvChannel && (
