@@ -8,13 +8,14 @@ import { formatTime, formatWeekdayDate } from "@/lib/format"
 import { TeamCrest } from "@/components/team-crest"
 import { cn } from "@/lib/utils"
 
-const filters: Array<Competition | "Todas"> = ["Todas", "Torneo Clausura", "Copa Sudamericana", "Copa Argentina", "Torneo Apertura"]
+const filters: Array<Competition | "Todas"> = ["Todas", "Torneo Clausura", "Copa Sudamericana", "Copa Argentina", "Amistoso", "Torneo Apertura"]
 
 const filterShortLabels: Record<(typeof filters)[number], string> = {
   Todas: "Todas",
   "Torneo Clausura": "Clausura",
   "Copa Sudamericana": "Sudamericana",
   "Copa Argentina": "Copa Arg.",
+  Amistoso: "Amistoso",
   "Torneo Apertura": "Apertura",
 }
 
@@ -30,6 +31,7 @@ const shortTeamNames: Record<string, string> = {
   "Ciudad de Bolívar": "C. Bolívar",
   "Vélez Sarsfield": "Vélez",
   "Estudiantes de Río Cuarto": "Estudiantes RC",
+  Flamengo: "Flamengo",
   "Racing Club": "Racing",
   "Red Bull Bragantino": "Bragantino",
   "Atlético Tucumán": "Atl. Tucumán",
@@ -37,9 +39,10 @@ const shortTeamNames: Record<string, string> = {
 }
 
 const competitionStyle: Record<Competition, string> = {
-  "Torneo Clausura": "border-l-primary bg-primary/5",
+  "Torneo Clausura": "border-l-border bg-card",
   "Copa Sudamericana": "border-l-primary bg-primary/5",
   "Copa Argentina": "border-l-black bg-black/5",
+  Amistoso: "border-l-zinc-500 bg-zinc-100/70",
   "Torneo Apertura": "border-l-border bg-card",
 }
 
@@ -217,7 +220,7 @@ function TeamName({ team, className }: { team: string; className?: string }) {
 
 function FilterBar({ active, onChange }: { active: (typeof filters)[number]; onChange: (value: (typeof filters)[number]) => void }) {
   return (
-    <div className="mx-auto flex w-fit max-w-full flex-nowrap gap-1 overflow-x-auto rounded-2xl border border-border bg-card p-1 shadow-sm md:rounded-full">
+    <div className="flex w-fit max-w-full flex-nowrap gap-1 overflow-x-auto rounded-2xl border border-border bg-card p-1 shadow-sm md:rounded-full">
       {filters.map((filter) => (
         <button key={filter} type="button" onClick={() => onChange(filter)} className={`mx-0.5 w-max shrink-0 rounded-xl px-2 py-1.5 text-[0.52rem] font-bold leading-tight md:rounded-full md:px-3 md:text-xs ${filter === active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
           <span className="md:hidden">{filterShortLabels[filter]}</span>

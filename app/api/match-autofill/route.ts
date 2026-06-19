@@ -13,6 +13,7 @@ const competitionSlugs: Record<Competition, string[]> = {
   "Torneo Apertura": ["torneo-apertura"],
   "Copa Sudamericana": ["copa-sudamericana", "sudamericana"],
   "Copa Argentina": ["copa-argentina"],
+  Amistoso: ["amistoso", "amistosos"],
 }
 
 export async function POST(request: NextRequest) {

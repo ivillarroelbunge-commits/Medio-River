@@ -39,13 +39,11 @@ export function Scoreboard({ match, variant = "hero" }: ScoreboardProps) {
     return (
       <section
         aria-label="Próximo partido"
-        className="relative overflow-hidden rounded-[1.4rem] bg-[radial-gradient(circle_at_18%_0%,rgba(220,38,38,0.34),transparent_34%),linear-gradient(145deg,#090909_0%,#1d1112_48%,#360c12_100%)] text-secondary-foreground shadow-[0_18px_38px_rgba(15,23,42,0.18)] md:rounded-2xl"
+        className="relative overflow-hidden rounded-[1.4rem] bg-[linear-gradient(145deg,#17070a_0%,#241017_42%,#101827_100%)] text-secondary-foreground shadow-[0_18px_38px_rgba(15,23,42,0.18)] md:rounded-2xl"
       >
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-primary/25 blur-3xl"
-        />
-        <div aria-hidden="true" className="absolute inset-0 opacity-18 [background-image:linear-gradient(115deg,transparent_0%,transparent_43%,white_44%,white_46%,transparent_47%,transparent_100%)]" />
+        <div aria-hidden="true" className="absolute inset-0 bg-[radial-gradient(circle_at_12%_8%,rgba(255,255,255,0.12),transparent_28%),linear-gradient(110deg,transparent_0%,transparent_47%,rgba(255,255,255,0.12)_48%,rgba(255,255,255,0.03)_52%,transparent_55%,transparent_100%)]" />
+        <div aria-hidden="true" className="absolute inset-0 opacity-35 [background-image:repeating-linear-gradient(135deg,rgba(255,255,255,0.07)_0,rgba(255,255,255,0.07)_1px,transparent_1px,transparent_18px)]" />
+        <div aria-hidden="true" className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-primary/20 to-transparent" />
         <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
 
         <div className="relative grid gap-3 p-4 md:grid-cols-[1fr_auto] md:items-center md:gap-8 md:p-6">
@@ -88,12 +86,14 @@ export function Scoreboard({ match, variant = "hero" }: ScoreboardProps) {
             <div className="grid grid-cols-3 gap-1.5 rounded-[1.05rem] bg-black/18 p-2.5 text-[0.68rem] ring-1 ring-white/10 md:flex md:flex-wrap md:items-center md:gap-x-4 md:bg-transparent md:p-0 md:text-sm md:ring-0">
               <InfoInline
                 icon={<Calendar className="h-3.5 w-3.5" />}
-                value={formatWeekdayDate(match.date)}
+                value={match.dateTbd ? "Fecha a confirmar" : formatWeekdayDate(match.date)}
               />
-              <InfoInline
-                icon={<Clock className="h-3.5 w-3.5" />}
-                value={`${formatTime(match.date)} hs`}
-              />
+              {!match.dateTbd && (
+                <InfoInline
+                  icon={<Clock className="h-3.5 w-3.5" />}
+                  value={match.timeTbd ? "Horario a confirmar" : `${formatTime(match.date)} hs`}
+                />
+              )}
               {match.tvChannel && (
                 <InfoInline
                   icon={<Tv className="h-3.5 w-3.5" />}

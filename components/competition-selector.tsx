@@ -140,9 +140,9 @@ export function CompetitionSelector() {
 
   return (
     <div className="space-y-4 md:space-y-6">
-      <div className="mx-auto flex w-fit max-w-full flex-nowrap gap-1 overflow-x-auto rounded-2xl border border-border bg-card p-1 shadow-sm md:rounded-full">
+      <div className="flex w-fit max-w-full flex-nowrap gap-1 overflow-x-auto rounded-2xl border border-border bg-card p-1 shadow-sm md:rounded-full">
         {panels.map((item) => (
-          <button key={item.key} type="button" onClick={() => setActive(item.key)} className={`mx-0.5 w-max shrink-0 rounded-xl px-2 py-2 text-[0.58rem] font-bold leading-tight md:rounded-full md:px-4 md:text-sm md:font-semibold ${item.key === active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
+          <button key={item.key} type="button" onClick={() => setActive(item.key)} className={`mx-0.5 w-max shrink-0 rounded-xl px-2 py-1.5 text-[0.52rem] font-bold leading-tight md:rounded-full md:px-3 md:text-xs ${item.key === active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
             <span className="md:hidden">{panelShortLabels[item.key] ?? item.label}</span>
             <span className="hidden md:inline">{item.label}</span>
           </button>
@@ -185,7 +185,6 @@ function CompetitionPanelCard({ panel, children }: { panel: CompetitionPanelData
     <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
       <header className="border-b border-border px-3 py-3 md:px-5 md:py-4">
         <h3 className="font-display text-base font-extrabold md:text-xl">{panel.title}</h3>
-        <p className="text-xs text-muted-foreground md:text-sm">{panel.subtitle}</p>
       </header>
       {children}
       {panel.note && <p className="border-t border-border px-3 py-3 text-xs text-muted-foreground md:px-5 md:text-sm">{panel.note}</p>}
@@ -403,7 +402,7 @@ function CopaArgentinaBracket() {
     <div className="grid gap-4 p-4 md:grid-cols-[1fr_auto_1fr] md:items-center">
       <div className="space-y-3">
         <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">16avos de final</p>
-        <BracketMatch home="River Plate" away="Aldosivi" date="Fecha a confirmar" active />
+        <BracketMatch home="River Plate" away="Aldosivi" date="17 de julio" active />
       </div>
 
       <div className="hidden h-px w-16 bg-border md:block" />

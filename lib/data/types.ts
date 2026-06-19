@@ -7,6 +7,7 @@ export type Competition =
   | "Torneo Apertura"
   | "Copa Sudamericana"
   | "Copa Argentina"
+  | "Amistoso"
 
 export type NewsTag = "Información" | "Opinión"
 

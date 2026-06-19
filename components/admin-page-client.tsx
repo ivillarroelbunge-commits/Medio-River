@@ -19,7 +19,7 @@ const sections = [
   { key: "trivia", label: "Trivia", icon: ShieldQuestion },
 ] as const
 
-const competitions: Competition[] = ["Torneo Clausura", "Copa Sudamericana", "Copa Argentina", "Torneo Apertura"]
+const competitions: Competition[] = ["Torneo Clausura", "Copa Sudamericana", "Copa Argentina", "Amistoso", "Torneo Apertura"]
 const playerLines: SquadPlayer["line"][] = ["Arqueros", "Defensores", "Mediocampistas", "Delanteros"]
 const MATCH_AUTOFILL_TIMEOUT_MS = 15000
 const PLAYER_STATS_AUTOFILL_TIMEOUT_MS = 30000
