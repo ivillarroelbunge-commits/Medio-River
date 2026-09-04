@@ -30,6 +30,7 @@ export function SiteHeader() {
   }, [])
 
   const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href))
+  const isStaff = Boolean(mounted && isHydrated && currentUser && currentUser.role !== "user")
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/75">
@@ -83,18 +84,14 @@ export function SiteHeader() {
                 {item.label}
               </Link>
             ))}
-            {!mounted || !isHydrated || !currentUser ? (
-              <>
-                <Link href="/iniciar-sesion" onClick={() => setOpen(false)} className="rounded-md px-3 py-2.5 text-sm font-medium text-foreground hover:bg-muted">Iniciar sesión</Link>
-                <Link href="/registrarse" onClick={() => setOpen(false)} className="rounded-md bg-primary px-3 py-2.5 text-sm font-medium text-primary-foreground">Registrarse</Link>
-              </>
-            ) : (
+
+            {isStaff && currentUser && (
               <>
                 <button
                   type="button"
                   onClick={() => setMobileUserOpen((value) => !value)}
                   aria-expanded={mobileUserOpen}
-                  className="flex w-full items-center justify-between gap-3 rounded-xl border border-border bg-card px-3 py-3 text-left"
+                  className="mt-2 flex w-full items-center justify-between gap-3 rounded-xl border border-border bg-card px-3 py-3 text-left"
                 >
                   <span className="min-w-0">
                     <span className="block truncate font-semibold text-foreground">{currentUser.name}</span>
