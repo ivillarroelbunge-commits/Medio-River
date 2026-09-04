@@ -5,7 +5,6 @@ import { useEffect, useState } from "react"
 import { ChevronDown, FilePenLine, LogOut, ShieldCheck, Trophy, User2 } from "lucide-react"
 import { useAppState } from "@/components/app-state-provider"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import { getRoleBadgeClass, getRoleLabel } from "@/lib/roles"
 
 export function HeaderUserMenu() {
@@ -17,17 +16,8 @@ export function HeaderUserMenu() {
     setMounted(true)
   }, [])
 
-  if (!mounted || !isHydrated || !currentUser) {
-    return (
-      <div className="hidden items-center gap-2 md:flex">
-        <Button asChild size="sm" variant="ghost" className="rounded-full">
-          <Link href="/iniciar-sesion">Iniciar sesión</Link>
-        </Button>
-        <Button asChild size="sm" className="rounded-full">
-          <Link href="/registrarse">Registrarse</Link>
-        </Button>
-      </div>
-    )
+  if (!mounted || !isHydrated || !currentUser || currentUser.role === "user") {
+    return null
   }
 
   return (
