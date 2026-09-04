@@ -1,6 +1,6 @@
 import { SiteFooter } from "@/components/site-footer"
 import { SiteHeader } from "@/components/site-header"
-import { TriviaGame } from "@/components/trivia-game"
+import { DeviceTriviaGame } from "@/components/device-trivia-game"
 
 export default function TriviaPage() {
   return (
@@ -17,7 +17,7 @@ export default function TriviaPage() {
               <h1 className="mx-auto mt-2 max-w-3xl font-display text-[2rem] font-extrabold leading-none tracking-tight md:text-5xl">Trivia Millonaria</h1>
             </div>
           </header>
-          <TriviaGame />
+          <DeviceTriviaGame />
         </div>
       </main>
       <SiteFooter />
