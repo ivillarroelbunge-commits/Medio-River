@@ -4,6 +4,7 @@ const PROMIEDOS_BASE_URL = "https://api.promiedos.com.ar"
 const PROMIEDOS_X_VER = "1.11.7.5"
 const RIVER_TEAM_ID = "igi"
 const ARGENTINA_TIME_ZONE = "America/Argentina/Buenos_Aires"
+const PROMIEDOS_SOURCE_TIME_ZONE = "America/Los_Angeles"
 
 const LEAGUES = [
   { id: "hc", competition: "league" as const },
@@ -257,7 +258,7 @@ function isRiverTeam(team: PromiedosTeam) {
 function normalizeGame(game: PromiedosGame, configuredCompetition: (typeof LEAGUES)[number]["competition"]): NormalizedGame | null {
   if (!game.id || !game.start_time || !game.teams || game.teams.length < 2) return null
 
-  const kickoff = parseArgentinaKickoff(game.start_time)
+  const kickoff = parsePromiedosKickoff(game.start_time)
   if (!kickoff) return null
 
   const home = game.teams[0]
@@ -305,13 +306,46 @@ function inferLeagueCompetition(game: PromiedosGame, kickoff: Date): Competition
   return argentinaMonth <= 6 ? "Torneo Apertura" : "Torneo Clausura"
 }
 
-function parseArgentinaKickoff(value: string) {
+function parsePromiedosKickoff(value: string) {
   const match = value.trim().match(/^(\d{2})-(\d{2})-(\d{4})\s+(\d{2}):(\d{2})$/)
   if (!match) return null
 
   const [, day, month, year, hour, minute] = match
-  const parsed = new Date(`${year}-${month}-${day}T${hour}:${minute}:00-03:00`)
-  return Number.isNaN(parsed.getTime()) ? null : parsed
+  return zonedWallClockToUtc(
+    Number(year),
+    Number(month),
+    Number(day),
+    Number(hour),
+    Number(minute),
+    PROMIEDOS_SOURCE_TIME_ZONE,
+  )
+}
+
+function zonedWallClockToUtc(year: number, month: number, day: number, hour: number, minute: number, timeZone: string) {
+  const wallClockAsUtc = Date.UTC(year, month - 1, day, hour, minute, 0)
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hourCycle: "h23",
+  })
+  const parts = formatter.formatToParts(new Date(wallClockAsUtc))
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]))
+  const representedAsUtc = Date.UTC(
+    Number(values.year),
+    Number(values.month) - 1,
+    Number(values.day),
+    Number(values.hour),
+    Number(values.minute),
+    Number(values.second),
+  )
+  const zoneOffsetMs = representedAsUtc - wallClockAsUtc
+  const result = new Date(wallClockAsUtc - zoneOffsetMs)
+  return Number.isNaN(result.getTime()) ? null : result
 }
 
 function formatArgentinaDate(date: Date) {
