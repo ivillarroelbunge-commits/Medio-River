@@ -34,10 +34,13 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/75">
-      <div className="container-prose flex h-14 items-center justify-between gap-3 md:h-16 md:gap-4">
+      <div className="container-prose relative flex h-14 items-center justify-between gap-3 md:h-16 md:gap-4">
         <Logo />
 
-        <nav aria-label="Navegación principal" className="hidden items-center gap-1 md:flex">
+        <nav
+          aria-label="Navegación principal"
+          className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-1 md:flex"
+        >
           {navItems.map((item) => (
             <Link
               key={item.href}
