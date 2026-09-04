@@ -14,14 +14,19 @@ export interface StoredAppState {
   triviaResults: TriviaResult[]
 }
 
-export const STORAGE_KEY = "medio-river-state-v2"
+// Bump the cache version so browsers drop legacy fixture snapshots that still
+// contained hardcoded upcoming matches. Upcoming fixtures now come from Supabase.
+export const STORAGE_KEY = "medio-river-state-v3"
 
 export function createInitialState(): StoredAppState {
   return {
     users: demoUsers,
     currentUserId: null,
     news: newsArticles,
-    matches,
+    // Keep the local seed only as a historical fallback. Upcoming matches must
+    // come from the live Supabase/Promiedos fixture so stale seed rows cannot
+    // reappear under "Próximos partidos".
+    matches: matches.filter((match) => match.status === "played"),
     squadPlayers,
     playerSeasonStats,
     triviaQuestions,
