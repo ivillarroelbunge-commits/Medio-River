@@ -1,4 +1,4 @@
-import { LoginForm } from "@/components/auth-form"
+import { StaffLoginForm } from "@/components/staff-login-form"
 import { SiteFooter } from "@/components/site-footer"
 import { SiteHeader } from "@/components/site-header"
 import { redirectIfAuthenticated } from "@/lib/supabase/guards"
@@ -19,7 +19,7 @@ export default async function IniciarSesionPage() {
             </p>
           </header>
           <div className="mx-auto w-full max-w-md">
-            <LoginForm />
+            <StaffLoginForm />
           </div>
         </div>
       </main>
