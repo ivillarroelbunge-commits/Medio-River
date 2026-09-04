@@ -31,6 +31,13 @@ type PromiedosGame = {
   tv_networks?: Array<{ name?: string }>
 }
 
+type PromiedosFixtureFilter = {
+  key?: string
+  name?: string
+  selected?: boolean
+  games?: PromiedosGame[]
+}
+
 type ExistingMatch = {
   id: string
   date: string
@@ -130,14 +137,41 @@ async function fetchFixtureGames() {
   const games: NormalizedGame[] = []
 
   for (const league of LEAGUES) {
-    const data = await fetchPromiedos(`/league/tables_and_fixtures/${league.id}`)
-    const sourceGames = collectGames(data)
+    const sourceGames = await fetchLeagueFixtureGames(league.id)
 
     for (const game of sourceGames) {
       if (!isRiverGame(game)) continue
       const normalized = normalizeGame(game, league.competition)
       if (normalized) games.push(normalized)
     }
+  }
+
+  return games
+}
+
+async function fetchLeagueFixtureGames(leagueId: string) {
+  const data = await fetchPromiedos(`/league/tables_and_fixtures/${leagueId}`)
+  const games = collectGames(data)
+  const filters = Array.isArray(data?.games?.filters)
+    ? (data.games.filters as PromiedosFixtureFilter[])
+    : []
+
+  let selectedIndex = filters.findIndex((filter) => filter.selected === true)
+  if (selectedIndex < 0) {
+    selectedIndex = filters.findIndex((filter) => Array.isArray(filter.games) && filter.games.length > 0)
+  }
+  if (selectedIndex < 0) selectedIndex = 0
+
+  const futureFilters = filters
+    .slice(selectedIndex)
+    .filter((filter) => filter.key && filter.key !== "latest")
+
+  const responses = await Promise.allSettled(
+    futureFilters.map((filter) => fetchPromiedos(`/league/games/${leagueId}/${encodeURIComponent(filter.key!)}`)),
+  )
+
+  for (const response of responses) {
+    if (response.status === "fulfilled") games.push(...collectGames(response.value))
   }
 
   return games
