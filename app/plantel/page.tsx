@@ -6,10 +6,10 @@ import { Users, CalendarDays, Globe2, ShieldCheck } from "lucide-react"
 import { SiteFooter } from "@/components/site-footer"
 import { SiteHeader } from "@/components/site-header"
 import { SquadSection } from "@/components/squad-section"
-import { useAppState } from "@/components/app-state-provider"
+import { useSquadPlayers } from "@/hooks/use-squad-players"
 
 export default function PlantelPage() {
-  const { squadPlayers } = useAppState()
+  const { squadPlayers } = useSquadPlayers()
   const grouped = {
     Arqueros: squadPlayers.filter((player) => player.line === "Arqueros"),
     Defensores: squadPlayers.filter((player) => player.line === "Defensores"),
@@ -17,7 +17,9 @@ export default function PlantelPage() {
     Delanteros: squadPlayers.filter((player) => player.line === "Delanteros"),
   }
   const academyCount = squadPlayers.filter((player) => player.fromAcademy).length
-  const averageAge = squadPlayers.reduce((total, player) => total + player.age, 0) / squadPlayers.length
+  const averageAge = squadPlayers.length > 0
+    ? squadPlayers.reduce((total, player) => total + player.age, 0) / squadPlayers.length
+    : 0
   const foreignCount = squadPlayers.filter((player) => player.nationality !== "Argentina").length
 
   return (
@@ -32,7 +34,7 @@ export default function PlantelPage() {
                   <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Plantel</p>
                   <h1 className="font-display text-[2.15rem] font-extrabold tracking-tight text-foreground md:text-5xl">Plantel profesional</h1>
                   <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground md:mt-3 md:text-base">
-                    Plantel profesional de River para el Torneo Apertura 2026.
+                    Plantel profesional de River para la temporada 2026.
                   </p>
                 </div>
                 <Link href="/plantel/arma-tu-equipo" className="inline-flex w-full items-center justify-center rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90 sm:w-fit">
