@@ -39,75 +39,55 @@ export function Scoreboard({ match, variant = "hero" }: ScoreboardProps) {
     return (
       <section
         aria-label="Próximo partido"
-        className="relative overflow-hidden rounded-[1.4rem] bg-[linear-gradient(145deg,#17070a_0%,#241017_42%,#101827_100%)] text-secondary-foreground shadow-[0_18px_38px_rgba(15,23,42,0.18)] md:rounded-2xl"
+        className="relative overflow-hidden rounded-[1.1rem] bg-[#07090b] text-white shadow-[0_16px_34px_rgba(15,23,42,0.22)] ring-1 ring-white/10 md:rounded-[1.25rem]"
       >
-        <div aria-hidden="true" className="absolute inset-0 bg-[radial-gradient(circle_at_12%_8%,rgba(255,255,255,0.12),transparent_28%),linear-gradient(110deg,transparent_0%,transparent_47%,rgba(255,255,255,0.12)_48%,rgba(255,255,255,0.03)_52%,transparent_55%,transparent_100%)]" />
-        <div aria-hidden="true" className="absolute inset-0 opacity-35 [background-image:repeating-linear-gradient(135deg,rgba(255,255,255,0.07)_0,rgba(255,255,255,0.07)_1px,transparent_1px,transparent_18px)]" />
-        <div aria-hidden="true" className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-primary/20 to-transparent" />
-        <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+        <div aria-hidden="true" className="absolute inset-0 bg-[radial-gradient(circle_at_50%_35%,rgba(255,255,255,0.08),transparent_32%),linear-gradient(115deg,rgba(255,255,255,0.06)_0%,transparent_38%,rgba(255,255,255,0.08)_39%,transparent_55%)]" />
+        <div aria-hidden="true" className="absolute inset-0 opacity-40 [background-image:radial-gradient(rgba(255,255,255,0.12)_1px,transparent_1px)] [background-size:10px_10px]" />
+        <div aria-hidden="true" className="absolute -left-10 top-4 h-48 w-24 rotate-[34deg] bg-[linear-gradient(90deg,transparent,rgba(218,28,39,0.18),rgba(218,28,39,0.55),transparent)] blur-[1px]" />
+        <div aria-hidden="true" className="absolute -left-4 top-20 h-36 w-28 rotate-[45deg] bg-[linear-gradient(90deg,transparent,rgba(218,28,39,0.16),rgba(218,28,39,0.38),transparent)]" />
+        <div aria-hidden="true" className="absolute -right-8 bottom-0 h-48 w-24 rotate-[34deg] bg-[linear-gradient(90deg,transparent,rgba(218,28,39,0.14),rgba(218,28,39,0.52),transparent)]" />
+        <div aria-hidden="true" className="absolute right-8 bottom-8 h-28 w-16 rotate-[45deg] bg-[linear-gradient(90deg,transparent,rgba(218,28,39,0.16),rgba(218,28,39,0.34),transparent)]" />
 
-        <div className="relative grid gap-3 p-4 md:grid-cols-[1fr_auto] md:items-center md:gap-8 md:p-6">
-          <div className="flex items-center gap-3 md:hidden">
-            <div className="flex items-center gap-2 text-[0.66rem] font-black uppercase tracking-[0.24em] text-white/78">
-            <span className="h-1 w-6 rounded-full bg-primary" aria-hidden="true" />
-            Próximo partido
+        <div className="relative px-4 pb-3.5 pt-4 sm:px-6 sm:pb-5 sm:pt-5">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0 whitespace-nowrap text-[0.62rem] font-black uppercase tracking-[0.24em] text-white/90 min-[390px]:text-[0.68rem] sm:text-xs sm:tracking-[0.28em]">
+              Próximo partido
+            </div>
+            <div className="shrink-0 text-right text-[0.62rem] font-medium uppercase leading-relaxed tracking-[0.08em] text-white/60 sm:text-xs">
+              <p>{match.competition}</p>
             </div>
           </div>
 
-          <div className="grid min-w-0 gap-3 md:flex md:items-center md:gap-4">
-            <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 rounded-[1.15rem] bg-white/[0.08] px-3 py-3 ring-1 ring-white/10 md:flex md:shrink-0 md:justify-start md:gap-3 md:bg-transparent md:p-0 md:ring-0">
-              <div className="flex flex-col items-center gap-1">
-                <TeamCrest team={homeTeam} size="md" className="h-11 w-11 rounded-xl bg-white p-1.5 shadow-sm md:h-12 md:w-12" />
-                <span className="max-w-[5.5rem] truncate text-[0.62rem] font-bold text-white/70 md:hidden">{homeTeam}</span>
-              </div>
-              <span className="rounded-full bg-primary px-2.5 py-1 font-display text-[0.68rem] font-extrabold tracking-wider text-white shadow-sm md:bg-transparent md:px-0 md:py-0 md:text-lg md:text-secondary-foreground/80 md:shadow-none">
-                VS
-              </span>
-              <div className="flex flex-col items-center gap-1">
-                <TeamCrest team={awayTeam} size="md" className="h-11 w-11 rounded-xl bg-white p-1.5 shadow-sm md:h-12 md:w-12" />
-                <span className="max-w-[5.5rem] truncate text-[0.62rem] font-bold text-white/70 md:hidden">{awayTeam}</span>
-              </div>
+          <div className="mt-4 grid grid-cols-[1fr_auto_1fr] items-center gap-3 sm:mt-5 sm:gap-7">
+            <CompactTeam name={homeTeam} />
+            <div className="font-display text-xl font-black tracking-[0.08em] text-white sm:text-2xl">
+              VS
             </div>
-            <div className="min-w-0 text-center md:text-left">
-              <div className="hidden items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-secondary-foreground/70 md:flex">
-                <span className="h-1 w-6 rounded-full bg-primary" aria-hidden="true" />
-                Próximo partido
-              </div>
-              <h2 className="font-display text-[1.08rem] font-extrabold leading-tight text-white md:mt-1 md:truncate md:text-2xl">
-                {homeTeam} vs. {awayTeam}
-              </h2>
-              <p className="mt-1 text-[0.66rem] font-bold uppercase tracking-[0.16em] text-white/56 md:text-xs md:text-secondary-foreground/60">
-                {match.competition} · {match.isHome ? "Local" : "Visitante"}
-              </p>
-            </div>
+            <CompactTeam name={awayTeam} />
           </div>
 
-          <div className="flex flex-col gap-2.5 md:gap-3">
-            <div className="grid grid-cols-3 gap-1.5 rounded-[1.05rem] bg-black/18 p-2.5 text-[0.68rem] ring-1 ring-white/10 md:flex md:flex-wrap md:items-center md:gap-x-4 md:bg-transparent md:p-0 md:text-sm md:ring-0">
+          <div className="mt-4 flex items-center justify-center gap-x-2.5 text-[0.8rem] text-white/88 sm:mt-5 sm:gap-x-4 sm:text-sm">
+            <InfoInline
+              icon={<Calendar className="h-3.5 w-3.5" />}
+              value={match.dateTbd ? "Fecha a confirmar" : formatWeekdayDate(match.date)}
+            />
+            {!match.dateTbd && <span className="h-5 w-px bg-white/22" aria-hidden="true" />}
+            {!match.dateTbd && (
               <InfoInline
-                icon={<Calendar className="h-3.5 w-3.5" />}
-                value={match.dateTbd ? "Fecha a confirmar" : formatWeekdayDate(match.date)}
+                icon={<Clock className="h-3.5 w-3.5" />}
+                value={match.timeTbd ? "--:--" : `${formatTime(match.date)} hs`}
               />
-              {!match.dateTbd && (
-                <InfoInline
-                  icon={<Clock className="h-3.5 w-3.5" />}
-                  value={match.timeTbd ? "--:--" : `${formatTime(match.date)} hs`}
-                />
-              )}
-              {match.tvChannel && (
-                <InfoInline
-                  icon={<Tv className="h-3.5 w-3.5" />}
-                  value={match.tvChannel}
-                />
-              )}
-            </div>
+            )}
+          </div>
 
-            <div className="grid grid-cols-4 gap-1.5">
-              <CountdownMini value={mounted ? countdown.d : 0} label="D" />
-              <CountdownMini value={mounted ? countdown.h : 0} label="H" />
-              <CountdownMini value={mounted ? countdown.m : 0} label="M" />
-              <CountdownMini value={mounted ? countdown.s : 0} label="S" />
-            </div>
+          <div className="mt-4 grid grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr] items-center border-t border-white/10 pt-3 sm:mt-5 sm:pt-4">
+            <CountdownMini value={mounted ? countdown.d : 0} label="Días" />
+            <span className="h-8 w-px bg-white/28" aria-hidden="true" />
+            <CountdownMini value={mounted ? countdown.h : 0} label="Horas" />
+            <span className="h-8 w-px bg-white/28" aria-hidden="true" />
+            <CountdownMini value={mounted ? countdown.m : 0} label="Min" />
+            <span className="h-8 w-px bg-white/28" aria-hidden="true" />
+            <CountdownMini value={mounted ? countdown.s : 0} label="Seg" />
           </div>
         </div>
       </section>
@@ -227,10 +207,21 @@ function InfoInline({
   value: string
 }) {
   return (
-    <span className="inline-flex items-center gap-1.5 text-secondary-foreground/85">
+    <span className="inline-flex items-center justify-center gap-1.5 text-center text-[0.76rem] text-white/84 sm:text-[0.82rem]">
       <span className="text-primary">{icon}</span>
-      <span className="font-semibold text-secondary-foreground">{value}</span>
+      <span className="font-medium leading-tight">{value}</span>
     </span>
+  )
+}
+
+function CompactTeam({ name }: { name: string }) {
+  return (
+    <div className="min-w-0 text-center">
+      <TeamCrest team={name} size="lg" className="mx-auto h-16 w-16 bg-transparent drop-shadow-[0_8px_16px_rgba(0,0,0,0.42)] sm:h-20 sm:w-20" />
+      <p className="mx-auto mt-1.5 max-w-28 text-balance text-[0.66rem] font-black uppercase leading-tight tracking-[0.03em] text-white/92 sm:mt-2 sm:max-w-40 sm:text-xs">
+        {name}
+      </p>
+    </div>
   )
 }
 
@@ -249,11 +240,11 @@ function CountdownBox({ value, label }: { value: number; label: string }) {
 
 function CountdownMini({ value, label }: { value: number; label: string }) {
   return (
-    <div className="rounded-xl bg-primary px-2 py-1.5 text-center text-primary-foreground shadow-sm ring-1 ring-white/10 md:rounded-lg">
-      <p className="font-display text-base font-extrabold tabular-nums leading-none md:text-lg">
+    <div className="px-1 text-center text-white">
+      <p className="font-display text-[1.15rem] font-black tabular-nums leading-none sm:text-2xl">
         {String(value).padStart(2, "0")}
       </p>
-      <p className="mt-0.5 text-[8px] font-bold uppercase tracking-wider text-primary-foreground/80 md:text-[9px]">
+      <p className="mt-1 text-[0.54rem] font-bold uppercase tracking-[0.08em] text-white/82 sm:text-[0.68rem]">
         {label}
       </p>
     </div>

@@ -34,6 +34,7 @@ const TEAM_CRESTS: Record<string, string> = {
   Huracán: espnCrest(10),
   Independiente: espnCrest(11),
   "Independiente Rivadavia": espnCrest(9744),
+  "Independiente Santa Fe": "/crests/fallback.svg",
   Instituto: espnCrest(2975),
   "Instituto (Córdoba)": espnCrest(2975),
   Lanús: espnCrest(12),
@@ -45,6 +46,7 @@ const TEAM_CRESTS: Record<string, string> = {
   "Rosario Central": espnCrest(17),
   Sarmiento: espnCrest(10158),
   "Sarmiento (Junín)": espnCrest(10158),
+  "Sarmiento Junín": "/crests/sarmiento.jpg",
   "San Lorenzo": espnCrest(18),
   Talleres: espnCrest(19),
   "Talleres (Córdoba)": espnCrest(19),
@@ -58,5 +60,5 @@ const TEAM_CRESTS: Record<string, string> = {
 }
 
 export function getTeamCrest(team: string) {
-  return TEAM_CRESTS[team] ?? "/placeholder-logo.svg"
+  return TEAM_CRESTS[team] ?? "/crests/fallback.svg"
 }

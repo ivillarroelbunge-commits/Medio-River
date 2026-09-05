@@ -50,7 +50,7 @@ function FilterRow({
   label: string
   options: readonly string[]
   value: string
-  onChange: (value: any) => void
+  onChange: (value: string) => void
 }) {
   return (
     <div>

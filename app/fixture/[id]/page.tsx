@@ -217,7 +217,7 @@ function MatchCard({
 function GoalMini({ goal }: { goal: MatchGoal }) {
   return (
     <p>
-      {goal.player} <span className="font-black text-white">{goal.minute}'</span>
+      {goal.player} <span className="font-black text-white">{goal.minute}&apos;</span>
     </p>
   )
 }

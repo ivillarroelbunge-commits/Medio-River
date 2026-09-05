@@ -179,7 +179,7 @@ function FeaturedLeadCard({ article }: { article: NewsArticle }) {
       <Link href={`/noticias/${article.slug}`} className="group relative block min-h-[16rem] overflow-hidden sm:min-h-[18rem] md:min-h-[30rem] xl:h-full xl:min-h-0">
         <NewsImage article={article} className="absolute inset-0 h-full w-full" imageClassName="transition duration-500 group-hover:scale-[1.02]" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/84 via-black/26 to-transparent" />
-        <div className="absolute inset-x-0 bottom-0 p-4 md:p-7 xl:p-8">
+        <div className="absolute inset-x-0 bottom-0 pt-20 px-4 pb-4 sm:pt-24 md:px-7 md:pb-7 xl:px-8 xl:pb-8">
           <div className="flex flex-wrap gap-1.5 sm:gap-2">
             <span className="inline-flex rounded-full bg-primary px-3 py-1 text-[0.62rem] font-extrabold uppercase tracking-[0.08em] text-primary-foreground md:px-4 md:py-1.5 md:text-[0.72rem]">
               {normalizeNewsCategory(article.category)}
@@ -195,9 +195,6 @@ function FeaturedLeadCard({ article }: { article: NewsArticle }) {
           </h2>
           <p className="mt-2 line-clamp-2 max-w-2xl text-xs leading-5 text-white/82 md:mt-3 md:text-base md:leading-8 xl:max-w-xl">
             {article.excerpt}
-          </p>
-          <p className="mt-3 text-[0.65rem] font-medium uppercase tracking-[0.08em] text-white/65 md:mt-4 md:text-sm">
-            {article.author} · {timeAgo(article.date)}
           </p>
         </div>
       </Link>
