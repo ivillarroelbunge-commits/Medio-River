@@ -18,7 +18,7 @@ export const squadPlayers: SquadPlayer[] = [
   { id: "player-acuna", name: "Marcos Acuña", number: 21, line: "Defensores", position: "Lateral izquierdo", age: 34, nationality: "Argentina", foot: "Zurdo", fromAcademy: false, image: fotmobPlayerImage(561187) },
   { id: "player-martinez-quarta", name: "Lucas Martínez Quarta", number: 28, line: "Defensores", position: "Defensor central", age: 30, nationality: "Argentina", foot: "Diestro", fromAcademy: true, image: fotmobPlayerImage(638771) },
   { id: "player-montiel", name: "Gonzalo Montiel", number: 29, line: "Defensores", position: "Lateral derecho", age: 29, nationality: "Argentina", foot: "Diestro", fromAcademy: true, image: fotmobPlayerImage(687008) },
-  { id: "player-otamendi", name: "Nicolás Otamendi", number: 30, line: "Defensores", position: "Defensor central", age: 38, nationality: "Argentina", foot: "Diestro", fromAcademy: true, image: fotmobPlayerImage(174321) },
+  { id: "player-otamendi", name: "Nicolás Otamendi", number: 30, line: "Defensores", position: "Defensor central", age: 38, nationality: "Argentina", foot: "Diestro", fromAcademy: false, image: fotmobPlayerImage(174321) },
   { id: "player-facundo-gonzalez", name: "Facundo González", number: 31, line: "Defensores", position: "Defensor central", age: 20, nationality: "Argentina", foot: "Zurdo", fromAcademy: true, image: fotmobPlayerImage(1610373) },
 
   { id: "player-portillo", name: "Juan Portillo", number: 5, line: "Mediocampistas", position: "Volante central", age: 26, nationality: "Argentina", foot: "Diestro", fromAcademy: false, image: fotmobPlayerImage(1201814) },
