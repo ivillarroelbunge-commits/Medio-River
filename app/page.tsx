@@ -9,9 +9,11 @@ import { NewsCarousel } from "@/components/news-carousel"
 import { SiteFooter } from "@/components/site-footer"
 import { SiteHeader } from "@/components/site-header"
 import { useAppState } from "@/components/app-state-provider"
+import { useFastHomeNews } from "@/hooks/use-fast-home-news"
 
 export default function HomePage() {
-  const { news, matches, isHydrated } = useAppState()
+  const { news: appNews, matches, isHydrated, hasSyncedNews } = useAppState()
+  const news = useFastHomeNews(appNews, hasSyncedNews)
   const carouselItems = news.filter((article) => article.featured).slice(0, 5)
   const featured = carouselItems.length > 0 ? carouselItems : news.slice(0, 5)
   const latest = news.slice(0, 6)

@@ -94,17 +94,29 @@ export async function fetchNewsArticles(supabase: SupabaseClient) {
   }
 }
 
-export async function fetchNewsSummaries(supabase: SupabaseClient) {
-  let { data, error } = await supabase
+export async function fetchNewsSummaries(supabase: SupabaseClient, limit?: number) {
+  let query = supabase
     .from("news_articles")
     .select(NEWS_SUMMARY_SELECT)
     .order("published_at", { ascending: false })
 
+  if (typeof limit === "number") {
+    query = query.limit(limit)
+  }
+
+  let { data, error } = await query
+
   if (error && isMissingImageCropColumn(error.message)) {
-    const fallback = await supabase
+    let fallbackQuery = supabase
       .from("news_articles")
       .select(LEGACY_NEWS_SUMMARY_SELECT)
       .order("published_at", { ascending: false })
+
+    if (typeof limit === "number") {
+      fallbackQuery = fallbackQuery.limit(limit)
+    }
+
+    const fallback = await fallbackQuery
     data = fallback.data?.map((row) => ({
       ...row,
       image_focus_x: null,
