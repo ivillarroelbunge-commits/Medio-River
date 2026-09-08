@@ -1,6 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
 
-const PLAYER_RATING_SUMMARY_CACHE_PREFIX = "medio-river-player-rating-summary-v2"
+const PLAYER_RATING_SUMMARY_CACHE_PREFIX = "medio-river-player-rating-summary-v3"
+const LEGACY_PLAYER_RATING_SUMMARY_CACHE_PREFIXES = [
+  "medio-river-player-rating-summary-v1",
+  "medio-river-player-rating-summary-v2",
+]
 const PLAYER_RATING_SUMMARY_CACHE_TTL_MS = 6 * 60 * 60 * 1000
 
 export interface MatchRatingPlayer {
@@ -63,8 +67,31 @@ function getPlayerRatingSummaryCacheKey(userId: string) {
   return `${PLAYER_RATING_SUMMARY_CACHE_PREFIX}:${userId}`
 }
 
+function clearLegacyPlayerRatingSummaryCaches() {
+  if (typeof window === "undefined") return
+
+  try {
+    for (let index = window.localStorage.length - 1; index >= 0; index -= 1) {
+      const key = window.localStorage.key(index)
+      if (!key) continue
+
+      const isLegacyRatingCache = LEGACY_PLAYER_RATING_SUMMARY_CACHE_PREFIXES.some((prefix) =>
+        key.startsWith(`${prefix}:`),
+      )
+
+      if (isLegacyRatingCache) {
+        window.localStorage.removeItem(key)
+      }
+    }
+  } catch {
+    // El perfil sigue funcionando aunque el navegador no permita limpiar localStorage.
+  }
+}
+
 export function readPlayerRatingSummaryCache(userId: string) {
   if (typeof window === "undefined") return null
+
+  clearLegacyPlayerRatingSummaryCaches()
 
   try {
     const raw = window.localStorage.getItem(getPlayerRatingSummaryCacheKey(userId))
@@ -90,6 +117,8 @@ export function writePlayerRatingSummaryCache(
 ) {
   if (typeof window === "undefined") return
 
+  clearLegacyPlayerRatingSummaryCaches()
+
   try {
     const cached: CachedPlayerRatingSummary = {
       summary,
@@ -104,6 +133,8 @@ export function writePlayerRatingSummaryCache(
 
 export function markPlayerRatingSummaryCacheStale() {
   if (typeof window === "undefined") return
+
+  clearLegacyPlayerRatingSummaryCaches()
 
   try {
     for (let index = window.localStorage.length - 1; index >= 0; index -= 1) {
