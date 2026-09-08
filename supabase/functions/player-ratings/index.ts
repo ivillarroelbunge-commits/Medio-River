@@ -214,21 +214,27 @@ function yearInBuenosAires(date: string) {
   return Number(new Intl.DateTimeFormat("en-US", { timeZone: BA_TIME_ZONE, year: "numeric" }).format(new Date(date)))
 }
 
-async function getProfileSummary(admin: any, userId: string) {
+function getPlayerImage(player: any) {
+  return player?.image_url || (player?.fotmob_id
+    ? `https://images.fotmob.com/image_resources/playerimages/${player.fotmob_id}.png`
+    : null)
+}
+
+async function getProfileRatings(admin: any, userId: string) {
   const { data: ratings, error } = await admin
     .from("player_ratings")
     .select("match_id, squad_player_id, player_name, rating")
     .eq("user_id", userId)
 
   if (error) throw error
-  if (!ratings?.length) return []
+  if (!ratings?.length) return { summary: [], history: [] }
 
   const matchIds = [...new Set(ratings.map((row: any) => String(row.match_id)))]
   const squadIds = [...new Set(ratings.map((row: any) => row.squad_player_id).filter(Boolean).map(String))]
 
   const { data: matches, error: matchError } = await admin
     .from("matches")
-    .select("id, date")
+    .select("id, date, opponent, competition, river_score, opponent_score")
     .in("id", matchIds)
   if (matchError) throw matchError
 
@@ -242,44 +248,68 @@ async function getProfileSummary(admin: any, userId: string) {
     squad = squadResult.data ?? []
   }
 
-  const dateByMatch = new Map((matches ?? []).map((row: any) => [String(row.id), String(row.date)]))
+  const matchById = new Map((matches ?? []).map((row: any) => [String(row.id), row]))
   const squadById = new Map(squad.map((row: any) => [String(row.id), row]))
   const grouped = new Map<string, any>()
+  const history: any[] = []
 
   for (const row of ratings) {
-    const matchDate = dateByMatch.get(String(row.match_id))
-    if (!matchDate) continue
-    const year = yearInBuenosAires(matchDate)
-    const playerKey = row.squad_player_id ? `squad:${row.squad_player_id}` : `name:${String(row.player_name).toLowerCase()}`
-    const key = `${year}|${playerKey}`
-    const current = grouped.get(key) ?? {
+    const match = matchById.get(String(row.match_id)) as any
+    if (!match?.date) continue
+
+    const year = yearInBuenosAires(String(match.date))
+    const squadPlayerId = row.squad_player_id ? String(row.squad_player_id) : null
+    const player = squadPlayerId ? squadById.get(squadPlayerId) as any : null
+    const playerName = player?.name || String(row.player_name)
+    const image = getPlayerImage(player)
+    const playerKey = squadPlayerId ? `squad:${squadPlayerId}` : `name:${playerName.toLowerCase()}`
+    const summaryKey = `${year}|${playerKey}`
+
+    const current = grouped.get(summaryKey) ?? {
       seasonYear: year,
-      squadPlayerId: row.squad_player_id ? String(row.squad_player_id) : null,
-      playerName: String(row.player_name),
+      squadPlayerId,
+      playerName,
+      image,
       ratingSum: 0,
       matchesRated: 0,
     }
     current.ratingSum += Number(row.rating)
     current.matchesRated += 1
-    grouped.set(key, current)
+    grouped.set(summaryKey, current)
+
+    history.push({
+      seasonYear: year,
+      matchId: String(row.match_id),
+      matchDate: String(match.date),
+      opponent: String(match.opponent),
+      competition: String(match.competition),
+      riverScore: Number(match.river_score ?? 0),
+      opponentScore: Number(match.opponent_score ?? 0),
+      squadPlayerId,
+      playerName,
+      image,
+      rating: Number(row.rating),
+    })
   }
 
-  return [...grouped.values()]
-    .map((row: any) => {
-      const player = row.squadPlayerId ? squadById.get(row.squadPlayerId) as any : null
-      const image = player?.image_url || (player?.fotmob_id
-        ? `https://images.fotmob.com/image_resources/playerimages/${player.fotmob_id}.png`
-        : null)
-      return {
-        seasonYear: row.seasonYear,
-        squadPlayerId: row.squadPlayerId,
-        playerName: player?.name || row.playerName,
-        image,
-        matchesRated: row.matchesRated,
-        averageRating: Number((row.ratingSum / row.matchesRated).toFixed(2)),
-      }
-    })
+  const summary = [...grouped.values()]
+    .map((row: any) => ({
+      seasonYear: row.seasonYear,
+      squadPlayerId: row.squadPlayerId,
+      playerName: row.playerName,
+      image: row.image,
+      matchesRated: row.matchesRated,
+      averageRating: Number((row.ratingSum / row.matchesRated).toFixed(2)),
+    }))
     .sort((a: any, b: any) => b.seasonYear - a.seasonYear || b.averageRating - a.averageRating || a.playerName.localeCompare(b.playerName))
+
+  history.sort((a: any, b: any) => {
+    const byDate = new Date(b.matchDate).getTime() - new Date(a.matchDate).getTime()
+    if (byDate !== 0) return byDate
+    return b.rating - a.rating || a.playerName.localeCompare(b.playerName)
+  })
+
+  return { summary, history }
 }
 
 export default {
@@ -297,8 +327,8 @@ export default {
       if (body.action === "profile_summary") {
         if (!userId) return json({ ok: false, error: "Iniciá sesión para ver tus puntuaciones guardadas." }, 401)
         if (isUuid(deviceId)) await claimAnonymousRatings(ctx.supabaseAdmin, userId, deviceId)
-        const summary = await getProfileSummary(ctx.supabaseAdmin, userId)
-        return json({ ok: true, summary })
+        const profile = await getProfileRatings(ctx.supabaseAdmin, userId)
+        return json({ ok: true, ...profile })
       }
 
       if (typeof body.matchId !== "string" || !body.matchId.trim()) {
