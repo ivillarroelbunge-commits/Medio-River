@@ -3,9 +3,9 @@ import type { NewsArticle, NewsTag } from "@/lib/data/types"
 import { normalizeNewsCategory } from "@/lib/news-taxonomy"
 
 export const NEWS_SELECT =
-  "id, slug, title, excerpt, intro, content, image, image_focus_x, image_focus_y, image_zoom, author, published_at, category, competition, tag, featured"
+  "id, slug, title, excerpt, intro, content, image, image_focus_x, image_focus_y, image_zoom, author, published_at, category, competition, tag, featured, article_type, match_id"
 const NEWS_SUMMARY_SELECT =
-  "id, slug, title, excerpt, intro, image, image_focus_x, image_focus_y, image_zoom, author, published_at, category, competition, tag, featured"
+  "id, slug, title, excerpt, intro, image, image_focus_x, image_focus_y, image_zoom, author, published_at, category, competition, tag, featured, article_type, match_id"
 const LEGACY_NEWS_SELECT =
   "id, slug, title, excerpt, intro, content, image, author, published_at, category, competition, tag, featured"
 const LEGACY_NEWS_SUMMARY_SELECT =
@@ -28,6 +28,8 @@ interface NewsRow {
   competition: string | null
   tag: string
   featured: boolean
+  article_type?: string | null
+  match_id?: string | null
 }
 
 export function mapNewsRowToArticle(row: NewsRow): NewsArticle {
@@ -48,6 +50,8 @@ export function mapNewsRowToArticle(row: NewsRow): NewsArticle {
     competition: row.competition ?? undefined,
     tag: row.tag as NewsTag,
     featured: row.featured,
+    articleType: row.article_type === "player_ratings" ? "player_ratings" : "standard",
+    matchId: row.match_id ?? undefined,
   }
 }
 
@@ -74,6 +78,8 @@ export async function fetchNewsArticles(supabase: SupabaseClient) {
       image_focus_x: null,
       image_focus_y: null,
       image_zoom: null,
+      article_type: "standard",
+      match_id: null,
     })) ?? null
     error = fallback.error
   }
@@ -104,6 +110,8 @@ export async function fetchNewsSummaries(supabase: SupabaseClient) {
       image_focus_x: null,
       image_focus_y: null,
       image_zoom: null,
+      article_type: "standard",
+      match_id: null,
     })) ?? null
     error = fallback.error
   }
@@ -136,6 +144,8 @@ export async function fetchNewsArticleBySlug(supabase: SupabaseClient, slug: str
       image_focus_x: null,
       image_focus_y: null,
       image_zoom: null,
+      article_type: "standard",
+      match_id: null,
     } : null
     error = fallback.error
   }
