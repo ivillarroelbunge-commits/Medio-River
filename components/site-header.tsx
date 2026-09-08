@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useEffect, useState } from "react"
-import { ChevronDown, FilePenLine, LogIn, LogOut, Menu, ShieldCheck, Trophy, User2, UserPlus, X } from "lucide-react"
+import { ChevronDown, FilePenLine, LogIn, LogOut, Menu, ShieldCheck, Trophy, User2, X } from "lucide-react"
 import { HeaderUserMenu } from "@/components/header-user-menu"
 import { Logo } from "@/components/logo"
 import { cn } from "@/lib/utils"
@@ -89,7 +89,7 @@ export function SiteHeader() {
             ))}
 
             {showAuthState && !currentUser && (
-              <div className="mt-2 grid gap-2 border-t border-border pt-3">
+              <div className="mt-2 border-t border-border pt-3">
                 <Link
                   href="/iniciar-sesion"
                   onClick={() => setOpen(false)}
@@ -97,14 +97,6 @@ export function SiteHeader() {
                 >
                   <LogIn className="h-4 w-4" />
                   Iniciar sesión
-                </Link>
-                <Link
-                  href="/registrarse"
-                  onClick={() => setOpen(false)}
-                  className="flex items-center justify-center gap-2 rounded-full bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground"
-                >
-                  <UserPlus className="h-4 w-4" />
-                  Registrarse
                 </Link>
               </div>
             )}
