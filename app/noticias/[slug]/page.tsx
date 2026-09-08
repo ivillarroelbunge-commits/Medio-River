@@ -23,9 +23,7 @@ export async function generateMetadata({ params }: NoticiaPageProps): Promise<Me
   const articlePath = `/noticias/${encodeURIComponent(article.slug)}`
   const articleUrl = `${SITE_URL}${articlePath}`
   const description = article.excerpt.trim() || article.intro.trim() || "Actualidad de River Plate en Medio River."
-  const socialImage = article.articleType === "player_ratings" && article.matchId
-    ? `${SITE_URL}/api/social-card/noticia/${encodeURIComponent(article.slug)}`
-    : toAbsoluteUrl(article.image || "/logoMR.jpeg")
+  const socialImage = `${SITE_URL}/api/social-card/noticia/${encodeURIComponent(article.slug)}`
 
   return {
     title: article.title,
@@ -45,8 +43,6 @@ export async function generateMetadata({ params }: NoticiaPageProps): Promise<Me
       images: [
         {
           url: socialImage,
-          width: 1200,
-          height: 630,
           alt: article.title,
         },
       ],
@@ -62,9 +58,4 @@ export async function generateMetadata({ params }: NoticiaPageProps): Promise<Me
 
 export default function NoticiaDetallePage() {
   return <NoticiaDetalleClient />
-}
-
-function toAbsoluteUrl(value: string) {
-  if (/^https?:\/\//i.test(value)) return value
-  return new URL(value, SITE_URL).toString()
 }
