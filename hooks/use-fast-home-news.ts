@@ -60,6 +60,8 @@ export function useFastHomeNews(fallbackNews: NewsArticle[], hasSyncedNews: bool
 
         setNews(articles)
         saveCachedHomeNews(articles)
+      } catch {
+        // Keep the cached snapshot visible; the provider still has its own fallback sync.
       } finally {
         refreshInFlight = false
       }
