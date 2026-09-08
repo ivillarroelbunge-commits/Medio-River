@@ -1,8 +1,7 @@
 import React from "react"
 import { ImageResponse } from "next/og"
 import { getTeamCrest } from "@/lib/data"
-import { fetchNewsArticleBySlug } from "@/lib/supabase/news"
-import { createClient } from "@/lib/supabase/server"
+import { fetchSocialArticleMetadata } from "@/lib/social-article-metadata"
 
 const SITE_URL = "https://medioriver.com.ar"
 
@@ -13,25 +12,16 @@ export async function GET(
   { params }: { params: Promise<{ slug: string }> },
 ) {
   const { slug } = await params
-  const supabase = await createClient()
-  const { article } = await fetchNewsArticleBySlug(supabase, slug)
+  const social = await fetchSocialArticleMetadata(slug)
+  const article = social?.article
+  const match = social?.match
 
-  if (!article?.matchId) {
+  if (!article?.matchId || !match) {
     return fallbackImage()
   }
 
-  const { data: match } = await supabase
-    .from("matches")
-    .select("opponent, is_home")
-    .eq("id", article.matchId)
-    .maybeSingle<{ opponent: string; is_home: boolean }>()
-
-  if (!match) {
-    return fallbackImage()
-  }
-
-  const homeTeam = match.is_home ? "River Plate" : match.opponent
-  const awayTeam = match.is_home ? match.opponent : "River Plate"
+  const homeTeam = match.isHome ? "River Plate" : match.opponent
+  const awayTeam = match.isHome ? match.opponent : "River Plate"
   const homeCrest = toAbsoluteUrl(getTeamCrest(homeTeam))
   const awayCrest = toAbsoluteUrl(getTeamCrest(awayTeam))
 
