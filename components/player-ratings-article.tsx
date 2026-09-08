@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { CheckCircle2, Eye, EyeOff, Loader2 } from "lucide-react"
+import { CheckCircle2, Eye, EyeOff, Loader2, LockKeyhole } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { getOrCreatePlayerRatingDeviceId } from "@/lib/player-rating-device"
 import { createClient as createSupabaseBrowserClient } from "@/lib/supabase/client"
@@ -40,15 +40,10 @@ export function PlayerRatingsArticle({ matchId }: { matchId: string }) {
       setIsAuthenticated(Boolean(authResult.data.user))
       setBallot(ballotResult.ballot)
       setError(ballotResult.error)
+      setRatings({})
 
-      if (ballotResult.ballot) {
-        const previousRatings = Object.fromEntries(
-          ballotResult.ballot.players
-            .filter((player) => player.myRating !== null)
-            .map((player) => [player.id, player.myRating as number]),
-        )
-        setRatings(previousRatings)
-        if (Object.keys(previousRatings).length > 0) setShowResults(true)
+      if (ballotResult.ballot?.players.some((player) => player.myRating !== null)) {
+        setShowResults(true)
       }
 
       setIsLoading(false)
@@ -60,6 +55,7 @@ export function PlayerRatingsArticle({ matchId }: { matchId: string }) {
   }, [matchId])
 
   const selectedCount = Object.keys(ratings).length
+  const savedCount = ballot?.players.filter((player) => player.myRating !== null).length ?? 0
   const totalVotes = useMemo(() => {
     if (!ballot) return 0
     return Math.max(0, ...ballot.players.map((player) => player.ratingCount))
@@ -83,11 +79,7 @@ export function PlayerRatingsArticle({ matchId }: { matchId: string }) {
     }
 
     setBallot(result.ballot)
-    setRatings(Object.fromEntries(
-      result.ballot.players
-        .filter((player) => player.myRating !== null)
-        .map((player) => [player.id, player.myRating as number]),
-    ))
+    setRatings({})
     setSubmitted(true)
     setShowResults(true)
   }
@@ -120,7 +112,7 @@ export function PlayerRatingsArticle({ matchId }: { matchId: string }) {
             <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-primary">Tu opinión</p>
             <h2 className="mt-1 font-display text-2xl font-extrabold tracking-tight md:text-3xl">Poneles nota a los jugadores</h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground md:text-base">
-              Del 1 al 10. Podés puntuar sólo a los que quieras. Los promedios de la gente permanecen ocultos hasta que decidas verlos.
+              Del 1 al 10. Podés puntuar sólo a los que quieras. Una vez enviada, cada nota es definitiva y no se puede modificar.
             </p>
           </div>
           <Button
@@ -142,7 +134,9 @@ export function PlayerRatingsArticle({ matchId }: { matchId: string }) {
 
       <div className="divide-y divide-border">
         {ballot.players.map((player) => {
-          const selected = ratings[player.id]
+          const locked = player.myRating !== null
+          const selected = locked ? player.myRating : ratings[player.id]
+
           return (
             <div key={player.id} className="p-4 md:p-5">
               <div className="flex items-start gap-3 md:gap-4">
@@ -173,14 +167,22 @@ export function PlayerRatingsArticle({ matchId }: { matchId: string }) {
                       <button
                         key={rating}
                         type="button"
-                        aria-label={`Puntuar a ${player.name} con ${rating}`}
+                        disabled={locked}
+                        aria-label={locked
+                          ? `Nota definitiva de ${player.name}: ${player.myRating}`
+                          : `Puntuar a ${player.name} con ${rating}`}
                         aria-pressed={selected === rating}
-                        onClick={() => setRatings((current) => ({ ...current, [player.id]: rating }))}
+                        onClick={() => {
+                          if (locked) return
+                          setRatings((current) => ({ ...current, [player.id]: rating }))
+                        }}
                         className={cn(
                           "h-9 rounded-xl border text-sm font-extrabold tabular-nums transition-colors md:h-10",
                           selected === rating
                             ? "border-primary bg-primary text-primary-foreground"
                             : "border-border bg-background text-foreground hover:border-primary/50 hover:bg-primary/5",
+                          locked && selected !== rating && "cursor-not-allowed opacity-45 hover:border-border hover:bg-background",
+                          locked && selected === rating && "cursor-not-allowed",
                         )}
                       >
                         {rating}
@@ -188,9 +190,10 @@ export function PlayerRatingsArticle({ matchId }: { matchId: string }) {
                     ))}
                   </div>
 
-                  {showResults && player.myRating !== null && (
-                    <p className="mt-2 text-xs font-semibold text-muted-foreground">
-                      Tu nota guardada: <span className="text-foreground">{player.myRating}</span>
+                  {locked && (
+                    <p className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                      <LockKeyhole className="h-3.5 w-3.5" />
+                      Tu nota definitiva: <span className="text-foreground">{player.myRating}</span>
                     </p>
                   )}
                 </div>
@@ -209,16 +212,20 @@ export function PlayerRatingsArticle({ matchId }: { matchId: string }) {
             <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
             <span>
               {isAuthenticated
-                ? "Tus puntuaciones quedaron guardadas en tu historial."
-                : "Tus puntuaciones quedaron guardadas en este dispositivo. Si iniciás sesión más adelante desde acá, las sumamos a tu historial."}
+                ? "Tus puntuaciones quedaron guardadas de forma definitiva en tu historial."
+                : "Tus puntuaciones quedaron guardadas de forma definitiva en este dispositivo. Si iniciás sesión más adelante desde acá, las sumamos a tu historial."}
             </span>
           </div>
         )}
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-muted-foreground">
-            {selectedCount === 0
-              ? "Elegí al menos una puntuación."
-              : `${selectedCount} ${selectedCount === 1 ? "jugador puntuado" : "jugadores puntuados"} de ${ballot.players.length}.`}
+            {savedCount === ballot.players.length
+              ? "Ya puntuaste a todos los jugadores disponibles."
+              : selectedCount > 0
+                ? `${selectedCount} ${selectedCount === 1 ? "nueva puntuación seleccionada" : "nuevas puntuaciones seleccionadas"}.`
+                : savedCount > 0
+                  ? `Ya enviaste ${savedCount} ${savedCount === 1 ? "puntuación" : "puntuaciones"}. Podés puntuar a los jugadores restantes.`
+                  : "Elegí al menos una puntuación."}
           </p>
           <Button
             type="button"
