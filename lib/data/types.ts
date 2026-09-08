@@ -10,6 +10,7 @@ export type Competition =
   | "Amistoso"
 
 export type NewsTag = "Información" | "Opinión"
+export type NewsArticleType = "standard" | "player_ratings"
 
 export interface NewsArticle {
   id: string
@@ -29,6 +30,8 @@ export interface NewsArticle {
   competition?: string
   tag: NewsTag
   featured?: boolean
+  articleType?: NewsArticleType
+  matchId?: string
 }
 
 export interface Match {
