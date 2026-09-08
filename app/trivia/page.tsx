@@ -13,8 +13,7 @@ export default function TriviaPage() {
             <div className="absolute -right-20 -top-24 h-64 w-64 rounded-full bg-primary/40 blur-3xl" />
             <div className="absolute -bottom-24 -left-16 h-56 w-56 rounded-full bg-white/20 blur-3xl" />
             <div className="relative">
-              <p className="text-[0.58rem] font-bold uppercase tracking-[0.2em] text-white/70 md:text-[0.68rem] md:tracking-[0.24em]">Juego semanal</p>
-              <h1 className="mx-auto mt-2 max-w-3xl font-display text-[2rem] font-extrabold leading-none tracking-tight md:text-5xl">Trivia Millonaria</h1>
+              <h1 className="mx-auto max-w-3xl font-display text-[2rem] font-extrabold leading-none tracking-tight md:text-5xl">Trivia Millonaria</h1>
             </div>
           </header>
           <DeviceTriviaGame />

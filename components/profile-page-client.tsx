@@ -44,8 +44,7 @@ export function ProfilePageClient() {
           <div className="absolute inset-0 opacity-25 [background-image:linear-gradient(120deg,transparent_0%,transparent_46%,white_47%,white_50%,transparent_51%,transparent_100%)]" />
           <div className="relative flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.24em] text-white/70">Mi cuenta</p>
-              <h1 className="mt-2 break-words font-display text-[2rem] font-extrabold tracking-tight leading-none md:text-5xl">{currentUser.name}</h1>
+              <h1 className="break-words font-display text-[2rem] font-extrabold tracking-tight leading-none md:text-5xl">{currentUser.name}</h1>
             </div>
             <Badge variant="outline" className="w-fit rounded-full border-white/20 bg-white/10 px-4 py-1.5 text-white">
               {getRoleLabel(currentUser.role)}
@@ -60,8 +59,7 @@ export function ProfilePageClient() {
                 {avatar ? <img src={avatar} alt={name} className="h-full w-full object-cover" /> : <div className="flex h-full w-full items-center justify-center text-5xl font-extrabold">{name.charAt(0)}</div>}
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Perfil</p>
-                <h2 className="mt-1 break-words font-display text-2xl font-extrabold md:truncate md:text-3xl">{currentUser.name}</h2>
+                <h2 className="break-words font-display text-2xl font-extrabold md:truncate md:text-3xl">{currentUser.name}</h2>
                 <div className="mt-3 space-y-2 text-sm text-muted-foreground">
                   <InfoLine icon={<Mail className="h-4 w-4" />} text={currentUser.email} />
                   <InfoLine icon={<CalendarDays className="h-4 w-4" />} text={`Miembro desde ${memberSince}`} />

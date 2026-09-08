@@ -68,8 +68,7 @@ export default function TerminosDeServicioPage() {
           </Link>
 
           <header className="mt-6 rounded-[1.75rem] border border-border bg-card p-6 shadow-sm md:p-8">
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Legal</p>
-            <h1 className="mt-2 font-display text-[2rem] font-extrabold tracking-tight md:text-5xl">
+            <h1 className="font-display text-[2rem] font-extrabold tracking-tight md:text-5xl">
               Términos de servicio
             </h1>
             <p className="mt-4 max-w-2xl text-sm leading-6 text-muted-foreground md:text-base">

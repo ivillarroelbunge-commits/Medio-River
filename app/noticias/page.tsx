@@ -86,8 +86,7 @@ export default function NoticiasPage() {
       <SiteHeader />
       <main className="flex-1">
         <div className="container-prose space-y-6 py-5 md:space-y-8 md:py-10">
-          <header className="space-y-2">
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Cobertura</p>
+          <header>
             <h1 className="font-display text-[2rem] font-extrabold tracking-tight md:text-4xl">Noticias</h1>
           </header>
 

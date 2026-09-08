@@ -3,18 +3,11 @@
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import type { ReactNode } from "react"
+import { ChevronDown } from "lucide-react"
 import { competitionPanels } from "@/lib/data"
 import type { CompetitionPanelData } from "@/lib/data/types"
 import { TeamCrest } from "@/components/team-crest"
 import { cn } from "@/lib/utils"
-
-const panelShortLabels: Record<string, string> = {
-  clausura: "Clausura",
-  anual: "Anual",
-  sudamericana: "Sudamericana",
-  "copa-argentina": "Copa Arg.",
-  apertura: "Apertura",
-}
 
 const shortTeamNames: Record<string, string> = {
   "River Plate": "River Plate",
@@ -140,14 +133,20 @@ export function CompetitionSelector() {
 
   return (
     <div className="space-y-4 md:space-y-6">
-      <div className="flex w-fit max-w-full flex-nowrap gap-1 overflow-x-auto rounded-2xl border border-border bg-card p-1 shadow-sm md:rounded-full">
-        {panels.map((item) => (
-          <button key={item.key} type="button" onClick={() => setActive(item.key)} className={`mx-0.5 w-max shrink-0 rounded-xl px-2 py-1.5 text-[0.52rem] font-bold leading-tight md:rounded-full md:px-3 md:text-xs ${item.key === active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
-            <span className="md:hidden">{panelShortLabels[item.key] ?? item.label}</span>
-            <span className="hidden md:inline">{item.label}</span>
-          </button>
-        ))}
-      </div>
+      <label className="relative block w-full md:max-w-xs">
+        <select
+          value={active}
+          onChange={(event) => setActive(event.target.value as CompetitionPanelData["key"])}
+          className="h-10 w-full appearance-none rounded-2xl border border-border bg-card px-4 pr-10 text-sm font-bold text-foreground shadow-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 md:h-11 md:text-sm"
+        >
+          {panels.map((item) => (
+            <option key={item.key} value={item.key}>
+              {item.label}
+            </option>
+          ))}
+        </select>
+        <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+      </label>
 
       {panel.key === "apertura" ? (
         <>
@@ -346,7 +345,7 @@ function getQualificationHighlight(panelKey: string, team: string, index: number
     }
   }
 
-  if (panelKey === "apertura" && index < 8) {
+  if ((panelKey === "apertura" || panelKey === "clausura") && index < 8) {
     return {
       row: "bg-emerald-50/80",
       position: "bg-emerald-600 text-white",

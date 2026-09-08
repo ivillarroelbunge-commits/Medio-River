@@ -11,27 +11,6 @@ import { cn } from "@/lib/utils"
 
 const filters: Array<Competition | "Todas"> = ["Todas", "Torneo Clausura", "Copa Sudamericana", "Copa Argentina", "Amistoso", "Torneo Apertura"]
 
-const shortTeamNames: Record<string, string> = {
-  "River Plate": "River Plate",
-  "A definir": "A definir",
-  "Gimnasia La Plata": "Gimnasia LP",
-  "Gimnasia y Esgrima La Plata": "Gimnasia LP",
-  "Independiente Rivadavia": "Ind. Rivadavia",
-  "Independiente Santa Fe": "Ind. Santa Fe",
-  "Argentinos Juniors": "Argentinos",
-  "Rosario Central": "Rosario C.",
-  "Barracas Central": "Barracas",
-  "Ciudad de Bolívar": "C. Bolívar",
-  "Vélez Sarsfield": "Vélez",
-  "Estudiantes de Río Cuarto": "Estudiantes RC",
-  "Sarmiento Junín": "Sarmiento Junín",
-  Flamengo: "Flamengo",
-  "Racing Club": "Racing",
-  "Red Bull Bragantino": "Bragantino",
-  "Atlético Tucumán": "Atl. Tucumán",
-  "Boca Juniors": "Boca",
-}
-
 const competitionStyle: Record<Competition, string> = {
   "Torneo Clausura": "border-l-border bg-card",
   "Copa Sudamericana": "border-l-primary bg-primary/5",
@@ -175,13 +154,15 @@ function UpcomingMatchup({ match }: { match: Match }) {
 
   return (
     <div className="grid grid-cols-[minmax(0,1fr)_auto_auto_auto_minmax(0,1fr)] items-center gap-1.5 md:gap-3">
-      <TeamName team={homeTeam} className="text-right font-display text-[0.72rem] font-extrabold leading-tight md:text-lg" />
+      <MobileTeamName team={homeTeam} className="text-right md:hidden" />
+      <TeamName team={homeTeam} className="hidden text-right font-display text-[0.72rem] font-extrabold leading-tight md:inline md:text-lg" />
       <TeamCrest team={homeTeam} size="sm" className="h-7 w-7 md:h-12 md:w-12" />
       <span className="mx-1.5 text-center text-[0.62rem] font-extrabold tabular-nums text-foreground md:mx-0 md:rounded-full md:bg-background/85 md:px-4 md:py-1.5 md:text-sm md:shadow-sm md:ring-1 md:ring-border/70">
         {kickoff}
       </span>
       <TeamCrest team={awayTeam} size="sm" className="h-7 w-7 md:h-12 md:w-12" />
-      <TeamName team={awayTeam} className="text-left font-display text-[0.72rem] font-extrabold leading-tight md:text-lg" />
+      <MobileTeamName team={awayTeam} className="text-left md:hidden" />
+      <TeamName team={awayTeam} className="hidden text-left font-display text-[0.72rem] font-extrabold leading-tight md:inline md:text-lg" />
     </div>
   )
 }
@@ -191,7 +172,7 @@ function PreviousMatchup({ match, scoreClassName }: { match: Match; scoreClassNa
   const awayTeam = match.isHome ? match.opponent : "River Plate"
 
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)_1.75rem_3.7rem_1.75rem_minmax(0,1fr)] items-center gap-1.5">
+    <div className="grid grid-cols-[minmax(0,1fr)_1.75rem_4rem_1.75rem_minmax(0,1fr)] items-center gap-1.5">
       <MobileTeamName team={homeTeam} className="text-right" />
       <TeamCrest team={homeTeam} size="sm" className="h-7 w-7" />
       <PreviousScore match={match} scoreClassName={scoreClassName} />
@@ -209,11 +190,11 @@ function PreviousScore({ match, scoreClassName }: { match: Match; scoreClassName
   const penaltyScore = getPenaltyScoreParts(match)
 
   return (
-    <span className={cn("w-[3.7rem] text-center font-black tabular-nums", scoreClassName)}>
-      <span className="block text-[0.72rem] leading-none">{homeScore}-{awayScore}</span>
+    <span className={cn("w-16 text-center font-black tabular-nums", scoreClassName)}>
+      <span className="block text-[0.98rem] leading-none">{homeScore} - {awayScore}</span>
       {penaltyScore && (
         <span className="mt-0.5 block text-[0.44rem] font-extrabold uppercase leading-none tracking-[0.06em]">
-          Pen {penaltyScore.home}-{penaltyScore.away}
+          Pen {penaltyScore.home} - {penaltyScore.away}
         </span>
       )}
     </span>
@@ -241,8 +222,8 @@ function getMatchScoreText(match: Match) {
   const penaltyScore = getPenaltyScoreParts(match)
 
   return penaltyScore
-    ? `(${penaltyScore.home}) ${homeScore}-${awayScore} (${penaltyScore.away})`
-    : `${homeScore}-${awayScore}`
+    ? `(${penaltyScore.home}) ${homeScore} - ${awayScore} (${penaltyScore.away})`
+    : `${homeScore} - ${awayScore}`
 }
 
 function getPenaltyScoreParts(match: Match) {
@@ -281,22 +262,59 @@ function MatchCrests({ match }: { match: Match }) {
 }
 
 function TeamName({ team, className }: { team: string; className?: string }) {
-  const shortName = shortTeamNames[team] ?? team
-
   return (
     <span className={cn("min-w-0", className)}>
-      <span className="md:hidden">{shortName}</span>
+      <span className="md:hidden">{team}</span>
       <span className="hidden md:inline">{team}</span>
     </span>
   )
 }
 
 function MobileTeamName({ team, className }: { team: string; className?: string }) {
+  const lines = getMobileTeamNameLines(team)
+
   return (
-    <span className={cn("block min-w-0 overflow-hidden font-display text-[0.7rem] font-extrabold leading-tight [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2]", className)}>
-      {shortTeamNames[team] ?? team}
+    <span className={cn("block min-w-0 font-display text-[0.64rem] font-extrabold leading-[1.05]", className)}>
+      {lines.map((line, index) => (
+        <span key={`${line}-${index}`} className="block whitespace-nowrap">
+          {line}
+        </span>
+      ))}
     </span>
   )
+}
+
+function getMobileTeamNameLines(team: string) {
+  const normalized = team.trim()
+  const aliases: Record<string, string[]> = {
+    "Gimnasia La Plata": ["Gimnasia LP"],
+    "Gimnasia y Esgrima La Plata": ["Gimnasia LP"],
+    "Estudiantes de Río Cuarto": ["Estudiantes RC"],
+    "Estudiantes de Rio Cuarto": ["Estudiantes RC"],
+    "Sarmiento Junín": ["Sarmiento"],
+    "Sarmiento (Junín)": ["Sarmiento"],
+    "Ciudad de Bolívar": ["Ciudad", "de Bolívar"],
+    "Ciudad de Bolivar": ["Ciudad", "de Bolivar"],
+    "Independiente Santa Fe": ["Independiente", "Santa Fe"],
+    "Red Bull Bragantino": ["Red Bull", "Bragantino"],
+  }
+  const singleLine = new Set([
+    "River Plate",
+    "Boca Juniors",
+    "Racing Club",
+    "Estudiantes RC",
+    "San Lorenzo",
+    "Gimnasia LP",
+  ])
+
+  if (aliases[normalized]) return aliases[normalized]
+  if (singleLine.has(normalized)) return [normalized]
+
+  const words = normalized.split(/\s+/).filter(Boolean)
+  if (words.length <= 2) return words
+
+  const splitIndex = Math.ceil(words.length / 2)
+  return [words.slice(0, splitIndex).join(" "), words.slice(splitIndex).join(" ")]
 }
 
 function FilterBar({ active, onChange }: { active: (typeof filters)[number]; onChange: (value: (typeof filters)[number]) => void }) {

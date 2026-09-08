@@ -242,8 +242,7 @@ export function AdminPageClient() {
     <div className="space-y-6 md:space-y-8">
       <section className="space-y-4 rounded-[1.5rem] border border-border bg-card p-4 shadow-sm md:space-y-5 md:rounded-[2rem] md:p-6">
         <div>
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Panel admin</p>
-          <h1 className="mt-1 font-display text-2xl font-extrabold md:text-3xl">Centro de gestión</h1>
+          <h1 className="font-display text-2xl font-extrabold md:text-3xl">Centro de gestión</h1>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
             Desde acá el administrador edita noticias, usuarios, jugadores y partidos de River.
           </p>

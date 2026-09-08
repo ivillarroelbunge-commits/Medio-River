@@ -31,7 +31,6 @@ export default function PlantelPage() {
             <header className="space-y-5 md:space-y-6">
               <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Plantel</p>
                   <h1 className="font-display text-[2.15rem] font-extrabold tracking-tight text-foreground md:text-5xl">Plantel profesional</h1>
                   <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground md:mt-3 md:text-base">
                     Plantel profesional de River para la temporada 2026.

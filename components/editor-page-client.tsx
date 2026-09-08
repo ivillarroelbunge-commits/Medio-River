@@ -25,8 +25,7 @@ export function EditorPageClient() {
     <div className="space-y-5 md:space-y-6">
       <div className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-4 shadow-sm md:p-6 lg:flex-row lg:items-start lg:justify-between">
         <div>
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Panel editor</p>
-          <h1 className="mt-1 font-display text-2xl font-extrabold md:text-3xl">
+          <h1 className="font-display text-2xl font-extrabold md:text-3xl">
             {mode === "create" ? "Crear noticia" : mode === "edit" ? "Editar noticia" : "Panel de noticias"}
           </h1>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">

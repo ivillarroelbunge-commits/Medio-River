@@ -38,8 +38,7 @@ export default function HomePage() {
           <section aria-label="Últimas noticias">
             <div className="flex items-end justify-between gap-4">
               <div>
-                <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Cobertura</p>
-                <h2 className="mt-1 font-display text-[1.65rem] font-extrabold tracking-tight md:text-3xl">Últimas noticias</h2>
+                <h2 className="font-display text-[1.65rem] font-extrabold tracking-tight md:text-3xl">Últimas noticias</h2>
               </div>
               <Link href="/noticias" className="group hidden items-center gap-1 text-sm font-semibold text-primary hover:underline sm:inline-flex">
                 Ver todas
