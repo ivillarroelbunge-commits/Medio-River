@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useEffect, useState } from "react"
-import { ChevronDown, FilePenLine, LogOut, Menu, ShieldCheck, User2, X } from "lucide-react"
+import { ChevronDown, FilePenLine, LogIn, LogOut, Menu, ShieldCheck, Trophy, User2, UserPlus, X } from "lucide-react"
 import { HeaderUserMenu } from "@/components/header-user-menu"
 import { Logo } from "@/components/logo"
 import { cn } from "@/lib/utils"
@@ -30,7 +30,7 @@ export function SiteHeader() {
   }, [])
 
   const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href))
-  const isStaff = Boolean(mounted && isHydrated && currentUser && currentUser.role !== "user")
+  const showAuthState = mounted && isHydrated
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/75">
@@ -88,7 +88,28 @@ export function SiteHeader() {
               </Link>
             ))}
 
-            {isStaff && currentUser && (
+            {showAuthState && !currentUser && (
+              <div className="mt-2 grid gap-2 border-t border-border pt-3">
+                <Link
+                  href="/iniciar-sesion"
+                  onClick={() => setOpen(false)}
+                  className="flex items-center justify-center gap-2 rounded-full border border-border bg-background px-4 py-2.5 text-sm font-semibold text-foreground"
+                >
+                  <LogIn className="h-4 w-4" />
+                  Iniciar sesión
+                </Link>
+                <Link
+                  href="/registrarse"
+                  onClick={() => setOpen(false)}
+                  className="flex items-center justify-center gap-2 rounded-full bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground"
+                >
+                  <UserPlus className="h-4 w-4" />
+                  Registrarse
+                </Link>
+              </div>
+            )}
+
+            {showAuthState && currentUser && (
               <>
                 <button
                   type="button"
@@ -107,6 +128,10 @@ export function SiteHeader() {
                     <Link href="/perfil" onClick={() => { setOpen(false); setMobileUserOpen(false) }} className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-foreground hover:bg-background">
                       <User2 className="h-4 w-4 text-primary" />
                       Mi perfil
+                    </Link>
+                    <Link href="/perfil#resultados" onClick={() => { setOpen(false); setMobileUserOpen(false) }} className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-foreground hover:bg-background">
+                      <Trophy className="h-4 w-4 text-primary" />
+                      Mis resultados
                     </Link>
                     {currentUser.role === "editor" && (
                       <Link href="/editor/crear-noticia" onClick={() => { setOpen(false); setMobileUserOpen(false) }} className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-foreground hover:bg-background">
