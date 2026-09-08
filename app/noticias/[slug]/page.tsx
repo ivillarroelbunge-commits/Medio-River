@@ -8,6 +8,7 @@ import { SiteHeader } from "@/components/site-header"
 import { useAppState } from "@/components/app-state-provider"
 import { NewsCard } from "@/components/news-card"
 import { NewsImage } from "@/components/news-image"
+import { PlayerRatingsArticle } from "@/components/player-ratings-article"
 import { ShareButtons } from "@/components/share-buttons"
 import { formatDateLong } from "@/lib/format"
 import { normalizeNewsCategory } from "@/lib/news-taxonomy"
@@ -43,7 +44,7 @@ export default function NoticiaDetallePage() {
 
   useEffect(() => {
     if (!isHydrated) return
-    if (article?.content.length) return
+    if (article?.content.length || article?.articleType === "player_ratings") return
 
     let active = true
     const supabase = createSupabaseBrowserClient()
@@ -56,7 +57,7 @@ export default function NoticiaDetallePage() {
     return () => {
       active = false
     }
-  }, [article?.content.length, isHydrated, params.slug])
+  }, [article?.articleType, article?.content.length, isHydrated, params.slug])
 
   if (!isHydrated) {
     return <div className="min-h-dvh bg-background" />
@@ -78,6 +79,8 @@ export default function NoticiaDetallePage() {
       </div>
     )
   }
+
+  const isRatingsArticle = article.articleType === "player_ratings" && Boolean(article.matchId)
 
   return (
     <div className="flex min-h-dvh flex-col">
@@ -103,14 +106,22 @@ export default function NoticiaDetallePage() {
             <p className="text-sm text-muted-foreground">{article.author} · {formatDateLong(article.date)}</p>
             <p className="pt-3 text-base leading-7 text-muted-foreground md:pt-4 md:text-lg md:leading-8">{article.intro}</p>
           </header>
-          <NewsImage article={article} className="h-[16rem] w-full rounded-2xl md:h-[30rem] md:rounded-3xl" />
-          <div className="news-rich-content space-y-4 text-[1rem] leading-7 text-black md:space-y-5 md:text-[1.08rem] md:leading-8">
-            {article.content.some(hasHtmlTags) ? (
-              <div dangerouslySetInnerHTML={{ __html: sanitizeStoredNewsHtml(article.content.join("")) }} />
-            ) : (
-              article.content.map((paragraph, index) => <p key={index}>{paragraph}</p>)
-            )}
-          </div>
+
+          {isRatingsArticle ? (
+            <PlayerRatingsArticle matchId={article.matchId!} />
+          ) : (
+            <NewsImage article={article} className="h-[16rem] w-full rounded-2xl md:h-[30rem] md:rounded-3xl" />
+          )}
+
+          {article.content.length > 0 && (
+            <div className="news-rich-content space-y-4 text-[1rem] leading-7 text-black md:space-y-5 md:text-[1.08rem] md:leading-8">
+              {article.content.some(hasHtmlTags) ? (
+                <div dangerouslySetInnerHTML={{ __html: sanitizeStoredNewsHtml(article.content.join("")) }} />
+              ) : (
+                article.content.map((paragraph, index) => <p key={index}>{paragraph}</p>)
+              )}
+            </div>
+          )}
           <ShareButtons title={article.title} slug={article.slug} />
         </article>
         {relatedArticles.length > 0 && (
