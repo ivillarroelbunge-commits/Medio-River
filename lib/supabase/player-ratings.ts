@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
 
-const PLAYER_RATING_SUMMARY_CACHE_PREFIX = "medio-river-player-rating-summary-v1"
+const PLAYER_RATING_SUMMARY_CACHE_PREFIX = "medio-river-player-rating-summary-v2"
 const PLAYER_RATING_SUMMARY_CACHE_TTL_MS = 6 * 60 * 60 * 1000
 
 export interface MatchRatingPlayer {
@@ -39,8 +39,23 @@ export interface PlayerRatingSummary {
   averageRating: number
 }
 
+export interface PlayerRatingHistoryRow {
+  seasonYear: number
+  matchId: string
+  matchDate: string
+  opponent: string
+  competition: string
+  riverScore: number
+  opponentScore: number
+  squadPlayerId: string | null
+  playerName: string
+  image: string | null
+  rating: number
+}
+
 interface CachedPlayerRatingSummary {
   summary: PlayerRatingSummary[]
+  history: PlayerRatingHistoryRow[]
   updatedAt: number
 }
 
@@ -56,10 +71,11 @@ export function readPlayerRatingSummaryCache(userId: string) {
     if (!raw) return null
 
     const cached = JSON.parse(raw) as CachedPlayerRatingSummary
-    if (!Array.isArray(cached.summary) || typeof cached.updatedAt !== "number") return null
+    if (!Array.isArray(cached.summary) || !Array.isArray(cached.history) || typeof cached.updatedAt !== "number") return null
 
     return {
       summary: cached.summary,
+      history: cached.history,
       isFresh: Date.now() - cached.updatedAt < PLAYER_RATING_SUMMARY_CACHE_TTL_MS,
     }
   } catch {
@@ -67,12 +83,17 @@ export function readPlayerRatingSummaryCache(userId: string) {
   }
 }
 
-export function writePlayerRatingSummaryCache(userId: string, summary: PlayerRatingSummary[]) {
+export function writePlayerRatingSummaryCache(
+  userId: string,
+  summary: PlayerRatingSummary[],
+  history: PlayerRatingHistoryRow[],
+) {
   if (typeof window === "undefined") return
 
   try {
     const cached: CachedPlayerRatingSummary = {
       summary,
+      history,
       updatedAt: Date.now(),
     }
     window.localStorage.setItem(getPlayerRatingSummaryCacheKey(userId), JSON.stringify(cached))
@@ -93,7 +114,7 @@ export function markPlayerRatingSummaryCacheStale() {
       if (!raw) continue
 
       const cached = JSON.parse(raw) as CachedPlayerRatingSummary
-      if (!Array.isArray(cached.summary)) continue
+      if (!Array.isArray(cached.summary) || !Array.isArray(cached.history)) continue
 
       window.localStorage.setItem(key, JSON.stringify({ ...cached, updatedAt: 0 }))
     }
@@ -158,13 +179,18 @@ export async function fetchMyPlayerRatingSummary(
   supabase: SupabaseClient,
   deviceId: string,
 ) {
-  const result = await invokePlayerRatings<{ ok: true; summary: PlayerRatingSummary[] }>(supabase, {
+  const result = await invokePlayerRatings<{
+    ok: true
+    summary: PlayerRatingSummary[]
+    history: PlayerRatingHistoryRow[]
+  }>(supabase, {
     action: "profile_summary",
     deviceId,
   })
 
   return {
     summary: result.data?.summary ?? null,
+    history: result.data?.history ?? null,
     error: result.error,
   }
 }
