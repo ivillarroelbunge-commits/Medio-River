@@ -6,6 +6,8 @@ import { getOrCreatePlayerRatingDeviceId } from "@/lib/player-rating-device"
 import { createClient as createSupabaseBrowserClient } from "@/lib/supabase/client"
 import {
   fetchMyPlayerRatingSummary,
+  readPlayerRatingSummaryCache,
+  writePlayerRatingSummaryCache,
   type PlayerRatingSummary,
 } from "@/lib/supabase/player-ratings"
 
@@ -18,18 +20,47 @@ export function ProfilePlayerRatings({ userId }: { userId: string }) {
   useEffect(() => {
     let active = true
     const deviceId = getOrCreatePlayerRatingDeviceId()
-    if (!deviceId) return
+    const cached = readPlayerRatingSummaryCache(userId)
 
-    setIsLoading(true)
-    setError(null)
+    if (cached) {
+      setSummary(cached.summary)
+      setSelectedYear(cached.summary[0]?.seasonYear ?? null)
+      setIsLoading(false)
+      setError(null)
+    } else {
+      setIsLoading(true)
+      setError(null)
+    }
+
+    if (!deviceId) {
+      if (!cached) {
+        setIsLoading(false)
+        setError("No se pudieron cargar tus puntuaciones en este dispositivo.")
+      }
+      return
+    }
+
+    if (cached?.isFresh) {
+      return () => {
+        active = false
+      }
+    }
+
     const supabase = createSupabaseBrowserClient()
 
     void fetchMyPlayerRatingSummary(supabase, deviceId).then((result) => {
       if (!active) return
-      setSummary(result.summary ?? [])
-      setError(result.error)
-      const newestYear = result.summary?.[0]?.seasonYear ?? null
-      setSelectedYear((current) => current ?? newestYear)
+
+      if (result.summary) {
+        setSummary(result.summary)
+        writePlayerRatingSummaryCache(userId, result.summary)
+        const newestYear = result.summary[0]?.seasonYear ?? null
+        setSelectedYear((current) => current ?? newestYear)
+        setError(null)
+      } else if (!cached) {
+        setError(result.error)
+      }
+
       setIsLoading(false)
     })
 
