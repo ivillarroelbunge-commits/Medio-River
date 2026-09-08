@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { CheckCircle2, Eye, EyeOff, Loader2, LockKeyhole } from "lucide-react"
+import { CheckCircle2, Eye, EyeOff, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { getOrCreatePlayerRatingDeviceId } from "@/lib/player-rating-device"
 import { createClient as createSupabaseBrowserClient } from "@/lib/supabase/client"
@@ -60,6 +60,7 @@ export function PlayerRatingsArticle({ matchId }: { matchId: string }) {
   const completedCount = savedCount + selectedCount
   const missingCount = Math.max(0, totalPlayers - completedCount)
   const canSubmit = totalPlayers > 0 && completedCount === totalPlayers && selectedCount > 0
+  const resultsMode = totalPlayers > 0 && savedCount === totalPlayers
 
   const totalVotes = useMemo(() => {
     if (!ballot) return 0
@@ -105,6 +106,75 @@ export function PlayerRatingsArticle({ matchId }: { matchId: string }) {
       <section className="rounded-3xl border border-border bg-card p-5 shadow-sm md:p-7">
         <p className="text-sm text-muted-foreground">Las puntuaciones todavía no están disponibles para este partido.</p>
         {error && <p className="mt-2 text-sm font-medium text-primary">{error}</p>}
+      </section>
+    )
+  }
+
+  if (resultsMode) {
+    return (
+      <section className="overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
+        <div className="border-b border-border bg-[linear-gradient(135deg,rgba(220,38,38,0.1),transparent_58%)] p-5 md:p-7">
+          <div className="flex items-start gap-3">
+            <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <CheckCircle2 className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-primary">Puntuaciones enviadas</p>
+              <h2 className="mt-1 font-display text-2xl font-extrabold tracking-tight md:text-3xl">Así los puntuó la gente</h2>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground md:text-base">
+                El promedio de los hinchas aparece como resultado principal. Abajo de cada jugador también podés ver la nota definitiva que pusiste vos.
+              </p>
+              {totalVotes > 0 && (
+                <p className="mt-3 text-xs font-semibold text-muted-foreground">
+                  {totalVotes === 1 ? "1 hincha participó" : `${totalVotes} hinchas participaron`} en esta votación.
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {submitted && (
+          <div className="border-b border-border bg-emerald-50/70 px-5 py-3 text-sm font-medium text-emerald-800 md:px-7">
+            {isAuthenticated
+              ? "Tus puntuaciones quedaron guardadas de forma definitiva en tu historial."
+              : "Tus puntuaciones quedaron guardadas de forma definitiva en este dispositivo. Si iniciás sesión más adelante desde acá, las sumamos a tu historial."}
+          </div>
+        )}
+
+        <div className="divide-y divide-border">
+          {ballot.players.map((player) => (
+            <div key={player.id} className="p-4 md:p-5">
+              <div className="flex items-center gap-3 md:gap-4">
+                <PlayerAvatar name={player.name} image={player.image} />
+
+                <div className="min-w-0 flex-1">
+                  <h3 className="truncate font-display text-lg font-extrabold text-foreground md:text-xl">{player.name}</h3>
+                  <p className="mt-0.5 text-xs font-medium text-muted-foreground md:text-sm">
+                    {player.starter ? "Titular" : player.enteredMinute ? `Ingresó a los ${player.enteredMinute}'` : "Ingresó desde el banco"}
+                    {player.position ? ` · ${player.position}` : ""}
+                  </p>
+
+                  <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-border bg-muted/40 px-3 py-1.5">
+                    <span className="text-xs font-bold uppercase tracking-[0.08em] text-muted-foreground">Tu nota</span>
+                    <span className="font-display text-lg font-black tabular-nums text-foreground">{player.myRating}</span>
+                  </div>
+                </div>
+
+                <div className="shrink-0 text-right">
+                  <p className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-muted-foreground">Promedio</p>
+                  <p className="mt-0.5 font-display text-4xl font-black leading-none tabular-nums text-primary md:text-5xl">
+                    {player.averageRating === null
+                      ? "—"
+                      : player.averageRating.toLocaleString("es-AR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
+                  </p>
+                  <p className="mt-1 text-[11px] font-semibold text-muted-foreground">
+                    {player.ratingCount === 1 ? "1 voto" : `${player.ratingCount} votos`}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       </section>
     )
   }
@@ -194,13 +264,6 @@ export function PlayerRatingsArticle({ matchId }: { matchId: string }) {
                       </button>
                     ))}
                   </div>
-
-                  {locked && (
-                    <p className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
-                      <LockKeyhole className="h-3.5 w-3.5" />
-                      Tu nota definitiva: <span className="text-foreground">{player.myRating}</span>
-                    </p>
-                  )}
                 </div>
               </div>
             </div>
@@ -212,27 +275,15 @@ export function PlayerRatingsArticle({ matchId }: { matchId: string }) {
         {error && (
           <p className="mb-3 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2 text-sm font-medium text-primary">{error}</p>
         )}
-        {submitted && (
-          <div className="mb-3 flex items-start gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
-            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
-            <span>
-              {isAuthenticated
-                ? "Tus puntuaciones quedaron guardadas de forma definitiva en tu historial."
-                : "Tus puntuaciones quedaron guardadas de forma definitiva en este dispositivo. Si iniciás sesión más adelante desde acá, las sumamos a tu historial."}
-            </span>
-          </div>
-        )}
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-sm font-semibold text-foreground">
               {completedCount} de {totalPlayers} jugadores puntuados
             </p>
             <p className="mt-0.5 text-xs text-muted-foreground">
-              {savedCount === totalPlayers
-                ? "Ya enviaste todas tus puntuaciones."
-                : missingCount === 0
-                  ? "Listo. Ya podés enviar tus puntuaciones."
-                  : `Te ${missingCount === 1 ? "falta" : "faltan"} ${missingCount} ${missingCount === 1 ? "jugador" : "jugadores"} por puntuar.`}
+              {missingCount === 0
+                ? "Listo. Ya podés enviar tus puntuaciones."
+                : `Te ${missingCount === 1 ? "falta" : "faltan"} ${missingCount} ${missingCount === 1 ? "jugador" : "jugadores"} por puntuar.`}
             </p>
           </div>
           <Button
