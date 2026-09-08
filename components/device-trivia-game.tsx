@@ -10,11 +10,14 @@ import { createClient } from "@/lib/supabase/client"
 import {
   clearTriviaParticipant,
   createTriviaParticipant,
-  ensureTriviaParticipant,
   fetchPublicTriviaResults,
   markTriviaParticipantPlayed,
   readTriviaParticipant,
+  registerTriviaNickname,
+  resolveTriviaParticipant,
+  saveTriviaParticipant,
   submitDeviceTriviaResult,
+  syncTriviaParticipantWithAccount,
   type PublicTriviaResult,
   type TriviaParticipant,
 } from "@/lib/trivia-participant"
@@ -27,10 +30,10 @@ import {
 } from "@/lib/trivia-daily"
 import { cn } from "@/lib/utils"
 
-type Phase = "start" | "playing" | "finished"
+type Phase = "start" | "playing" | "nickname" | "finished"
 
 export function DeviceTriviaGame() {
-  const { dailyTrivias, triviaQuestions } = useAppState()
+  const { currentUser, dailyTrivias, triviaQuestions } = useAppState()
   const supabase = useMemo(() => createClient(), [])
   const weeklyKey = useMemo(() => getTriviaWeeklyKey(), [])
   const triviaAvailable = useMemo(() => isWeeklyTriviaAvailable(), [])
@@ -55,28 +58,51 @@ export function DeviceTriviaGame() {
   const [selected, setSelected] = useState<number | null>(null)
   const [revealed, setRevealed] = useState(false)
   const [score, setScore] = useState(0)
-  const [name, setName] = useState("")
-  const [email, setEmail] = useState("")
+  const [nickname, setNickname] = useState("")
   const [saveError, setSaveError] = useState<string | null>(null)
   const [isSaving, setIsSaving] = useState(false)
 
   useEffect(() => {
     let active = true
-    setParticipant(readTriviaParticipant())
-    fetchPublicTriviaResults(supabase)
-      .then((rows) => {
-        if (active) setResults(rows)
-      })
-      .catch(() => {
-        if (active) setSaveError("No pudimos cargar el ranking en este momento.")
-      })
-      .finally(() => {
-        if (active) setReady(true)
-      })
+
+    async function hydrateParticipant() {
+      let local = readTriviaParticipant()
+      if (local) {
+        const resolved = await resolveTriviaParticipant(supabase, local)
+        if (resolved.ok && resolved.participant) {
+          local = resolved.participant
+          saveTriviaParticipant(local)
+        }
+      }
+
+      if (currentUser) {
+        const synced = await syncTriviaParticipantWithAccount(supabase, local)
+        if (synced.ok && synced.participant) local = synced.participant
+      }
+
+      if (active) {
+        setParticipant(local)
+        setNickname(local?.name ?? "")
+      }
+    }
+
+    void Promise.all([
+      hydrateParticipant(),
+      fetchPublicTriviaResults(supabase)
+        .then((rows) => {
+          if (active) setResults(rows)
+        })
+        .catch(() => {
+          if (active) setSaveError("No pudimos cargar el ranking en este momento.")
+        }),
+    ]).finally(() => {
+      if (active) setReady(true)
+    })
+
     return () => {
       active = false
     }
-  }, [supabase])
+  }, [currentUser, supabase])
 
   const total = weeklyQuestions.length
   const question = weeklyQuestions[current]
@@ -92,47 +118,14 @@ export function DeviceTriviaGame() {
     [current, revealed, total],
   )
 
-  const startGame = async (event?: React.FormEvent) => {
-    event?.preventDefault()
+  const startGame = () => {
     if (alreadyPlayed || isSaving) return
     setSaveError(null)
-    setIsSaving(true)
 
     let activeParticipant = participant
     if (!activeParticipant) {
-      const normalizedName = name.trim()
-      const normalizedEmail = email.trim().toLowerCase()
-      if (!normalizedName || !/^\S+@\S+\.\S+$/.test(normalizedEmail)) {
-        setSaveError("Ingresá tu nombre y un email válido para jugar.")
-        setIsSaving(false)
-        return
-      }
-      activeParticipant = createTriviaParticipant(normalizedName, normalizedEmail)
-    }
-
-    const ensured = await ensureTriviaParticipant(supabase, activeParticipant)
-    if (!ensured.ok) {
-      setSaveError("No pudimos registrar este dispositivo. Intentá nuevamente.")
-      setIsSaving(false)
-      return
-    }
-
-    const { data: existing } = await supabase
-      .from("trivia_results")
-      .select("id")
-      .eq("ranking_id", activeParticipant.id)
-      .eq("daily_key", weeklyKey)
-      .maybeSingle()
-
-    if (existing) {
-      const updated = markTriviaParticipantPlayed(activeParticipant, weeklyKey)
-      setParticipant(updated)
-      setIsSaving(false)
-      return
-    }
-
-    if (!participant) {
-      saveNewParticipant(activeParticipant)
+      activeParticipant = createTriviaParticipant()
+      saveTriviaParticipant(activeParticipant)
       setParticipant(activeParticipant)
     }
 
@@ -141,7 +134,6 @@ export function DeviceTriviaGame() {
     setSelected(null)
     setRevealed(false)
     setScore(0)
-    setIsSaving(false)
   }
 
   const choose = (index: number) => {
@@ -151,23 +143,15 @@ export function DeviceTriviaGame() {
     if (index === question.correctIndex) setScore((value) => value + 1)
   }
 
-  const next = async () => {
-    if (current + 1 < total) {
-      setCurrent((value) => value + 1)
-      setSelected(null)
-      setRevealed(false)
-      return
-    }
-
-    if (!participant) return
+  const saveResult = async (activeParticipant: TriviaParticipant) => {
     setIsSaving(true)
     setSaveError(null)
-    const saved = await submitDeviceTriviaResult(supabase, participant, score, total, weeklyKey)
+    const saved = await submitDeviceTriviaResult(supabase, activeParticipant, score, total, weeklyKey)
     setIsSaving(false)
 
     if (!saved.ok) {
       if ("alreadyPlayed" in saved && saved.alreadyPlayed) {
-        const updated = markTriviaParticipantPlayed(participant, weeklyKey)
+        const updated = markTriviaParticipantPlayed(activeParticipant, weeklyKey)
         setParticipant(updated)
         setPhase("start")
         return
@@ -181,10 +165,47 @@ export function DeviceTriviaGame() {
       return
     }
 
-    const updated = markTriviaParticipantPlayed(participant, weeklyKey)
+    const updated = markTriviaParticipantPlayed(activeParticipant, weeklyKey)
     setParticipant(updated)
     setResults((value) => [...value, saved.result])
     setPhase("finished")
+  }
+
+  const next = async () => {
+    if (current + 1 < total) {
+      setCurrent((value) => value + 1)
+      setSelected(null)
+      setRevealed(false)
+      return
+    }
+
+    if (!participant) return
+
+    if (!participant.name) {
+      setPhase("nickname")
+      return
+    }
+
+    await saveResult(participant)
+  }
+
+  const saveNicknameAndResult = async (event: React.FormEvent) => {
+    event.preventDefault()
+    if (!participant || isSaving) return
+
+    setIsSaving(true)
+    setSaveError(null)
+    const registered = await registerTriviaNickname(supabase, participant, nickname)
+    setIsSaving(false)
+
+    if (!registered.ok || !registered.participant) {
+      setSaveError(registered.error ?? "No pudimos guardar ese nickname.")
+      return
+    }
+
+    setParticipant(registered.participant)
+    setNickname(registered.participant.name ?? "")
+    await saveResult(registered.participant)
   }
 
   if (!ready) {
@@ -220,6 +241,7 @@ export function DeviceTriviaGame() {
       <div className="space-y-6">
         <GameHero icon={<Clock className="h-8 w-8" />} eyebrow={`Trivia semanal · ${weeklyKey}`} title="Ya jugaste la trivia de esta semana">
           <p className="mx-auto mt-2 max-w-md text-muted-foreground">Volvé el próximo lunes para una nueva trivia de {WEEKLY_TRIVIA_SIZE} preguntas. Tu resultado ya cuenta para el ranking semanal y el general.</p>
+          {participant?.name && <p className="mt-3 text-sm font-semibold">Jugás como {participant.name}</p>}
         </GameHero>
         <RankingBlocks currentParticipantId={participant?.id} weeklyRanking={weeklyRanking} globalRanking={globalRanking} />
       </div>
@@ -230,34 +252,49 @@ export function DeviceTriviaGame() {
     return (
       <div className="space-y-6">
         <GameHero icon={<ShieldQuestion className="h-8 w-8" />} eyebrow={`Trivia semanal · ${weeklyKey}`} title={`${WEEKLY_TRIVIA_SIZE} preguntas, un solo intento`}>
-          <p className="mx-auto mt-2 max-w-md text-muted-foreground">Podés jugar una vez por semana desde este dispositivo. El puntaje suma al ranking semanal y al ranking general.</p>
+          <p className="mx-auto mt-2 max-w-md text-muted-foreground">Jugá sin registrarte. Tu puntaje suma al ranking semanal y al ranking general.</p>
           <div className="mx-auto mt-6 grid max-w-xl gap-3 sm:grid-cols-3">
             <RulePill label="Preguntas" value={String(WEEKLY_TRIVIA_SIZE)} />
             <RulePill label="Intentos" value="1" />
-            <RulePill label="Ranking" value="Semanal" />
+            <RulePill label="Cuenta" value="No hace falta" />
           </div>
+          {participant?.name && <p className="mt-6 text-sm text-muted-foreground">Jugás como <span className="font-semibold text-foreground">{participant.name}</span></p>}
+          <Button onClick={startGame} size="lg" className="mt-6 rounded-full px-10">
+            Jugar trivia semanal
+          </Button>
+          <p className="mx-auto mt-3 max-w-md text-xs leading-5 text-muted-foreground">Si es tu primera vez, al terminar elegís un nickname único para aparecer en la tabla.</p>
+          {saveError && <p className="mx-auto mt-4 max-w-md rounded-xl border border-primary/20 bg-primary/5 px-3 py-2 text-sm text-primary">{saveError}</p>}
+        </GameHero>
+        <RankingBlocks currentParticipantId={participant?.id} weeklyRanking={weeklyRanking} globalRanking={globalRanking} />
+      </div>
+    )
+  }
 
-          {participant ? (
-            <div className="mt-6">
-              <p className="text-sm text-muted-foreground">Jugás como <span className="font-semibold text-foreground">{participant.name}</span></p>
-              <Button onClick={() => startGame()} size="lg" className="mt-3 rounded-full px-10" disabled={isSaving}>
-                {isSaving ? "Preparando..." : "Jugar trivia semanal"}
-              </Button>
+  if (phase === "nickname") {
+    return (
+      <div className="space-y-6">
+        <GameHero icon={<Trophy className="h-8 w-8" />} eyebrow="Terminaste la trivia" title="Elegí tu nickname">
+          <p className="mt-3 font-display text-5xl font-extrabold text-primary md:text-6xl">{score}<span className="text-3xl text-muted-foreground">/{total}</span></p>
+          <p className="mx-auto mt-3 max-w-md text-muted-foreground">Lo vas a usar para acumular tus puntos y aparecer en la tabla general. Cada nickname es único.</p>
+          <form onSubmit={saveNicknameAndResult} className="mx-auto mt-6 max-w-md space-y-3 rounded-2xl border border-border bg-background p-4 text-left md:p-5">
+            <div className="space-y-2">
+              <Label htmlFor="trivia-nickname">Nickname</Label>
+              <Input
+                id="trivia-nickname"
+                value={nickname}
+                onChange={(event) => setNickname(event.target.value)}
+                autoComplete="nickname"
+                minLength={2}
+                maxLength={30}
+                placeholder="Ej: Millo1901"
+                required
+              />
             </div>
-          ) : (
-            <form onSubmit={startGame} className="mx-auto mt-6 max-w-md space-y-4 rounded-2xl border border-border bg-background p-4 text-left md:p-5">
-              <div className="space-y-2">
-                <Label htmlFor="trivia-name">Nombre</Label>
-                <Input id="trivia-name" value={name} onChange={(event) => setName(event.target.value)} autoComplete="name" placeholder="Tu nombre" required />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="trivia-email">Email</Label>
-                <Input id="trivia-email" value={email} onChange={(event) => setEmail(event.target.value)} type="email" autoComplete="email" placeholder="tu@email.com" required />
-              </div>
-              <p className="text-xs leading-5 text-muted-foreground">Completás estos datos una sola vez. Este navegador los recuerda para las próximas trivias y usamos tu email únicamente para identificar tu participación.</p>
-              <Button type="submit" size="lg" className="w-full rounded-full" disabled={isSaving}>{isSaving ? "Preparando..." : "Jugar trivia semanal"}</Button>
-            </form>
-          )}
+            <p className="text-xs leading-5 text-muted-foreground">Queda guardado en este navegador. Si después vinculás una cuenta, conservás este mismo jugador y sus puntos.</p>
+            <Button type="submit" size="lg" className="w-full rounded-full" disabled={isSaving}>
+              {isSaving ? "Guardando..." : "Guardar resultado"}
+            </Button>
+          </form>
           {saveError && <p className="mx-auto mt-4 max-w-md rounded-xl border border-primary/20 bg-primary/5 px-3 py-2 text-sm text-primary">{saveError}</p>}
         </GameHero>
         <RankingBlocks currentParticipantId={participant?.id} weeklyRanking={weeklyRanking} globalRanking={globalRanking} />
@@ -270,7 +307,8 @@ export function DeviceTriviaGame() {
       <div className="space-y-6">
         <GameHero icon={<Trophy className="h-8 w-8" />} eyebrow="Resultado guardado" title="Resultado de la semana">
           <p className="mt-3 font-display text-5xl font-extrabold text-primary md:text-6xl">{score}<span className="text-3xl text-muted-foreground">/{total}</span></p>
-          <p className="mt-3 text-muted-foreground">Tu resultado quedó guardado. La próxima trivia abre el lunes que viene.</p>
+          <p className="mt-3 text-muted-foreground">Tu resultado quedó guardado y ya suma al ranking general.</p>
+          {!currentUser && <p className="mx-auto mt-3 max-w-md text-xs leading-5 text-muted-foreground">Podés seguir jugando sin cuenta. Si más adelante iniciás sesión o te registrás, este jugador se vincula sin perder sus puntos.</p>}
         </GameHero>
         <RankingBlocks currentParticipantId={participant?.id} weeklyRanking={buildWeeklyRanking(results, weeklyKey)} globalRanking={buildGlobalRanking(results)} />
       </div>
@@ -325,15 +363,11 @@ export function DeviceTriviaGame() {
         {revealed && question.explanation && <p className="mt-5 rounded-xl border border-border bg-muted/40 p-4 text-sm text-muted-foreground">{question.explanation}</p>}
         {saveError && <p className="mt-5 rounded-xl border border-primary/25 bg-primary/10 p-4 text-sm font-semibold text-primary">{saveError}</p>}
         <div className="mt-5 flex justify-end md:mt-6">
-          <Button onClick={next} disabled={!revealed || isSaving} size="lg" className="w-full rounded-full px-8 sm:w-auto">{isSaving ? "Guardando..." : current + 1 >= total ? "Guardar resultado" : "Siguiente"}</Button>
+          <Button onClick={next} disabled={!revealed || isSaving} size="lg" className="w-full rounded-full px-8 sm:w-auto">{isSaving ? "Guardando..." : current + 1 >= total ? "Terminar" : "Siguiente"}</Button>
         </div>
       </div>
     </div>
   )
-}
-
-function saveNewParticipant(participant: TriviaParticipant) {
-  if (typeof window !== "undefined") window.localStorage.setItem("medio-river-trivia-participant-v1", JSON.stringify(participant))
 }
 
 function buildWeeklyRanking(results: PublicTriviaResult[], weeklyKey: string) {
@@ -401,6 +435,10 @@ function RankingBlocks({
 }
 
 function RankingCard({ title, subtitle, rows, currentParticipantId }: { title: string; subtitle: string; rows: Array<{ id: string; name: string; value: string }>; currentParticipantId?: string }) {
+  const currentIndex = currentParticipantId ? rows.findIndex((row) => row.id === currentParticipantId) : -1
+  const visibleRows = rows.slice(0, 20)
+  const currentOutsideTop = currentIndex >= 20 ? rows[currentIndex] : null
+
   return (
     <section className="overflow-hidden rounded-[1.5rem] border border-border bg-card shadow-sm md:rounded-[2rem]">
       <div className="flex items-center justify-between border-b border-border px-5 py-4 md:px-6">
@@ -408,13 +446,20 @@ function RankingCard({ title, subtitle, rows, currentParticipantId }: { title: s
         <Trophy className="h-5 w-5 text-primary" />
       </div>
       <div className="divide-y divide-border">
-        {rows.length === 0 ? <p className="px-5 py-8 text-center text-sm text-muted-foreground">Todavía no hay resultados.</p> : rows.slice(0, 20).map((row, index) => (
+        {rows.length === 0 ? <p className="px-5 py-8 text-center text-sm text-muted-foreground">Todavía no hay resultados.</p> : visibleRows.map((row, index) => (
           <div key={`${row.id}-${index}`} className={cn("flex items-center gap-3 px-5 py-3", row.id === currentParticipantId && "bg-primary/5")}>
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-extrabold">{index < 3 ? <Medal className="h-4 w-4 text-primary" /> : index + 1}</span>
             <span className="min-w-0 flex-1 truncate text-sm font-semibold">{row.name}{row.id === currentParticipantId ? " · Vos" : ""}</span>
             <span className="text-sm font-extrabold text-primary">{row.value}</span>
           </div>
         ))}
+        {currentOutsideTop && (
+          <div className="flex items-center gap-3 bg-primary/5 px-5 py-3">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-extrabold">{currentIndex + 1}</span>
+            <span className="min-w-0 flex-1 truncate text-sm font-semibold">{currentOutsideTop.name} · Vos</span>
+            <span className="text-sm font-extrabold text-primary">{currentOutsideTop.value}</span>
+          </div>
+        )}
       </div>
     </section>
   )

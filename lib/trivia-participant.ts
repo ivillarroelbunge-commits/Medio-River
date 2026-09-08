@@ -5,8 +5,8 @@ const STORAGE_KEY = "medio-river-trivia-participant-v1"
 export interface TriviaParticipant {
   id: string
   deviceId: string
-  name: string
-  email: string
+  name: string | null
+  email: string | null
   playedKeys: string[]
 }
 
@@ -23,20 +23,13 @@ export interface PublicTriviaResult {
 function normalizeParticipant(value: unknown): TriviaParticipant | null {
   if (!value || typeof value !== "object") return null
   const raw = value as Record<string, unknown>
-  if (
-    typeof raw.id !== "string" ||
-    typeof raw.deviceId !== "string" ||
-    typeof raw.name !== "string" ||
-    typeof raw.email !== "string"
-  ) {
-    return null
-  }
+  if (typeof raw.id !== "string" || typeof raw.deviceId !== "string") return null
 
   return {
     id: raw.id,
     deviceId: raw.deviceId,
-    name: raw.name,
-    email: raw.email,
+    name: typeof raw.name === "string" && raw.name.trim() ? raw.name.trim() : null,
+    email: typeof raw.email === "string" && raw.email.trim() ? raw.email.trim().toLowerCase() : null,
     playedKeys: Array.isArray(raw.playedKeys) ? raw.playedKeys.filter((item): item is string => typeof item === "string") : [],
   }
 }
@@ -62,12 +55,12 @@ export function clearTriviaParticipant() {
   window.localStorage.removeItem(STORAGE_KEY)
 }
 
-export function createTriviaParticipant(name: string, email: string): TriviaParticipant {
+export function createTriviaParticipant(): TriviaParticipant {
   return {
     id: crypto.randomUUID(),
     deviceId: crypto.randomUUID(),
-    name: name.trim(),
-    email: email.trim().toLowerCase(),
+    name: null,
+    email: null,
     playedKeys: [],
   }
 }
@@ -81,16 +74,82 @@ export function markTriviaParticipantPlayed(participant: TriviaParticipant, dail
   return next
 }
 
-export async function ensureTriviaParticipant(supabase: SupabaseClient, participant: TriviaParticipant) {
+export async function resolveTriviaParticipant(supabase: SupabaseClient, participant: TriviaParticipant) {
+  const { data, error } = await supabase.rpc("resolve_trivia_player", {
+    p_player_id: participant.id,
+    p_device_id: participant.deviceId,
+  })
+
+  if (error) return { ok: false as const, error: error.message }
+  const row = Array.isArray(data) ? data[0] : null
+  if (!row) return { ok: true as const, participant: null }
+
+  return {
+    ok: true as const,
+    participant: {
+      ...participant,
+      id: String(row.player_id),
+      deviceId: String(row.device_id),
+      name: String(row.nickname),
+    } satisfies TriviaParticipant,
+  }
+}
+
+export async function syncTriviaParticipantWithAccount(supabase: SupabaseClient, participant: TriviaParticipant | null) {
+  const { data, error } = await supabase.rpc("sync_trivia_player", {
+    p_player_id: participant?.id ?? null,
+    p_device_id: participant?.deviceId ?? null,
+  })
+
+  if (error) return { ok: false as const, error: error.message }
+  const row = Array.isArray(data) ? data[0] : null
+  if (!row) return { ok: true as const, participant }
+
+  const synced: TriviaParticipant = {
+    id: String(row.player_id),
+    deviceId: String(row.device_id),
+    name: String(row.nickname),
+    email: participant?.email ?? null,
+    playedKeys: participant?.playedKeys ?? [],
+  }
+  saveTriviaParticipant(synced)
+  return { ok: true as const, participant: synced }
+}
+
+export async function registerTriviaNickname(
+  supabase: SupabaseClient,
+  participant: TriviaParticipant,
+  nickname: string,
+) {
+  const normalizedNickname = nickname.trim()
+  if (normalizedNickname.length < 2 || normalizedNickname.length > 30) {
+    return { ok: false as const, invalidNickname: true as const, error: "El nickname debe tener entre 2 y 30 caracteres." }
+  }
+
+  const resolved = await resolveTriviaParticipant(supabase, participant)
+  if (!resolved.ok) return resolved
+  if (resolved.participant) {
+    saveTriviaParticipant(resolved.participant)
+    return { ok: true as const, participant: resolved.participant }
+  }
+
   const { error } = await supabase.from("trivia_participants").insert({
     id: participant.id,
     device_id: participant.deviceId,
-    display_name: participant.name,
+    display_name: normalizedNickname,
     email: participant.email,
   })
 
-  if (!error || error.code === "23505") return { ok: true as const }
-  return { ok: false as const, error: error.message }
+  if (error) {
+    if (error.code === "23505") {
+      return { ok: false as const, nicknameTaken: true as const, error: "Ese nickname ya está ocupado. Probá con otro." }
+    }
+    return { ok: false as const, error: error.message }
+  }
+
+  const next = { ...participant, name: normalizedNickname }
+  saveTriviaParticipant(next)
+  return { ok: true as const, participant: next }
 }
 
 export async function fetchPublicTriviaResults(supabase: SupabaseClient): Promise<PublicTriviaResult[]> {
@@ -119,6 +178,10 @@ export async function submitDeviceTriviaResult(
   totalQuestions: number,
   dailyKey: string,
 ) {
+  if (!participant.name) {
+    return { ok: false as const, missingNickname: true as const, error: "Elegí un nickname antes de guardar el resultado." }
+  }
+
   const { data, error } = await supabase
     .from("trivia_results")
     .insert({
@@ -139,7 +202,7 @@ export async function submitDeviceTriviaResult(
       return { ok: false as const, alreadyPlayed: true as const, error: "Ya jugaste la trivia de esta semana." }
     }
     if (error.code === "23514") {
-      return { ok: false as const, invalidDevice: true as const, error: "No pudimos validar este dispositivo. Volvé a ingresar tus datos." }
+      return { ok: false as const, invalidDevice: true as const, error: "No pudimos validar este jugador en este dispositivo." }
     }
     return { ok: false as const, error: error.message }
   }
