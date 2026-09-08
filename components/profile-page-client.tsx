@@ -4,6 +4,7 @@ import Link from "next/link"
 import { useEffect, useState } from "react"
 import { CalendarDays, Camera, FilePenLine, Mail, ShieldCheck } from "lucide-react"
 import { useAppState } from "@/components/app-state-provider"
+import { ProfilePlayerRatings } from "@/components/profile-player-ratings"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -143,6 +144,8 @@ export function ProfilePageClient() {
           </div>
         </div>
       </section>
+
+      <ProfilePlayerRatings userId={currentUser.id} />
 
       <section id="resultados" className="space-y-5 rounded-2xl border border-border bg-card p-4 shadow-sm md:space-y-6 md:p-6">
         <div>
