@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useEffect, useState } from "react"
-import { ChevronDown, FilePenLine, LogIn, LogOut, ShieldCheck, Trophy, User2, UserPlus } from "lucide-react"
+import { ChevronDown, FilePenLine, LogIn, LogOut, ShieldCheck, Trophy, User2 } from "lucide-react"
 import { useAppState } from "@/components/app-state-provider"
 import { Badge } from "@/components/ui/badge"
 import { getRoleBadgeClass, getRoleLabel } from "@/lib/roles"
@@ -22,20 +22,13 @@ export function HeaderUserMenu() {
 
   if (!currentUser) {
     return (
-      <div className="hidden items-center gap-2 md:flex">
+      <div className="hidden items-center md:flex">
         <Link
           href="/iniciar-sesion"
           className="inline-flex h-10 items-center gap-2 rounded-full px-4 text-sm font-semibold text-foreground transition hover:bg-muted"
         >
           <LogIn className="h-4 w-4" />
           Iniciar sesión
-        </Link>
-        <Link
-          href="/registrarse"
-          className="inline-flex h-10 items-center gap-2 rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
-        >
-          <UserPlus className="h-4 w-4" />
-          Registrarse
         </Link>
       </div>
     )
