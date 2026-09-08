@@ -1,5 +1,6 @@
 const ARTICLE_METADATA_ENDPOINT =
   "https://amftkabquesgzsurkols.supabase.co/functions/v1/article-metadata"
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_En3zWr4e2WbvV7MfN32bEA_BXZvOLli"
 
 export interface SocialArticleMetadata {
   article: {
@@ -26,7 +27,10 @@ export async function fetchSocialArticleMetadata(slug: string): Promise<SocialAr
 
     const response = await fetch(url, {
       cache: "no-store",
-      headers: { Accept: "application/json" },
+      headers: {
+        Accept: "application/json",
+        apikey: SUPABASE_PUBLISHABLE_KEY,
+      },
     })
 
     if (!response.ok) return null
