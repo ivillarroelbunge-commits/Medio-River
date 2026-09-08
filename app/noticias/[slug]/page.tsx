@@ -18,7 +18,7 @@ import { fetchNewsArticleBySlug } from "@/lib/supabase/news"
 
 export default function NoticiaDetallePage() {
   const params = useParams<{ slug: string }>()
-  const { news, isHydrated } = useAppState()
+  const { news, matches, isHydrated } = useAppState()
   const stateArticle = news.find((item) => item.slug === params.slug)
   const [loadedArticle, setLoadedArticle] = useState<NewsArticle | null>(null)
   const article = loadedArticle ?? stateArticle
@@ -81,6 +81,9 @@ export default function NoticiaDetallePage() {
   }
 
   const isRatingsArticle = article.articleType === "player_ratings" && Boolean(article.matchId)
+  const shouldShowArticleContent = !isRatingsArticle
+  const displayTag = isRatingsArticle ? "Opinión" : article.tag
+  const match = article.matchId ? matches.find((item) => item.id === article.matchId) : undefined
 
   return (
     <div className="flex min-h-dvh flex-col">
@@ -91,8 +94,8 @@ export default function NoticiaDetallePage() {
           <header className="space-y-3 pt-4 md:pt-6">
             <h1 className="font-display text-[2rem] font-extrabold tracking-tight leading-tight md:text-5xl">{article.title}</h1>
             <div className="flex flex-wrap gap-2">
-              <span className={`inline-flex rounded-full px-3 py-1 text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-white ${article.tag === "Opinión" ? "bg-black" : "bg-primary"}`}>
-                {article.tag}
+              <span className={`inline-flex rounded-full px-3 py-1 text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-white ${displayTag === "Opinión" ? "bg-black" : "bg-primary"}`}>
+                {displayTag}
               </span>
               <span className="inline-flex rounded-full bg-primary/8 px-3 py-1 text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-primary">
                 {normalizeNewsCategory(article.category)}
@@ -110,10 +113,10 @@ export default function NoticiaDetallePage() {
           {isRatingsArticle ? (
             <PlayerRatingsArticle matchId={article.matchId!} />
           ) : (
-            <NewsImage article={article} className="h-[16rem] w-full rounded-2xl md:h-[30rem] md:rounded-3xl" />
+            <NewsImage article={article} match={match} className="h-[16rem] w-full rounded-2xl md:h-[30rem] md:rounded-3xl" />
           )}
 
-          {article.content.length > 0 && (
+          {shouldShowArticleContent && article.content.length > 0 && (
             <div className="news-rich-content space-y-4 text-[1rem] leading-7 text-black md:space-y-5 md:text-[1.08rem] md:leading-8">
               {article.content.some(hasHtmlTags) ? (
                 <div dangerouslySetInnerHTML={{ __html: sanitizeStoredNewsHtml(article.content.join("")) }} />
@@ -134,7 +137,7 @@ export default function NoticiaDetallePage() {
               <Link href="/noticias" className="hidden text-sm font-semibold text-primary hover:underline sm:inline-flex">Ver todas</Link>
             </div>
             <div className="grid gap-4 md:grid-cols-3 md:gap-6">
-              {relatedArticles.map((item) => <NewsCard key={item.id} article={item} />)}
+              {relatedArticles.map((item) => <NewsCard key={item.id} article={item} match={item.matchId ? matches.find((match) => match.id === item.matchId) : undefined} />)}
             </div>
           </section>
         )}

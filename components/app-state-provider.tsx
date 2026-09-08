@@ -45,6 +45,7 @@ interface RegisterInput {
   email: string
   password: string
   captchaToken?: string
+  next?: string
 }
 
 interface NewsInput {
@@ -100,7 +101,7 @@ interface AppStateContextValue {
   triviaResults: TriviaResult[]
   login: (email: string, password: string, captchaToken?: string) => Promise<AuthActionResult>
   register: (input: RegisterInput) => Promise<AuthActionResult>
-  loginWithProvider: (provider: Extract<Provider, "google" | "x">) => Promise<AuthActionResult>
+  loginWithProvider: (provider: Extract<Provider, "google" | "x">, next?: string) => Promise<AuthActionResult>
   logout: () => Promise<void>
   updateProfile: (input: { name: string; avatar?: string }) => Promise<ProfileActionResult>
   saveNews: (input: NewsInput) => Promise<ProfileActionResult>
@@ -649,7 +650,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         email: input.email.trim(),
         password: input.password,
         options: {
-          emailRedirectTo: getAuthCallbackUrl("/cuenta-confirmada"),
+          emailRedirectTo: getAuthCallbackUrl(input.next ?? "/cuenta-confirmada"),
           data: {
             name: input.name.trim(),
           },
@@ -681,12 +682,12 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         }
       }
     },
-    async loginWithProvider(provider) {
+    async loginWithProvider(provider, next = "/perfil") {
       try {
         const { error } = await withTimeout(supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: getAuthCallbackUrl("/perfil"),
+          redirectTo: getAuthCallbackUrl(next),
         },
       }), AUTH_ACTION_TIMEOUT_MS, `Supabase tardó demasiado en iniciar sesión con ${provider}.`)
 

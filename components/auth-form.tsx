@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Loader2, LogIn, UserPlus } from "lucide-react"
 import type { Provider } from "@supabase/supabase-js"
@@ -15,16 +15,19 @@ type SocialProvider = Extract<Provider, "google" | "x">
 
 export function LoginForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { login, loginWithProvider } = useAppState()
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [captchaToken, setCaptchaToken] = useState<string | null>(null)
   const [pendingProvider, setPendingProvider] = useState<SocialProvider | null>(null)
+  const nextPath = getSafeNextPath(searchParams.get("next"))
+  const registerHref = nextPath ? `/registrarse?next=${encodeURIComponent(nextPath)}` : "/registrarse"
 
   const handleOAuth = async (provider: SocialProvider) => {
     setError(null)
     setPendingProvider(provider)
-    const result = await loginWithProvider(provider)
+    const result = await loginWithProvider(provider, nextPath ?? "/perfil")
     setPendingProvider(null)
 
     if (!result.ok) {
@@ -60,7 +63,7 @@ export function LoginForm() {
           return
         }
 
-        router.push(result.redirectTo ?? "/perfil")
+        router.push(nextPath ?? result.redirectTo ?? "/perfil")
         router.refresh()
       }}
     >
@@ -82,7 +85,7 @@ export function LoginForm() {
       </Button>
       <p className="text-center text-sm text-muted-foreground">
         ¿No tenés cuenta?{" "}
-        <Link href="/registrarse" className="font-semibold text-primary hover:underline">
+        <Link href={registerHref} className="font-semibold text-primary hover:underline">
           Registrate
         </Link>
       </p>
@@ -92,17 +95,20 @@ export function LoginForm() {
 
 export function RegisterForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { register, loginWithProvider } = useAppState()
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [captchaToken, setCaptchaToken] = useState<string | null>(null)
   const [pendingProvider, setPendingProvider] = useState<SocialProvider | null>(null)
   const isEmailRateLimited = Boolean(error?.toLowerCase().includes("limitó temporalmente"))
+  const nextPath = getSafeNextPath(searchParams.get("next"))
+  const loginHref = nextPath ? `/iniciar-sesion?next=${encodeURIComponent(nextPath)}` : "/iniciar-sesion"
 
   const handleOAuth = async (provider: SocialProvider) => {
     setError(null)
     setPendingProvider(provider)
-    const result = await loginWithProvider(provider)
+    const result = await loginWithProvider(provider, nextPath ?? "/perfil")
     setPendingProvider(null)
 
     if (!result.ok) {
@@ -130,6 +136,7 @@ export function RegisterForm() {
           email: String(formData.get("email") || ""),
           password: String(formData.get("password") || ""),
           captchaToken: captchaToken ?? undefined,
+          next: nextPath ?? undefined,
         })
 
         setIsSubmitting(false)
@@ -139,7 +146,7 @@ export function RegisterForm() {
           return
         }
 
-        router.push(result.redirectTo ?? "/perfil")
+        router.push(getAuthRedirectPath(result.redirectTo, nextPath))
         router.refresh()
       }}
     >
@@ -170,7 +177,7 @@ export function RegisterForm() {
       </Button>
       <p className="text-center text-sm text-muted-foreground">
         ¿Ya tenés cuenta?{" "}
-        <Link href="/iniciar-sesion" className="font-semibold text-primary hover:underline">
+        <Link href={loginHref} className="font-semibold text-primary hover:underline">
           Iniciá sesión
         </Link>
       </p>
@@ -213,6 +220,22 @@ function SocialAuthButtons({
       </Button>
     </div>
   )
+}
+
+function getSafeNextPath(next: string | null) {
+  if (!next?.startsWith("/") || next.startsWith("//")) return null
+  return next
+}
+
+function getAuthRedirectPath(redirectTo: string | undefined, nextPath: string | null) {
+  if (!nextPath) return redirectTo ?? "/perfil"
+  if (!redirectTo || redirectTo === "/perfil") return nextPath
+  if (!redirectTo.startsWith("/confirmar-cuenta")) return redirectTo
+
+  const [pathname, query = ""] = redirectTo.split("?")
+  const searchParams = new URLSearchParams(query)
+  searchParams.set("next", nextPath)
+  return `${pathname}?${searchParams.toString()}`
 }
 
 function AuthDivider() {

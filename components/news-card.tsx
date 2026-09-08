@@ -1,17 +1,19 @@
 import Link from "next/link"
 import { NewsImage } from "@/components/news-image"
-import type { NewsArticle } from "@/lib/data/types"
+import type { Match, NewsArticle } from "@/lib/data/types"
 import { normalizeNewsCategory } from "@/lib/news-taxonomy"
 import { timeAgo } from "@/lib/format"
 
-export function NewsCard({ article }: { article: NewsArticle }) {
+export function NewsCard({ article, match }: { article: NewsArticle; match?: Match }) {
+  const displayTag = article.articleType === "player_ratings" ? "Opinión" : article.tag
+
   return (
     <article className="flex w-full flex-col overflow-hidden rounded-[1.35rem] border border-border bg-card shadow-[0_10px_26px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:shadow-[0_14px_30px_rgba(15,23,42,0.12)] md:rounded-[1.65rem]">
       <Link href={`/noticias/${article.slug}`} className="group flex h-full flex-col">
         <div className="relative">
-          <NewsImage article={article} className="h-36 w-full md:h-44" />
-          <span className={`absolute left-3 top-3 inline-flex rounded-full px-3 py-1 text-[0.65rem] font-extrabold uppercase tracking-[0.08em] text-white shadow-sm md:left-4 md:top-4 md:px-3.5 md:py-1.5 md:text-xs ${article.tag === "Opinión" ? "bg-black" : "bg-primary"}`}>
-            {article.tag}
+          <NewsImage article={article} match={match} className="h-36 w-full md:h-44" />
+          <span className={`absolute left-3 top-3 inline-flex rounded-full px-3 py-1 text-[0.65rem] font-extrabold uppercase tracking-[0.08em] text-white shadow-sm md:left-4 md:top-4 md:px-3.5 md:py-1.5 md:text-xs ${displayTag === "Opinión" ? "bg-black" : "bg-primary"}`}>
+            {displayTag}
           </span>
         </div>
 

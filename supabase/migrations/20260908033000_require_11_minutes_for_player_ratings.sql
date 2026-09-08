@@ -255,7 +255,7 @@ begin
       timezone('utc'::text, now()),
       'Puntuaciones',
       new.competition,
-      'Información',
+      'Opinión',
       false,
       'player_ratings',
       new.id

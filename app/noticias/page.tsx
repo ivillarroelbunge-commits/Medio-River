@@ -9,7 +9,7 @@ import { SiteFooter } from "@/components/site-footer"
 import { SiteHeader } from "@/components/site-header"
 import { Button } from "@/components/ui/button"
 import { useAppState } from "@/components/app-state-provider"
-import type { NewsArticle } from "@/lib/data/types"
+import type { Match, NewsArticle } from "@/lib/data/types"
 import { timeAgo } from "@/lib/format"
 import { defaultNewsCategories, normalizeNewsCategory } from "@/lib/news-taxonomy"
 
@@ -19,7 +19,7 @@ const INITIAL_VISIBLE = 9
 const LOAD_MORE_STEP = 6
 
 export default function NoticiasPage() {
-  const { news, isHydrated } = useAppState()
+  const { news, matches, isHydrated } = useAppState()
   const [query, setQuery] = useState("")
   const [tag, setTag] = useState("Todas")
   const [category, setCategory] = useState("Todas")
@@ -92,10 +92,10 @@ export default function NoticiasPage() {
 
           {featuredStories.length > 0 && (
             <section className="grid gap-3 sm:gap-4 md:gap-6 xl:h-[34rem] xl:grid-cols-[1.9fr_0.95fr] xl:items-stretch">
-              <FeaturedLeadCard article={rotatingFeaturedStories[0]} />
+              <FeaturedLeadCard article={rotatingFeaturedStories[0]} match={findArticleMatch(rotatingFeaturedStories[0], matches)} />
               <div className="flex flex-col gap-4 md:gap-6 xl:h-full">
                 {rotatingFeaturedStories.slice(1).map((article) => (
-                  <FeaturedSideCard key={article.id} article={article} />
+                  <FeaturedSideCard key={article.id} article={article} match={findArticleMatch(article, matches)} />
                 ))}
               </div>
             </section>
@@ -111,7 +111,7 @@ export default function NoticiasPage() {
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2 md:gap-6 xl:grid-cols-3">
-            {visibleArticles.map((article) => <NewsCard key={article.id} article={article} />)}
+            {visibleArticles.map((article) => <NewsCard key={article.id} article={article} match={findArticleMatch(article, matches)} />)}
           </div>
 
           {hasMore && (
@@ -132,6 +132,10 @@ export default function NoticiasPage() {
 
 function mergeNewsOptions(defaults: string[], values: Array<string | undefined>) {
   return Array.from(new Set([...defaults, ...values].filter((value): value is string => Boolean(value?.trim())).map((value) => normalizeNewsCategory(value)).filter(Boolean)))
+}
+
+function findArticleMatch(article: NewsArticle, matches: Match[]) {
+  return article.matchId ? matches.find((match) => match.id === article.matchId) : undefined
 }
 
 function FilterSelect({
@@ -172,11 +176,11 @@ function FilterSelect({
   )
 }
 
-function FeaturedLeadCard({ article }: { article: NewsArticle }) {
+function FeaturedLeadCard({ article, match }: { article: NewsArticle; match?: Match }) {
   return (
     <article className="overflow-hidden rounded-[1.5rem] border border-border shadow-[0_12px_34px_rgba(15,23,42,0.12)] md:rounded-[2rem] xl:h-full">
       <Link href={`/noticias/${article.slug}`} className="group relative block min-h-[16rem] overflow-hidden sm:min-h-[18rem] md:min-h-[30rem] xl:h-full xl:min-h-0">
-        <NewsImage article={article} className="absolute inset-0 h-full w-full" imageClassName="transition duration-500 group-hover:scale-[1.02]" />
+        <NewsImage article={article} match={match} className="absolute inset-0 h-full w-full" imageClassName="transition duration-500 group-hover:scale-[1.02]" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/84 via-black/26 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 pt-20 px-4 pb-4 sm:pt-24 md:px-7 md:pb-7 xl:px-8 xl:pb-8">
           <div className="flex flex-wrap gap-1.5 sm:gap-2">
@@ -201,11 +205,11 @@ function FeaturedLeadCard({ article }: { article: NewsArticle }) {
   )
 }
 
-function FeaturedSideCard({ article }: { article: NewsArticle }) {
+function FeaturedSideCard({ article, match }: { article: NewsArticle; match?: Match }) {
   return (
     <article className="overflow-hidden rounded-[1.5rem] border border-border bg-card shadow-sm md:rounded-[2rem] xl:flex-1">
       <Link href={`/noticias/${article.slug}`} className="grid h-full grid-cols-[5.5rem_1fr] gap-3 p-3 sm:grid-cols-[9.5rem_1fr] sm:items-start md:gap-4 md:p-5 xl:h-full">
-        <NewsImage article={article} className="h-full min-h-[6.5rem] w-full rounded-[1rem] sm:min-h-[9.5rem] md:rounded-[1.35rem]" />
+        <NewsImage article={article} match={match} className="h-full min-h-[6.5rem] w-full rounded-[1rem] sm:min-h-[9.5rem] md:rounded-[1.35rem]" />
         <div className="flex h-full flex-col">
           <div>
             <p className="text-[0.72rem] font-extrabold uppercase tracking-[0.08em] text-primary">{normalizeNewsCategory(article.category)}</p>

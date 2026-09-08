@@ -157,7 +157,7 @@ function UpcomingMatchup({ match }: { match: Match }) {
       <MobileTeamName team={homeTeam} className="text-right md:hidden" />
       <TeamName team={homeTeam} className="hidden text-right font-display text-[0.72rem] font-extrabold leading-tight md:inline md:text-lg" />
       <TeamCrest team={homeTeam} size="sm" className="h-7 w-7 md:h-12 md:w-12" />
-      <span className="mx-1.5 text-center text-[0.62rem] font-extrabold tabular-nums text-foreground md:mx-0 md:rounded-full md:bg-background/85 md:px-4 md:py-1.5 md:text-sm md:shadow-sm md:ring-1 md:ring-border/70">
+      <span className="mx-1.5 text-center text-[0.68rem] font-extrabold tabular-nums text-foreground md:mx-0 md:rounded-full md:bg-background/85 md:px-4 md:py-1.5 md:text-sm md:shadow-sm md:ring-1 md:ring-border/70">
         {kickoff}
       </span>
       <TeamCrest team={awayTeam} size="sm" className="h-7 w-7 md:h-12 md:w-12" />
@@ -274,7 +274,7 @@ function MobileTeamName({ team, className }: { team: string; className?: string 
   const lines = getMobileTeamNameLines(team)
 
   return (
-    <span className={cn("block min-w-0 font-display text-[0.64rem] font-extrabold leading-[1.05]", className)}>
+    <span className={cn("block min-w-0 font-display text-[0.7rem] font-extrabold leading-[1.05]", className)}>
       {lines.map((line, index) => (
         <span key={`${line}-${index}`} className="block whitespace-nowrap">
           {line}

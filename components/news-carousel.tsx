@@ -4,9 +4,9 @@ import Link from "next/link"
 import { useEffect, useState } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { NewsImage } from "@/components/news-image"
-import type { NewsArticle } from "@/lib/data/types"
+import type { Match, NewsArticle } from "@/lib/data/types"
 
-export function NewsCarousel({ items }: { items: NewsArticle[] }) {
+export function NewsCarousel({ items, matches = [] }: { items: NewsArticle[]; matches?: Match[] }) {
   const [index, setIndex] = useState(0)
   const [direction, setDirection] = useState<"next" | "previous">("next")
 
@@ -25,6 +25,7 @@ export function NewsCarousel({ items }: { items: NewsArticle[] }) {
 
   const article = items[index]
   if (!article) return null
+  const match = article.matchId ? matches.find((item) => item.id === article.matchId) : undefined
 
   const goPrevious = () => {
     setDirection("previous")
@@ -44,7 +45,7 @@ export function NewsCarousel({ items }: { items: NewsArticle[] }) {
 
   return (
     <section className="relative overflow-hidden rounded-[1.5rem] bg-secondary text-secondary-foreground shadow-lg md:rounded-[2rem]">
-      <NewsImage key={`image-${article.id}`} article={article} className={`absolute inset-0 h-full w-full ${direction === "next" ? "carousel-image-enter-next" : "carousel-image-enter-previous"}`} imageClassName="opacity-80" />
+      <NewsImage key={`image-${article.id}`} article={article} match={match} className={`absolute inset-0 h-full w-full ${direction === "next" ? "carousel-image-enter-next" : "carousel-image-enter-previous"}`} imageClassName="opacity-80" />
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/22 to-black/0" />
 
       {items.length > 1 && (

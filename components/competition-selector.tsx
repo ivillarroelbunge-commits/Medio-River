@@ -3,10 +3,10 @@
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import type { ReactNode } from "react"
-import { ChevronDown } from "lucide-react"
 import { competitionPanels } from "@/lib/data"
 import type { CompetitionPanelData } from "@/lib/data/types"
 import { TeamCrest } from "@/components/team-crest"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
 
 const shortTeamNames: Record<string, string> = {
@@ -133,20 +133,25 @@ export function CompetitionSelector() {
 
   return (
     <div className="space-y-4 md:space-y-6">
-      <label className="relative block w-full md:max-w-xs">
-        <select
-          value={active}
-          onChange={(event) => setActive(event.target.value as CompetitionPanelData["key"])}
-          className="h-10 w-full appearance-none rounded-2xl border border-border bg-card px-4 pr-10 text-sm font-bold text-foreground shadow-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 md:h-11 md:text-sm"
+      <Select value={active} onValueChange={(value) => setActive(value as CompetitionPanelData["key"])}>
+        <SelectTrigger
+          aria-label="Tabla"
+          className="h-9 w-full rounded-xl border-border bg-card px-3 text-xs font-bold shadow-sm hover:border-primary/40 focus-visible:border-primary focus-visible:ring-primary/20 md:h-11 md:max-w-xs md:rounded-2xl md:px-4 md:text-sm"
         >
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent className="overflow-hidden rounded-2xl border-border bg-card p-1.5 shadow-xl">
           {panels.map((item) => (
-            <option key={item.key} value={item.key}>
+            <SelectItem
+              key={item.key}
+              value={item.key}
+              className="rounded-xl px-3 py-2 text-xs font-bold text-foreground focus:bg-primary/10 focus:text-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground md:text-sm"
+            >
               {item.label}
-            </option>
+            </SelectItem>
           ))}
-        </select>
-        <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-      </label>
+        </SelectContent>
+      </Select>
 
       {panel.key === "apertura" ? (
         <>
@@ -260,7 +265,7 @@ function Standings({ panel }: { panel: CompetitionPanelData }) {
   return (
     <div>
       <div className="p-2 md:overflow-x-auto md:p-4">
-        <table className="w-full table-fixed text-[0.58rem] md:min-w-full md:table-auto md:text-sm">
+        <table className="w-full table-fixed text-[0.6rem] md:min-w-full md:table-auto md:text-sm">
           <thead>
             <tr className="text-left text-[0.52rem] uppercase tracking-[0.08em] text-muted-foreground md:text-xs md:tracking-[0.18em]">
               <th className="w-[2rem] px-0.5 py-2 md:w-12 md:px-3">Pos</th>
@@ -290,9 +295,9 @@ function Standings({ panel }: { panel: CompetitionPanelData }) {
                   </span>
                 </td>
                 <td className="min-w-0 px-0.5 py-2 font-semibold md:px-3 md:py-3">
-                  <div className="flex min-w-0 items-center gap-1 md:gap-3">
-                    <TeamCrest team={row.team} size="sm" className="h-4 w-4 shrink-0 md:h-8 md:w-8" />
-                    <span className="truncate">
+                  <div className="flex min-w-0 items-center gap-1.5 md:gap-3">
+                    <TeamCrest team={row.team} size="sm" className="h-6 w-6 shrink-0 md:h-8 md:w-8" />
+                    <span className="truncate text-[0.78rem] md:text-sm">
                       <span className="md:hidden">{shortTeamNames[row.team] ?? row.team}</span>
                       <span className="hidden md:inline">{row.team}</span>
                     </span>

@@ -1,6 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
+import { useAppState } from "@/components/app-state-provider"
 import { NewsCard } from "@/components/news-card"
 import type { NewsArticle } from "@/lib/data/types"
 import { defaultNewsCategories, normalizeNewsCategory } from "@/lib/news-taxonomy"
@@ -10,6 +11,7 @@ const defaultCategories = defaultNewsCategories
 const defaultCompetitions = ["Torneo Clausura", "Copa Sudamericana", "Copa Argentina", "Torneo Apertura"]
 
 export function NewsList({ articles }: { articles: NewsArticle[] }) {
+  const { matches } = useAppState()
   const [tag, setTag] = useState("Todas")
   const [category, setCategory] = useState("Todas")
   const [competition, setCompetition] = useState("Todas")
@@ -31,7 +33,9 @@ export function NewsList({ articles }: { articles: NewsArticle[] }) {
         <FilterRow label="Competencia" options={competitions} value={competition} onChange={setCompetition} />
       </div>
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {filtered.map((article) => <NewsCard key={article.id} article={article} />)}
+        {filtered.map((article) => (
+          <NewsCard key={article.id} article={article} match={article.matchId ? matches.find((match) => match.id === article.matchId) : undefined} />
+        ))}
       </div>
     </div>
   )

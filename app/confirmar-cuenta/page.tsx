@@ -13,9 +13,11 @@ export const metadata: Metadata = {
 export default async function ConfirmarCuentaPage({
   searchParams,
 }: {
-  searchParams: Promise<{ email?: string }>
+  searchParams: Promise<{ email?: string; next?: string }>
 }) {
-  const { email } = await searchParams
+  const { email, next } = await searchParams
+  const nextPath = next?.startsWith("/") && !next.startsWith("//") ? next : null
+  const loginHref = nextPath ? `/iniciar-sesion?next=${encodeURIComponent(nextPath)}` : "/iniciar-sesion"
 
   return (
     <div className="flex min-h-dvh flex-col">
@@ -47,7 +49,7 @@ export default async function ConfirmarCuentaPage({
               </p>
               <div className="flex flex-col justify-center gap-2 sm:flex-row">
                 <Button asChild className="rounded-full">
-                  <Link href="/iniciar-sesion">Ir a iniciar sesión</Link>
+                  <Link href={loginHref}>Ir a iniciar sesión</Link>
                 </Button>
                 <Button asChild variant="outline" className="rounded-full">
                   <Link href="/">Volver al inicio</Link>
