@@ -9,7 +9,8 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { getRoleBadgeClass, getRoleLabel } from "@/lib/roles"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { getRoleLabel } from "@/lib/roles"
 
 export function ProfilePageClient() {
   const { currentUser, ranking, getUserResults, getUserTotalScore, updateProfile } = useAppState()
@@ -39,60 +40,93 @@ export function ProfilePageClient() {
   })
 
   return (
-    <div className="space-y-5 md:space-y-6">
+    <Tabs defaultValue="datos" className="gap-5 md:gap-6">
       <section className="overflow-hidden rounded-[1.5rem] border border-border bg-card shadow-sm md:rounded-[2rem]">
-        <div className="relative min-h-36 bg-[radial-gradient(circle_at_20%_20%,rgba(220,38,38,0.38),transparent_32%),linear-gradient(135deg,#0b0b0d,#1b1b20_55%,#991b1b)] px-5 py-6 text-white md:min-h-40 md:px-8 md:py-7">
+        <div className="relative bg-[radial-gradient(circle_at_20%_20%,rgba(220,38,38,0.38),transparent_32%),linear-gradient(135deg,#0b0b0d,#1b1b20_55%,#991b1b)] px-5 pb-0 pt-6 text-white md:px-8 md:pt-7">
           <div className="absolute inset-0 opacity-25 [background-image:linear-gradient(120deg,transparent_0%,transparent_46%,white_47%,white_50%,transparent_51%,transparent_100%)]" />
-          <div className="relative flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
-            <div>
-              <h1 className="break-words font-display text-[2rem] font-extrabold tracking-tight leading-none md:text-5xl">{currentUser.name}</h1>
-            </div>
+
+          <div className="relative flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <h1 className="break-words font-display text-[2rem] font-extrabold leading-none tracking-tight md:text-5xl">
+              {currentUser.name}
+            </h1>
             <Badge variant="outline" className="w-fit rounded-full border-white/20 bg-white/10 px-4 py-1.5 text-white">
               {getRoleLabel(currentUser.role)}
             </Badge>
           </div>
+
+          <TabsList className="relative mt-6 grid h-12 w-full max-w-md grid-cols-3 rounded-none bg-transparent p-0 text-white/65 md:mt-7">
+            <TabsTrigger
+              value="datos"
+              className="h-12 rounded-none border-0 border-b-2 border-transparent bg-transparent px-2 font-bold text-white/65 shadow-none hover:text-white data-[state=active]:border-white data-[state=active]:bg-transparent data-[state=active]:text-white data-[state=active]:shadow-none dark:data-[state=active]:bg-transparent"
+            >
+              Datos
+            </TabsTrigger>
+            <TabsTrigger
+              value="puntuaciones"
+              className="h-12 rounded-none border-0 border-b-2 border-transparent bg-transparent px-2 font-bold text-white/65 shadow-none hover:text-white data-[state=active]:border-white data-[state=active]:bg-transparent data-[state=active]:text-white data-[state=active]:shadow-none dark:data-[state=active]:bg-transparent"
+            >
+              Puntuaciones
+            </TabsTrigger>
+            <TabsTrigger
+              value="trivia"
+              className="h-12 rounded-none border-0 border-b-2 border-transparent bg-transparent px-2 font-bold text-white/65 shadow-none hover:text-white data-[state=active]:border-white data-[state=active]:bg-transparent data-[state=active]:text-white data-[state=active]:shadow-none dark:data-[state=active]:bg-transparent"
+            >
+              Trivia
+            </TabsTrigger>
+          </TabsList>
         </div>
+      </section>
 
-        <div className="grid gap-5 p-4 md:gap-6 md:p-8 xl:grid-cols-[0.85fr_1.15fr]">
-          <div className="space-y-5">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center md:gap-5">
-              <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-[1.35rem] bg-primary/10 text-primary ring-1 ring-border md:h-32 md:w-32 md:rounded-[1.75rem]">
-                {avatar ? <img src={avatar} alt={name} className="h-full w-full object-cover" /> : <div className="flex h-full w-full items-center justify-center text-5xl font-extrabold">{name.charAt(0)}</div>}
-              </div>
-              <div className="min-w-0">
-                <h2 className="break-words font-display text-2xl font-extrabold md:truncate md:text-3xl">{currentUser.name}</h2>
-                <div className="mt-3 space-y-2 text-sm text-muted-foreground">
-                  <InfoLine icon={<Mail className="h-4 w-4" />} text={currentUser.email} />
-                  <InfoLine icon={<CalendarDays className="h-4 w-4" />} text={`Miembro desde ${memberSince}`} />
+      <TabsContent value="datos" className="mt-0">
+        <section className="rounded-2xl border border-border bg-card p-4 shadow-sm md:p-8">
+          <div className="grid gap-5 md:gap-6 xl:grid-cols-[0.85fr_1.15fr]">
+            <div className="space-y-5">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center md:gap-5">
+                <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-[1.35rem] bg-primary/10 text-primary ring-1 ring-border md:h-32 md:w-32 md:rounded-[1.75rem]">
+                  {avatar ? (
+                    <img src={avatar} alt={name} className="h-full w-full object-cover" />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-5xl font-extrabold">
+                      {name.charAt(0)}
+                    </div>
+                  )}
+                </div>
+                <div className="min-w-0">
+                  <h2 className="break-words font-display text-2xl font-extrabold md:truncate md:text-3xl">
+                    {currentUser.name}
+                  </h2>
+                  <div className="mt-3 space-y-2 text-sm text-muted-foreground">
+                    <InfoLine icon={<Mail className="h-4 w-4" />} text={currentUser.email} />
+                    <InfoLine icon={<CalendarDays className="h-4 w-4" />} text={`Miembro desde ${memberSince}`} />
+                  </div>
                 </div>
               </div>
+
+              {(currentUser.role === "editor" || currentUser.role === "admin") && (
+                <div className="rounded-2xl border border-border bg-background p-4">
+                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">Herramientas</p>
+                  <div className="mt-4 flex flex-wrap gap-3">
+                    {currentUser.role === "editor" && (
+                      <Button asChild variant="outline" className="rounded-full">
+                        <Link href="/editor/crear-noticia">
+                          <FilePenLine className="h-4 w-4" />
+                          Panel editor
+                        </Link>
+                      </Button>
+                    )}
+                    {currentUser.role === "admin" && (
+                      <Button asChild className="rounded-full">
+                        <Link href="/admin">
+                          <ShieldCheck className="h-4 w-4" />
+                          Panel admin
+                        </Link>
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
-            {(currentUser.role === "editor" || currentUser.role === "admin") && (
-              <div className="rounded-2xl border border-border bg-background p-4">
-                <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">Herramientas</p>
-                <div className="mt-4 flex flex-wrap gap-3">
-                  {currentUser.role === "editor" && (
-                    <Button asChild variant="outline" className="rounded-full">
-                      <Link href="/editor/crear-noticia">
-                        <FilePenLine className="h-4 w-4" />
-                        Panel editor
-                      </Link>
-                    </Button>
-                  )}
-                  {currentUser.role === "admin" && (
-                    <Button asChild className="rounded-full">
-                      <Link href="/admin">
-                        <ShieldCheck className="h-4 w-4" />
-                        Panel admin
-                      </Link>
-                    </Button>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
 
-          <div className="space-y-5">
             <form
               className="space-y-4 rounded-2xl border border-border bg-muted/30 p-3 md:p-4"
               onSubmit={async (event) => {
@@ -112,11 +146,22 @@ export function ProfilePageClient() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="profile-name">Nombre</Label>
-                <Input id="profile-name" value={name} onChange={(event) => setName(event.target.value)} className="h-11 rounded-xl" />
+                <Input
+                  id="profile-name"
+                  value={name}
+                  onChange={(event) => setName(event.target.value)}
+                  className="h-11 rounded-xl"
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="profile-avatar">Foto de perfil URL</Label>
-                <Input id="profile-avatar" value={avatar} onChange={(event) => setAvatar(event.target.value)} placeholder="https://..." className="h-11 rounded-xl" />
+                <Input
+                  id="profile-avatar"
+                  value={avatar}
+                  onChange={(event) => setAvatar(event.target.value)}
+                  placeholder="https://..."
+                  className="h-11 rounded-xl"
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="profile-avatar-file">O subir foto desde tu computadora</Label>
@@ -136,48 +181,66 @@ export function ProfilePageClient() {
                   }}
                 />
               </div>
-              {error && <p className="rounded-xl border border-primary/20 bg-primary/5 px-3 py-2 text-sm text-primary">{error}</p>}
+              {error && (
+                <p className="rounded-xl border border-primary/20 bg-primary/5 px-3 py-2 text-sm text-primary">
+                  {error}
+                </p>
+              )}
               <Button type="submit" className="h-10 w-full rounded-full sm:w-auto" disabled={isSaving}>
                 {isSaving ? "Guardando..." : "Guardar perfil"}
               </Button>
             </form>
           </div>
-        </div>
-      </section>
+        </section>
+      </TabsContent>
 
-      <ProfilePlayerRatings userId={currentUser.id} />
+      <TabsContent value="puntuaciones" className="mt-0">
+        <ProfilePlayerRatings userId={currentUser.id} />
+      </TabsContent>
 
-      <section id="resultados" className="space-y-5 rounded-2xl border border-border bg-card p-4 shadow-sm md:space-y-6 md:p-6">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Trivia</p>
-          <h2 className="mt-1 font-display text-2xl font-extrabold">Historial y ranking</h2>
-        </div>
+      <TabsContent value="trivia" className="mt-0">
+        <section id="resultados" className="space-y-5 rounded-2xl border border-border bg-card p-4 shadow-sm md:space-y-6 md:p-6">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Trivia</p>
+            <h2 className="mt-1 font-display text-2xl font-extrabold">Historial y ranking</h2>
+          </div>
 
-        <div className="grid grid-cols-2 gap-2 md:gap-3">
-          <Metric label="Puntaje total" value={String(totalScore)} />
-          <Metric label="Ranking global" value={`#${position || "-"}`} />
-          <Metric label="Partidas" value={String(results.length)} />
-          <Metric label="Promedio" value={String(averageScore)} />
-        </div>
+          <div className="grid grid-cols-2 gap-2 md:gap-3">
+            <Metric label="Puntaje total" value={String(totalScore)} />
+            <Metric label="Ranking global" value={`#${position || "-"}`} />
+            <Metric label="Partidas" value={String(results.length)} />
+            <Metric label="Promedio" value={String(averageScore)} />
+          </div>
 
-        <div className="space-y-3">
-          {results.length === 0 ? (
-            <p className="rounded-2xl border border-dashed border-border p-5 text-sm text-muted-foreground">Todavía no jugaste ninguna trivia.</p>
-          ) : (
-            results.map((result) => (
-              <div key={result.id} className="flex items-center justify-between gap-3 rounded-2xl border border-border px-3 py-3 md:px-4">
-                <div>
-                  <p className="font-semibold text-foreground">{result.dailyKey ? `Trivia semanal · ${result.dailyKey}` : "Partida jugada"}</p>
-                  <p className="text-sm text-muted-foreground">{new Date(result.playedAt).toLocaleString("es-AR")}</p>
+          <div className="space-y-3">
+            {results.length === 0 ? (
+              <p className="rounded-2xl border border-dashed border-border p-5 text-sm text-muted-foreground">
+                Todavía no jugaste ninguna trivia.
+              </p>
+            ) : (
+              results.map((result) => (
+                <div
+                  key={result.id}
+                  className="flex items-center justify-between gap-3 rounded-2xl border border-border px-3 py-3 md:px-4"
+                >
+                  <div>
+                    <p className="font-semibold text-foreground">
+                      {result.dailyKey ? `Trivia semanal · ${result.dailyKey}` : "Partida jugada"}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {new Date(result.playedAt).toLocaleString("es-AR")}
+                    </p>
+                  </div>
+                  <p className="shrink-0 font-display text-xl font-extrabold text-primary md:text-2xl">
+                    {result.score}/{result.totalQuestions}
+                  </p>
                 </div>
-                <p className="shrink-0 font-display text-xl font-extrabold text-primary md:text-2xl">{result.score}/{result.totalQuestions}</p>
-              </div>
-            ))
-          )}
-        </div>
-
-      </section>
-    </div>
+              ))
+            )}
+          </div>
+        </section>
+      </TabsContent>
+    </Tabs>
   )
 }
 
