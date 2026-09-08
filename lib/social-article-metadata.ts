@@ -1,6 +1,8 @@
 const ARTICLE_METADATA_ENDPOINT =
   "https://amftkabquesgzsurkols.supabase.co/functions/v1/article-metadata"
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_En3zWr4e2WbvV7MfN32bEA_BXZvOLli"
+const SUPABASE_ANON_TOKEN =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFtZnRrYWJxdWVzZ3pzdXJrb2xzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyMzY3MjYsImV4cCI6MjA5MjgxMjcyNn0.k9b0WXOkVWTDnNIAHdqfM7yx5WPgxN_XRLkIEGS74LM"
 
 export interface SocialArticleMetadata {
   article: {
@@ -30,6 +32,7 @@ export async function fetchSocialArticleMetadata(slug: string): Promise<SocialAr
       headers: {
         Accept: "application/json",
         apikey: SUPABASE_PUBLISHABLE_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_TOKEN}`,
       },
     })
 
