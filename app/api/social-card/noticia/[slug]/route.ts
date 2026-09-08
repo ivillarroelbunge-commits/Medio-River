@@ -4,6 +4,7 @@ import { getTeamCrest } from "@/lib/data"
 import { fetchSocialArticleMetadata } from "@/lib/social-article-metadata"
 
 const SITE_URL = "https://medioriver.com.ar"
+const IMAGE_CACHE_CONTROL = "public, s-maxage=3600, stale-while-revalidate=86400"
 
 export const runtime = "nodejs"
 
@@ -16,8 +17,12 @@ export async function GET(
   const article = social?.article
   const match = social?.match
 
-  if (!article?.matchId || !match) {
+  if (!article) {
     return fallbackImage()
+  }
+
+  if (article.articleType !== "player_ratings" || !article.matchId || !match) {
+    return serveArticleCover(article.image)
   }
 
   const homeTeam = match.isHome ? "River Plate" : match.opponent
@@ -134,10 +139,67 @@ export async function GET(
       width: 1200,
       height: 630,
       headers: {
-        "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400",
+        "Cache-Control": IMAGE_CACHE_CONTROL,
       },
     },
   )
+}
+
+async function serveArticleCover(image: string | null) {
+  const source = image?.trim()
+  if (!source) return fallbackImage()
+
+  if (source.startsWith("data:")) {
+    const parsed = parseDataImage(source)
+    if (!parsed) return fallbackImage()
+
+    return new Response(parsed.bytes, {
+      status: 200,
+      headers: {
+        "Content-Type": parsed.contentType,
+        "Cache-Control": IMAGE_CACHE_CONTROL,
+        "X-Content-Type-Options": "nosniff",
+      },
+    })
+  }
+
+  try {
+    const imageUrl = toAbsoluteUrl(source)
+    const response = await fetch(imageUrl, { cache: "force-cache" })
+    if (!response.ok) return fallbackImage()
+
+    const contentType = response.headers.get("content-type") || "image/jpeg"
+    if (!contentType.toLowerCase().startsWith("image/")) return fallbackImage()
+
+    return new Response(await response.arrayBuffer(), {
+      status: 200,
+      headers: {
+        "Content-Type": contentType,
+        "Cache-Control": IMAGE_CACHE_CONTROL,
+        "X-Content-Type-Options": "nosniff",
+      },
+    })
+  } catch {
+    return fallbackImage()
+  }
+}
+
+function parseDataImage(value: string) {
+  const match = value.match(/^data:(image\/[a-z0-9.+-]+)(;base64)?,(.*)$/is)
+  if (!match) return null
+
+  try {
+    const contentType = match[1].toLowerCase()
+    const payload = match[3]
+    const bytes = match[2]
+      ? Buffer.from(payload, "base64")
+      : Buffer.from(decodeURIComponent(payload), "utf8")
+
+    if (!bytes.length) return null
+    return { contentType, bytes }
+  } catch {
+    return null
+  }
 }
 
 function fallbackImage() {
@@ -160,11 +222,15 @@ function fallbackImage() {
       },
       "MEDIO RIVER",
     ),
-    { width: 1200, height: 630 },
+    {
+      width: 1200,
+      height: 630,
+      headers: { "Cache-Control": IMAGE_CACHE_CONTROL },
+    },
   )
 }
 
 function toAbsoluteUrl(value: string) {
-  if (/^https?:\/\//i.test(value)) return value
+  if (/^(?:https?:|data:)/i.test(value)) return value
   return new URL(value, SITE_URL).toString()
 }
