@@ -56,13 +56,18 @@ export function PlayerRatingsArticle({ matchId }: { matchId: string }) {
 
   const selectedCount = Object.keys(ratings).length
   const savedCount = ballot?.players.filter((player) => player.myRating !== null).length ?? 0
+  const totalPlayers = ballot?.players.length ?? 0
+  const completedCount = savedCount + selectedCount
+  const missingCount = Math.max(0, totalPlayers - completedCount)
+  const canSubmit = totalPlayers > 0 && completedCount === totalPlayers && selectedCount > 0
+
   const totalVotes = useMemo(() => {
     if (!ballot) return 0
     return Math.max(0, ...ballot.players.map((player) => player.ratingCount))
   }, [ballot])
 
   async function handleSubmit() {
-    if (!selectedCount || isSubmitting) return
+    if (!canSubmit || isSubmitting) return
 
     const deviceId = getOrCreatePlayerRatingDeviceId()
     if (!deviceId) return
@@ -112,7 +117,7 @@ export function PlayerRatingsArticle({ matchId }: { matchId: string }) {
             <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-primary">Tu opinión</p>
             <h2 className="mt-1 font-display text-2xl font-extrabold tracking-tight md:text-3xl">Poneles nota a los jugadores</h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground md:text-base">
-              Del 1 al 10. Podés puntuar sólo a los que quieras. Una vez enviada, cada nota es definitiva y no se puede modificar.
+              Del 1 al 10. Tenés que puntuar a todos los jugadores disponibles para poder enviar. Una vez enviada, cada nota es definitiva y no se puede modificar.
             </p>
           </div>
           <Button
@@ -218,19 +223,22 @@ export function PlayerRatingsArticle({ matchId }: { matchId: string }) {
           </div>
         )}
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm text-muted-foreground">
-            {savedCount === ballot.players.length
-              ? "Ya puntuaste a todos los jugadores disponibles."
-              : selectedCount > 0
-                ? `${selectedCount} ${selectedCount === 1 ? "nueva puntuación seleccionada" : "nuevas puntuaciones seleccionadas"}.`
-                : savedCount > 0
-                  ? `Ya enviaste ${savedCount} ${savedCount === 1 ? "puntuación" : "puntuaciones"}. Podés puntuar a los jugadores restantes.`
-                  : "Elegí al menos una puntuación."}
-          </p>
+          <div>
+            <p className="text-sm font-semibold text-foreground">
+              {completedCount} de {totalPlayers} jugadores puntuados
+            </p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              {savedCount === totalPlayers
+                ? "Ya enviaste todas tus puntuaciones."
+                : missingCount === 0
+                  ? "Listo. Ya podés enviar tus puntuaciones."
+                  : `Te ${missingCount === 1 ? "falta" : "faltan"} ${missingCount} ${missingCount === 1 ? "jugador" : "jugadores"} por puntuar.`}
+            </p>
+          </div>
           <Button
             type="button"
             className="h-11 rounded-full px-6"
-            disabled={selectedCount === 0 || isSubmitting}
+            disabled={!canSubmit || isSubmitting}
             onClick={handleSubmit}
           >
             {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
