@@ -1,8 +1,6 @@
 import type { Metadata } from "next"
 import { NoticiaDetalleClient } from "./noticia-detalle-client"
-import { createClient } from "@/lib/supabase/server"
-import { fetchNewsArticleBySlug } from "@/lib/supabase/news"
-import { getNewsImage } from "@/lib/news-media"
+import { fetchSocialArticleMetadata } from "@/lib/social-article-metadata"
 
 const SITE_URL = "https://medioriver.com.ar"
 
@@ -12,8 +10,8 @@ type NoticiaPageProps = {
 
 export async function generateMetadata({ params }: NoticiaPageProps): Promise<Metadata> {
   const { slug } = await params
-  const supabase = await createClient()
-  const { article } = await fetchNewsArticleBySlug(supabase, slug)
+  const social = await fetchSocialArticleMetadata(slug)
+  const article = social?.article
 
   if (!article) {
     return {
@@ -24,10 +22,10 @@ export async function generateMetadata({ params }: NoticiaPageProps): Promise<Me
 
   const articlePath = `/noticias/${encodeURIComponent(article.slug)}`
   const articleUrl = `${SITE_URL}${articlePath}`
-  const description = article.excerpt?.trim() || article.intro?.trim() || "Actualidad de River Plate en Medio River."
+  const description = article.excerpt.trim() || article.intro.trim() || "Actualidad de River Plate en Medio River."
   const socialImage = article.articleType === "player_ratings" && article.matchId
     ? `${SITE_URL}/api/social-card/noticia/${encodeURIComponent(article.slug)}`
-    : toAbsoluteUrl(getNewsImage(article))
+    : toAbsoluteUrl(article.image || "/logoMR.jpeg")
 
   return {
     title: article.title,
@@ -42,7 +40,7 @@ export async function generateMetadata({ params }: NoticiaPageProps): Promise<Me
       siteName: "Medio River",
       locale: "es_AR",
       type: "article",
-      publishedTime: article.date,
+      publishedTime: article.publishedAt,
       authors: [article.author],
       images: [
         {
