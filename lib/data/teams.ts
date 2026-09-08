@@ -34,7 +34,7 @@ const TEAM_CRESTS: Record<string, string> = {
   Huracán: espnCrest(10),
   Independiente: espnCrest(11),
   "Independiente Rivadavia": espnCrest(9744),
-  "Independiente Santa Fe": "/crests/fallback.svg",
+  "Independiente Santa Fe": espnCrest(5488),
   Instituto: espnCrest(2975),
   "Instituto (Córdoba)": espnCrest(2975),
   Lanús: espnCrest(12),
@@ -55,10 +55,23 @@ const TEAM_CRESTS: Record<string, string> = {
   "Unión (Santa Fe)": espnCrest(20),
   Vélez: espnCrest(21),
   "Vélez Sarsfield": espnCrest(21),
-  "Ciudad de Bolívar": "https://lahistoriariver.com/escudos/ciudad_bolivar.png",
+  "Ciudad de Bolívar": espnCrest(21799),
   "Red Bull Bragantino": espnCrest(6079),
 }
 
+function normalizeTeamKey(team: string) {
+  return team
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+}
+
+const NORMALIZED_TEAM_CRESTS = Object.fromEntries(
+  Object.entries(TEAM_CRESTS).map(([team, crest]) => [normalizeTeamKey(team), crest]),
+)
+
 export function getTeamCrest(team: string) {
-  return TEAM_CRESTS[team] ?? "/crests/fallback.svg"
+  return TEAM_CRESTS[team] ?? NORMALIZED_TEAM_CRESTS[normalizeTeamKey(team)] ?? "/crests/fallback.svg"
 }
