@@ -3,7 +3,6 @@
 import { SiteFooter } from "@/components/site-footer"
 import { SiteHeader } from "@/components/site-header"
 import { FixtureTabs } from "@/components/fixture-tabs"
-import { Scoreboard } from "@/components/scoreboard"
 import { useAppState } from "@/components/app-state-provider"
 
 export default function FixturePage() {
@@ -20,8 +19,7 @@ export default function FixturePage() {
           <header>
             <h1 className="font-display text-[1.75rem] font-extrabold tracking-tight leading-tight md:text-4xl">Fixture y resultados</h1>
           </header>
-          {nextMatch && <Scoreboard match={nextMatch} variant="compact" />}
-          <FixtureTabs upcoming={upcoming} previous={previous} />
+          <FixtureTabs upcoming={upcoming} previous={previous} nextMatch={nextMatch} />
         </div>
       </main>
       <SiteFooter />

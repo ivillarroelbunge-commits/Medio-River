@@ -6,6 +6,7 @@ import { BarChart3, Calendar, History } from "lucide-react"
 import type { Match } from "@/lib/data/types"
 import { CompetitionSelector } from "@/components/competition-selector"
 import { PreviousResults, UpcomingMatches } from "@/components/match-lists"
+import { Scoreboard } from "@/components/scoreboard"
 import { cn } from "@/lib/utils"
 
 const tabs = [
@@ -14,9 +15,10 @@ const tabs = [
   { key: "tablas", label: "Tablas", icon: BarChart3 },
 ] as const
 
-export function FixtureTabs({ upcoming, previous }: { upcoming: Match[]; previous: Match[] }) {
+export function FixtureTabs({ upcoming, previous, nextMatch }: { upcoming: Match[]; previous: Match[]; nextMatch?: Match }) {
   const [active, setActive] = useState<(typeof tabs)[number]["key"]>("proximos")
   const searchParams = useSearchParams()
+  const upcomingRest = nextMatch ? upcoming.filter((match) => match.id !== nextMatch.id) : upcoming
 
   useEffect(() => {
     const tab = searchParams.get("tab")
@@ -39,7 +41,12 @@ export function FixtureTabs({ upcoming, previous }: { upcoming: Match[]; previou
           )
         })}
       </div>
-      {active === "proximos" && <UpcomingMatches matches={upcoming} />}
+      {active === "proximos" && (
+        <div className="space-y-4 md:space-y-6">
+          {nextMatch && <Scoreboard match={nextMatch} variant="compact" />}
+          <UpcomingMatches matches={upcomingRest} />
+        </div>
+      )}
       {active === "resultados" && <PreviousResults matches={previous} />}
       {active === "tablas" && <CompetitionSelector />}
     </div>
