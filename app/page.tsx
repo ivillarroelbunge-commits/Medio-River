@@ -10,14 +10,15 @@ import { SiteFooter } from "@/components/site-footer"
 import { SiteHeader } from "@/components/site-header"
 import { useAppState } from "@/components/app-state-provider"
 import { useFastHomeNews } from "@/hooks/use-fast-home-news"
+import { useFastNextMatch } from "@/hooks/use-fast-next-match"
 
 export default function HomePage() {
   const { news: appNews, matches, isHydrated, hasSyncedNews } = useAppState()
   const news = useFastHomeNews(appNews, hasSyncedNews)
+  const nextMatch = useFastNextMatch()
   const carouselItems = news.filter((article) => article.featured).slice(0, 5)
   const featured = carouselItems.length > 0 ? carouselItems : news.slice(0, 5)
   const latest = news.slice(0, 6)
-  const nextMatch = matches.filter((match) => match.status === "upcoming").sort((a, b) => +new Date(a.date) - +new Date(b.date))[0]
 
   return (
     <div className="flex min-h-dvh flex-col">
