@@ -4,10 +4,11 @@ import { SiteFooter } from "@/components/site-footer"
 import { SiteHeader } from "@/components/site-header"
 import { FixtureTabs } from "@/components/fixture-tabs"
 import { useAppState } from "@/components/app-state-provider"
+import { useFastUpcomingMatches } from "@/hooks/use-fast-upcoming-matches"
 
 export default function FixturePage() {
   const { matches } = useAppState()
-  const upcoming = matches.filter((match) => match.status === "upcoming").sort((a, b) => +new Date(a.date) - +new Date(b.date))
+  const upcoming = useFastUpcomingMatches()
   const previous = matches.filter((match) => match.status === "played").sort((a, b) => +new Date(b.date) - +new Date(a.date))
   const nextMatch = upcoming[0]
 
