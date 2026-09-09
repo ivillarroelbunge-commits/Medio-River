@@ -135,6 +135,21 @@ export async function fetchMatches(supabase: SupabaseClient) {
   }
 }
 
+export async function fetchNextUpcomingMatch(supabase: SupabaseClient, now = new Date()) {
+  const { data, error } = await supabase
+    .from("matches")
+    .select(MATCHES_SELECT)
+    .eq("status", "upcoming")
+    .gte("date", now.toISOString())
+    .order("date", { ascending: true })
+    .limit(1)
+
+  return {
+    match: data?.[0] ? mapMatchRowToMatch(data[0] as MatchRow) : null,
+    error,
+  }
+}
+
 export function getMatchTableMissingMessage(message?: string) {
   if (message?.toLowerCase().includes("relation") && message?.toLowerCase().includes("does not exist")) {
     return "Falta aplicar la migración de partidos en Supabase."
