@@ -135,6 +135,20 @@ export async function fetchMatches(supabase: SupabaseClient) {
   }
 }
 
+export async function fetchUpcomingMatches(supabase: SupabaseClient, now = new Date()) {
+  const { data, error } = await supabase
+    .from("matches")
+    .select(MATCHES_SELECT)
+    .eq("status", "upcoming")
+    .gte("date", now.toISOString())
+    .order("date", { ascending: true })
+
+  return {
+    matches: data?.map((row) => mapMatchRowToMatch(row as MatchRow)) ?? [],
+    error,
+  }
+}
+
 export async function fetchNextUpcomingMatch(supabase: SupabaseClient, now = new Date()) {
   const { data, error } = await supabase
     .from("matches")
