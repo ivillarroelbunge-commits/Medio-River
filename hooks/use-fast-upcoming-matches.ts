@@ -41,16 +41,17 @@ function saveCachedUpcomingMatches(matches: Match[]) {
   }
 }
 
-export function useFastUpcomingMatches() {
+export function useFastUpcomingMatches(initialMatches: Match[] = []) {
   const supabase = useMemo(() => createSupabaseBrowserClient(), [])
-  const [matches, setMatches] = useState<Match[]>([])
+  const [matches, setMatches] = useState<Match[]>(() => keepFutureUpcoming(initialMatches))
 
   useEffect(() => {
     let active = true
     let refreshInFlight = false
     let expiryTimer: number | undefined
 
-    const cached = readCachedUpcomingMatches()
+    const serverMatches = keepFutureUpcoming(initialMatches)
+    const cached = serverMatches.length === 0 ? readCachedUpcomingMatches() : []
     if (cached.length > 0) {
       setMatches(cached)
     }
@@ -81,13 +82,13 @@ export function useFastUpcomingMatches() {
         saveCachedUpcomingMatches(cleanMatches)
         scheduleNextExpiry(cleanMatches)
       } catch {
-        // Keep the last known valid fixture visible if the network refresh fails.
+        // Keep the server/cached fixture visible if the network refresh fails.
       } finally {
         refreshInFlight = false
       }
     }
 
-    scheduleNextExpiry(cached)
+    scheduleNextExpiry(serverMatches.length > 0 ? serverMatches : cached)
     void refresh()
 
     const channel = supabase
@@ -116,7 +117,7 @@ export function useFastUpcomingMatches() {
       document.removeEventListener("visibilitychange", refreshOnFocus)
       void supabase.removeChannel(channel)
     }
-  }, [supabase])
+  }, [initialMatches, supabase])
 
   return matches
 }
