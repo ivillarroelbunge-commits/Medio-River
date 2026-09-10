@@ -1,3 +1,4 @@
+import Image from "next/image"
 import { getTeamCrest } from "@/lib/data"
 import { cn } from "@/lib/utils"
 
@@ -15,7 +16,17 @@ const sizeMap: Record<NonNullable<TeamCrestProps["size"]>, string> = {
   xl: "h-24 w-24",
 }
 
+const pixelSizeMap: Record<NonNullable<TeamCrestProps["size"]>, number> = {
+  xs: 20,
+  sm: 28,
+  md: 40,
+  lg: 64,
+  xl: 96,
+}
+
 export function TeamCrest({ team, size = "md", className }: TeamCrestProps) {
+  const pixels = pixelSizeMap[size]
+
   return (
     <span
       className={cn(
@@ -25,7 +36,14 @@ export function TeamCrest({ team, size = "md", className }: TeamCrestProps) {
       )}
       aria-hidden="true"
     >
-      <img src={getTeamCrest(team)} alt="" className="h-full w-full object-contain" />
+      <Image
+        src={getTeamCrest(team)}
+        alt=""
+        width={pixels}
+        height={pixels}
+        className="h-full w-full object-contain"
+        draggable={false}
+      />
     </span>
   )
 }
