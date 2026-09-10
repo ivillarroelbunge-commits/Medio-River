@@ -5,13 +5,13 @@ import { normalizeNewsCategory } from "@/lib/news-taxonomy"
 // Images can be large data: URLs in legacy rows. Never include that blob in
 // list/article JSON: serve it through the cached image endpoint instead.
 export const NEWS_SELECT =
-  "id, slug, title, excerpt, intro, content, image_focus_x, image_focus_y, image_zoom, author, published_at, category, competition, tag, featured, article_type, match_id"
+  "id, slug, title, excerpt, intro, content, image_focus_x, image_focus_y, image_zoom, author, published_at, updated_at, category, competition, tag, featured, article_type, match_id"
 const NEWS_SUMMARY_SELECT =
-  "id, slug, title, excerpt, intro, image_focus_x, image_focus_y, image_zoom, author, published_at, category, competition, tag, featured, article_type, match_id"
+  "id, slug, title, excerpt, intro, image_focus_x, image_focus_y, image_zoom, author, published_at, updated_at, category, competition, tag, featured, article_type, match_id"
 const LEGACY_NEWS_SELECT =
-  "id, slug, title, excerpt, intro, content, author, published_at, category, competition, tag, featured"
+  "id, slug, title, excerpt, intro, content, author, published_at, updated_at, category, competition, tag, featured"
 const LEGACY_NEWS_SUMMARY_SELECT =
-  "id, slug, title, excerpt, intro, author, published_at, category, competition, tag, featured"
+  "id, slug, title, excerpt, intro, author, published_at, updated_at, category, competition, tag, featured"
 
 interface NewsRow {
   id: string
@@ -26,6 +26,7 @@ interface NewsRow {
   image_zoom?: number | null
   author: string
   published_at: string
+  updated_at?: string | null
   category: string
   competition: string | null
   tag: string
@@ -34,13 +35,14 @@ interface NewsRow {
   match_id?: string | null
 }
 
-export function getNewsImageProxyPath(articleId: string) {
-  return `/api/news-image/${encodeURIComponent(articleId)}`
+export function getNewsImageProxyPath(articleId: string, version?: string | null) {
+  const path = `/api/news-image/${encodeURIComponent(articleId)}`
+  return version ? `${path}?v=${encodeURIComponent(version)}` : path
 }
 
-function getMappedNewsImage(articleId: string, image?: string | null) {
+function getMappedNewsImage(articleId: string, image?: string | null, version?: string | null) {
   if (image && !image.startsWith("data:image/")) return image
-  return getNewsImageProxyPath(articleId)
+  return getNewsImageProxyPath(articleId, version)
 }
 
 export function mapNewsRowToArticle(row: NewsRow): NewsArticle {
@@ -51,7 +53,7 @@ export function mapNewsRowToArticle(row: NewsRow): NewsArticle {
     excerpt: row.excerpt,
     intro: row.intro,
     content: Array.isArray(row.content) ? row.content.map(String) : [],
-    image: getMappedNewsImage(row.id, row.image),
+    image: getMappedNewsImage(row.id, row.image, row.updated_at),
     imageFocusX: row.image_focus_x ?? undefined,
     imageFocusY: row.image_focus_y ?? undefined,
     imageZoom: row.image_zoom ?? undefined,
