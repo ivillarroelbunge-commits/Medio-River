@@ -48,7 +48,7 @@ export function Scoreboard({ match, variant = "hero" }: ScoreboardProps) {
         <div aria-hidden="true" className="absolute -right-8 bottom-0 h-48 w-24 rotate-[34deg] bg-[linear-gradient(90deg,transparent,rgba(218,28,39,0.14),rgba(218,28,39,0.52),transparent)]" />
         <div aria-hidden="true" className="absolute right-8 bottom-8 h-28 w-16 rotate-[45deg] bg-[linear-gradient(90deg,transparent,rgba(218,28,39,0.16),rgba(218,28,39,0.34),transparent)]" />
 
-        <div className="relative px-4 pb-3.5 pt-4 sm:px-6 sm:pb-5 sm:pt-5">
+        <div className="relative px-4 pb-3.5 pt-4 sm:px-6 sm:pb-5 sm:pt-5 md:py-3">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 whitespace-nowrap text-[0.62rem] font-black uppercase tracking-[0.24em] text-white/90 min-[390px]:text-[0.68rem] sm:text-xs sm:tracking-[0.28em]">
               Próximo partido
@@ -58,15 +58,15 @@ export function Scoreboard({ match, variant = "hero" }: ScoreboardProps) {
             </div>
           </div>
 
-          <div className="mt-4 grid grid-cols-[1fr_auto_1fr] items-center gap-3 sm:mt-5 sm:gap-7">
+          <div className="mt-4 grid grid-cols-[1fr_auto_1fr] items-center gap-3 sm:mt-5 sm:gap-7 md:mt-2.5 md:gap-5">
             <CompactTeam name={homeTeam} />
-            <div className="font-display text-xl font-black tracking-[0.08em] text-white sm:text-2xl">
+            <div className="font-display text-xl font-black tracking-[0.08em] text-white sm:text-2xl md:text-xl">
               VS
             </div>
             <CompactTeam name={awayTeam} />
           </div>
 
-          <div className="mt-4 flex items-center justify-center gap-x-2.5 text-[0.8rem] text-white/88 sm:mt-5 sm:gap-x-4 sm:text-sm">
+          <div className="mt-4 flex items-center justify-center gap-x-2.5 text-[0.8rem] text-white/88 sm:mt-5 sm:gap-x-4 sm:text-sm md:mt-2.5">
             <InfoInline
               icon={<Calendar className="h-3.5 w-3.5" />}
               value={match.dateTbd ? "Fecha a confirmar" : formatWeekdayDate(match.date)}
@@ -80,13 +80,13 @@ export function Scoreboard({ match, variant = "hero" }: ScoreboardProps) {
             )}
           </div>
 
-          <div className="mt-4 grid grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr] items-center border-t border-white/10 pt-3 sm:mt-5 sm:pt-4">
+          <div className="mt-4 grid grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr] items-center border-t border-white/10 pt-3 sm:mt-5 sm:pt-4 md:mt-2.5 md:pt-2">
             <CountdownMini value={mounted ? countdown.d : 0} label="Días" />
-            <span className="h-8 w-px bg-white/28" aria-hidden="true" />
+            <span className="h-8 w-px bg-white/28 md:h-6" aria-hidden="true" />
             <CountdownMini value={mounted ? countdown.h : 0} label="Horas" />
-            <span className="h-8 w-px bg-white/28" aria-hidden="true" />
+            <span className="h-8 w-px bg-white/28 md:h-6" aria-hidden="true" />
             <CountdownMini value={mounted ? countdown.m : 0} label="Min" />
-            <span className="h-8 w-px bg-white/28" aria-hidden="true" />
+            <span className="h-8 w-px bg-white/28 md:h-6" aria-hidden="true" />
             <CountdownMini value={mounted ? countdown.s : 0} label="Seg" />
           </div>
         </div>
@@ -217,8 +217,8 @@ function InfoInline({
 function CompactTeam({ name }: { name: string }) {
   return (
     <div className="min-w-0 text-center">
-      <TeamCrest team={name} size="lg" className="mx-auto h-16 w-16 bg-transparent drop-shadow-[0_8px_16px_rgba(0,0,0,0.42)] sm:h-20 sm:w-20" />
-      <p className="mx-auto mt-1.5 max-w-28 text-balance text-[0.66rem] font-black uppercase leading-tight tracking-[0.03em] text-white/92 sm:mt-2 sm:max-w-40 sm:text-xs">
+      <TeamCrest team={name} size="lg" className="mx-auto h-16 w-16 bg-transparent drop-shadow-[0_8px_16px_rgba(0,0,0,0.42)] sm:h-20 sm:w-20 md:h-14 md:w-14" />
+      <p className="mx-auto mt-1.5 max-w-28 text-balance text-[0.66rem] font-black uppercase leading-tight tracking-[0.03em] text-white/92 sm:mt-2 sm:max-w-40 sm:text-xs md:mt-1 md:text-[0.68rem]">
         {name}
       </p>
     </div>
@@ -241,10 +241,10 @@ function CountdownBox({ value, label }: { value: number; label: string }) {
 function CountdownMini({ value, label }: { value: number; label: string }) {
   return (
     <div className="px-1 text-center text-white">
-      <p className="font-display text-[1.15rem] font-black tabular-nums leading-none sm:text-2xl">
+      <p className="font-display text-[1.15rem] font-black tabular-nums leading-none sm:text-2xl md:text-xl">
         {String(value).padStart(2, "0")}
       </p>
-      <p className="mt-1 text-[0.54rem] font-bold uppercase tracking-[0.08em] text-white/82 sm:text-[0.68rem]">
+      <p className="mt-1 text-[0.54rem] font-bold uppercase tracking-[0.08em] text-white/82 sm:text-[0.68rem] md:mt-0.5 md:text-[0.58rem]">
         {label}
       </p>
     </div>
