@@ -1,8 +1,15 @@
 import type { Metadata } from "next"
 import { NoticiaDetalleClient } from "./noticia-detalle-client"
-import { fetchSocialArticleMetadata } from "@/lib/social-article-metadata"
+import { getPreloadedNewsArticle } from "@/lib/news-preload"
 
 const SITE_URL = "https://medioriver.com.ar"
+
+export const revalidate = 60
+
+// New articles are generated on first request and then kept in the ISR cache.
+export function generateStaticParams() {
+  return []
+}
 
 type NoticiaPageProps = {
   params: Promise<{ slug: string }>
@@ -10,8 +17,7 @@ type NoticiaPageProps = {
 
 export async function generateMetadata({ params }: NoticiaPageProps): Promise<Metadata> {
   const { slug } = await params
-  const social = await fetchSocialArticleMetadata(slug)
-  const article = social?.article
+  const article = await getPreloadedNewsArticle(slug)
 
   if (!article) {
     return {
@@ -38,7 +44,7 @@ export async function generateMetadata({ params }: NoticiaPageProps): Promise<Me
       siteName: "Medio River",
       locale: "es_AR",
       type: "article",
-      publishedTime: article.publishedAt,
+      publishedTime: article.date,
       authors: [article.author],
       images: [
         {
@@ -56,6 +62,9 @@ export async function generateMetadata({ params }: NoticiaPageProps): Promise<Me
   }
 }
 
-export default function NoticiaDetallePage() {
-  return <NoticiaDetalleClient />
+export default async function NoticiaDetallePage({ params }: NoticiaPageProps) {
+  const { slug } = await params
+  const initialArticle = await getPreloadedNewsArticle(slug)
+
+  return <NoticiaDetalleClient initialArticle={initialArticle} />
 }
