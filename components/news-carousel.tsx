@@ -45,7 +45,15 @@ export function NewsCarousel({ items, matches = [] }: { items: NewsArticle[]; ma
 
   return (
     <section className="relative overflow-hidden rounded-[1.5rem] bg-secondary text-secondary-foreground shadow-lg md:rounded-[2rem]">
-      <NewsImage key={`image-${article.id}`} article={article} match={match} priority={index === 0} className={`absolute inset-0 h-full w-full ${direction === "next" ? "carousel-image-enter-next" : "carousel-image-enter-previous"}`} imageClassName="opacity-80" />
+      <NewsImage
+        key={`image-${article.id}`}
+        article={article}
+        match={match}
+        priority={index === 0}
+        sizes="(min-width: 1280px) 1152px, (min-width: 768px) calc(100vw - 4rem), calc(100vw - 2rem)"
+        className={`absolute inset-0 h-full w-full ${direction === "next" ? "carousel-image-enter-next" : "carousel-image-enter-previous"}`}
+        imageClassName="opacity-80"
+      />
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/22 to-black/0" />
 
       {items.length > 1 && (
