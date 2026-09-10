@@ -59,6 +59,7 @@ export async function getCompetitionPanelsWithLiveStandings() {
       ...panel,
       standings,
       subtitle: "Tabla Promiedos actualizada automáticamente",
+      note: getPromiedosNote(panel.key, panel.note),
     }
   })
 
@@ -174,6 +175,12 @@ async function fetchPromiedosLeague(leagueId: string): Promise<PromiedosLeaguePa
   }
 }
 
+function getPromiedosNote(panelKey: PanelKey, fallback?: string) {
+  if (panelKey === "clausura") return "Tabla actualizada automáticamente desde Promiedos."
+  if (panelKey === "anual") return "Tabla anual oficial actualizada automáticamente desde Promiedos."
+  return fallback
+}
+
 function normalizeLabel(value: string) {
   return value
     .normalize("NFD")
@@ -188,12 +195,17 @@ function normalizeTeamName(team: string) {
     "CA River Plate": "River Plate",
     "River Plate": "River Plate",
     "Argentinos Jrs.": "Argentinos Juniors",
-    "Atlético Tucumán": "Atlético Tucumán",
+    "Bragantino": "Red Bull Bragantino",
+    "Carabobo FC": "Carabobo",
+    "Central Córdoba SdE": "Central Córdoba (Santiago del Estero)",
     "Estudiantes (RC)": "Estudiantes de Río Cuarto",
+    "Estudiantes RC": "Estudiantes de Río Cuarto",
     "Gimnasia (LP)": "Gimnasia La Plata",
-    "Independiente Rivadavia": "Independiente Rivadavia",
+    "Gimnasia de Mendoza": "Gimnasia (Mendoza)",
     "Newell's": "Newell's Old Boys",
-    "Rosario Central": "Rosario Central",
+    "Sarmiento Junín": "Sarmiento (Junín)",
+    "Talleres de Córdoba": "Talleres (Córdoba)",
+    "Unión de Santa Fe": "Unión (Santa Fe)",
   }
 
   return aliases[normalized] ?? normalized
