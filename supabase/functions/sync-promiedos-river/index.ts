@@ -413,7 +413,7 @@ function detail(game: Game, homeRiver: boolean, opponent: string, referee: strin
     cards,
     substitutions,
     lineups: {
-      river: lineup(riverLineup),
+      river: lineup(riverLineup, true),
       opponent: lineup(opponentLineup),
     },
   }
@@ -454,7 +454,7 @@ function detail(game: Game, homeRiver: boolean, opponent: string, referee: strin
   return result
 }
 
-function lineup(value: any): Lineup {
+function lineup(value: any, defendersRightToLeft = false): Lineup {
   const staff = Array.isArray(value?.staff) ? value.staff : []
   const coach =
     clean(
@@ -468,6 +468,7 @@ function lineup(value: any): Lineup {
     ) || "Sin dato"
 
   const starting = Array.isArray(value?.starting) ? value.starting : []
+  const orderedStarting = defendersRightToLeft ? orderDefendersRightToLeft(starting) : starting
   const bench = Array.isArray(value?.bench) ? value.bench : []
   const numbers: Record<string, number> = {}
 
@@ -483,10 +484,37 @@ function lineup(value: any): Lineup {
 
   return {
     coach,
-    starters: names(starting),
+    starters: names(orderedStarting),
     substitutes: names(bench),
     numbers,
   }
+}
+
+function orderDefendersRightToLeft(players: any[]) {
+  const defenders = players
+    .filter(isDefender)
+    .map((player, index) => ({ player, index, y: pitchY(player) }))
+    .sort((a, b) => b.y - a.y || a.index - b.index)
+    .map(({ player }) => player)
+
+  if (defenders.length < 2) return players
+
+  let defenderIndex = 0
+  return players.map((player) => {
+    if (!isDefender(player)) return player
+    return defenders[defenderIndex++] ?? player
+  })
+}
+
+function isDefender(player: any) {
+  const position = norm(String(player?.position ?? ""))
+  const formationPosition = norm(String(player?.formation_position ?? ""))
+  return position === "defensor" || formationPosition.startsWith("defensa ")
+}
+
+function pitchY(player: any) {
+  const value = Number(player?.pitch_location?.y)
+  return Number.isFinite(value) ? value : 50
 }
 
 function gameInfo(game: Game) {
