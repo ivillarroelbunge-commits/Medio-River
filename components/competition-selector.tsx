@@ -1,9 +1,8 @@
 "use client"
 
 import Link from "next/link"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import type { ReactNode } from "react"
-import { competitionPanels } from "@/lib/data"
 import type { CompetitionPanelData } from "@/lib/data/types"
 import { TeamCrest } from "@/components/team-crest"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -102,34 +101,12 @@ const sudamericanaRiverKnockouts = [
   },
 ] satisfies RiverBracketMatch[]
 
-export function CompetitionSelector() {
-  const [panels, setPanels] = useState<CompetitionPanelData[]>(competitionPanels)
-  const [active, setActive] = useState(competitionPanels[0].key)
+export function CompetitionSelector({ initialPanels }: { initialPanels: CompetitionPanelData[] }) {
+  const panels = initialPanels
+  const [active, setActive] = useState<CompetitionPanelData["key"]>(initialPanels[0]?.key ?? "clausura")
   const panel = panels.find((item) => item.key === active) ?? panels[0]
 
-  useEffect(() => {
-    let ignore = false
-
-    async function loadLiveStandings() {
-      try {
-        const response = await fetch("/api/competition-standings")
-        if (!response.ok) return
-
-        const data = (await response.json()) as { panels?: CompetitionPanelData[] }
-        if (!ignore && data.panels?.length) {
-          setPanels(data.panels)
-        }
-      } catch {
-        // Keep static standings if the live source is unavailable.
-      }
-    }
-
-    loadLiveStandings()
-
-    return () => {
-      ignore = true
-    }
-  }, [])
+  if (!panel) return null
 
   return (
     <div className="space-y-4 md:space-y-6">
