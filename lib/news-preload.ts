@@ -17,6 +17,7 @@ const NEWS_SUMMARY_SELECT = [
   "image_zoom",
   "author",
   "published_at",
+  "updated_at",
   "category",
   "competition",
   "tag",
@@ -37,6 +38,7 @@ type NewsSummaryRow = {
   image_zoom?: number | null
   author: string
   published_at: string
+  updated_at?: string | null
   category: string
   competition: string | null
   tag: string
@@ -155,7 +157,7 @@ function mapNewsSummaryRow(row: NewsSummaryRow): NewsArticle {
     excerpt: row.excerpt,
     intro: row.intro,
     content: [],
-    image: getNewsImageProxyPath(row.id),
+    image: getNewsImageProxyPath(row.id, row.updated_at),
     imageFocusX: row.image_focus_x ?? undefined,
     imageFocusY: row.image_focus_y ?? undefined,
     imageZoom: row.image_zoom ?? undefined,
