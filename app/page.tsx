@@ -1,5 +1,5 @@
 import { HomePageClient } from "@/components/home-page-client"
-import { getPreloadedFeaturedNews } from "@/lib/news-preload"
+import { getPreloadedFeaturedNews, getPreloadedLatestNews } from "@/lib/news-preload"
 
 // Keep the homepage on Vercel's CDN and refresh the server snapshot frequently.
 // The client still refreshes news in the background, so this removes request-time
@@ -7,7 +7,15 @@ import { getPreloadedFeaturedNews } from "@/lib/news-preload"
 export const revalidate = 60
 
 export default async function HomePage() {
-  const initialFeaturedNews = await getPreloadedFeaturedNews(5)
+  const [initialFeaturedNews, initialLatestNews] = await Promise.all([
+    getPreloadedFeaturedNews(5),
+    getPreloadedLatestNews(12),
+  ])
 
-  return <HomePageClient initialFeaturedNews={initialFeaturedNews} />
+  return (
+    <HomePageClient
+      initialFeaturedNews={initialFeaturedNews}
+      initialLatestNews={initialLatestNews}
+    />
+  )
 }
