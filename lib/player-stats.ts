@@ -802,6 +802,7 @@ export function getPlayerTotalStats(playerId: string, statsMap: PlayerStatsMap =
   if (!stats) return emptyStatLine
 
   const total = { ...emptyStatLine }
+  let hasGoalsConceded = false
   let ratingWeight = 0
   let weightedRating = 0
 
@@ -814,6 +815,10 @@ export function getPlayerTotalStats(playerId: string, statsMap: PlayerStatsMap =
     total.yellowCards += normalized.yellowCards
     total.redCards += normalized.redCards
     total.cleanSheets += normalized.cleanSheets
+    if (typeof normalized.goalsConceded === "number") {
+      total.goalsConceded = (total.goalsConceded ?? 0) + normalized.goalsConceded
+      hasGoalsConceded = true
+    }
 
     if (normalized.rating !== null) {
       const weight = Math.max(normalized.minutes, 1)
@@ -824,6 +829,7 @@ export function getPlayerTotalStats(playerId: string, statsMap: PlayerStatsMap =
 
   return {
     ...total,
+    goalsConceded: hasGoalsConceded ? total.goalsConceded : undefined,
     rating: ratingWeight > 0 ? Number((weightedRating / ratingWeight).toFixed(2)) : null,
   }
 }

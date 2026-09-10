@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { Check, Clock, Flame, LogIn, Medal, ShieldQuestion, Trophy, UserRound, X } from "lucide-react"
+import { Check, Clock, LogIn, Medal, ShieldQuestion, Trophy, UserRound, X } from "lucide-react"
 import { useAppState } from "@/components/app-state-provider"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -324,12 +324,7 @@ export function DeviceTriviaGame() {
     return (
       <div className="space-y-6">
         <GameHero icon={<ShieldQuestion className="h-8 w-8" />} eyebrow={`Trivia semanal · ${weeklyKey}`} title={`${WEEKLY_TRIVIA_SIZE} preguntas, un solo intento`}>
-          <p className="mx-auto mt-2 max-w-md text-muted-foreground">Jugá sin registrarte. Tu puntaje suma al ranking semanal y al ranking general.</p>
-          <div className="mx-auto mt-6 grid max-w-xl gap-3 sm:grid-cols-3">
-            <RulePill label="Preguntas" value={String(WEEKLY_TRIVIA_SIZE)} />
-            <RulePill label="Intentos" value="1" />
-            <RulePill label="Cuenta" value="No hace falta" />
-          </div>
+          <p className="mx-auto mt-2 max-w-md text-muted-foreground">Tu puntaje suma al ranking semanal y al ranking general.</p>
           {participant?.name && <p className="mt-6 text-sm text-muted-foreground">Jugás como <span className="font-semibold text-foreground">{participant.name}</span></p>}
           <Button onClick={startGame} size="lg" className="mt-6 rounded-full px-10">
             Jugar trivia semanal
@@ -429,25 +424,23 @@ export function DeviceTriviaGame() {
 
   return (
     <div className="overflow-hidden rounded-[1.5rem] border border-border bg-card shadow-xl md:rounded-[2rem]">
-      <div className="relative bg-secondary px-4 py-5 text-secondary-foreground md:px-8 md:py-6">
+      <div className="relative bg-secondary px-4 py-4 text-secondary-foreground md:px-8 md:py-5">
         <div className="relative flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.22em] text-white/60">Trivia semanal · {weeklyKey}</p>
-            <h2 className="mt-1 font-display text-xl font-extrabold md:text-3xl">Pregunta {current + 1} de {total}</h2>
+            <h2 className="font-display text-xl font-extrabold md:text-3xl">Pregunta {current + 1} de {total}</h2>
           </div>
-          <div className="rounded-2xl bg-white/10 px-3 py-2 text-right ring-1 ring-white/15 md:px-4 md:py-3">
-            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/55">Aciertos</p>
-            <p className="font-display text-2xl font-extrabold md:text-3xl">{score}</p>
+          <div className="ml-auto rounded-xl bg-white/10 px-3 py-1.5 text-right ring-1 ring-white/15 md:rounded-2xl md:px-4 md:py-2">
+            <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-white/55 md:text-[10px]">Aciertos</p>
+            <p className="font-display text-xl font-extrabold md:text-2xl">{score}</p>
           </div>
         </div>
       </div>
-      <div className="px-4 py-5 md:px-8 md:py-8">
-        <div className="h-3 w-full overflow-hidden rounded-full bg-muted shadow-inner"><div className="h-full rounded-full bg-primary transition-all duration-500" style={{ width: `${progress}%` }} /></div>
-        <div className="mt-5 rounded-[1.25rem] border border-border bg-muted/25 p-4 md:mt-6 md:rounded-[1.5rem] md:p-6">
-          <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.14em] text-primary"><Flame className="h-3.5 w-3.5" />A todo o nada</div>
-          <h2 className="font-display text-xl font-extrabold leading-tight md:text-3xl">{question.question}</h2>
+      <div className="px-4 py-4 md:px-8 md:py-6">
+        <div className="h-2 w-full overflow-hidden rounded-full bg-muted shadow-inner"><div className="h-full rounded-full bg-primary transition-all duration-500" style={{ width: `${progress}%` }} /></div>
+        <div className="mt-4 rounded-[1.1rem] border border-border bg-muted/25 p-3.5 md:mt-5 md:rounded-[1.5rem] md:p-5">
+          <h2 className="font-display text-lg font-extrabold leading-tight md:text-2xl">{question.question}</h2>
         </div>
-        <ul className="mt-4 grid gap-2.5 sm:grid-cols-2 md:mt-5 md:gap-3">
+        <ul className="mt-3 grid gap-2 sm:grid-cols-2 md:mt-4 md:gap-2.5">
           {question.options.map((option, index) => {
             const isCorrect = index === question.correctIndex
             const isSelected = index === selected
@@ -464,8 +457,8 @@ export function DeviceTriviaGame() {
             }
             return (
               <li key={index}>
-                <button type="button" onClick={() => choose(index)} disabled={revealed} className={cn("flex min-h-16 w-full items-center justify-between gap-3 rounded-2xl border-2 px-3 py-3 text-left text-sm font-semibold transition-all md:min-h-20 md:px-4 md:py-4", stateClass)}>
-                  <span className="flex items-center gap-3"><span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-muted text-xs font-extrabold">{String.fromCharCode(65 + index)}</span>{option}</span>
+                <button type="button" onClick={() => choose(index)} disabled={revealed} className={cn("flex min-h-12 w-full items-center justify-between gap-3 rounded-xl border-2 px-3 py-2 text-left text-sm font-semibold transition-all md:min-h-14 md:rounded-2xl md:px-4 md:py-3", stateClass)}>
+                  <span className="flex items-center gap-2.5"><span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-muted text-xs font-extrabold md:h-8 md:w-8">{String.fromCharCode(65 + index)}</span>{option}</span>
                   {icon}
                 </button>
               </li>
@@ -503,20 +496,16 @@ function buildGlobalRanking(results: PublicTriviaResult[]) {
 
 function GameHero({ children, eyebrow, icon, title }: { children: React.ReactNode; eyebrow: string; icon: React.ReactNode; title: string }) {
   return (
-    <div className="relative overflow-hidden rounded-[1.5rem] border border-border bg-card p-5 text-center shadow-xl md:rounded-[2rem] md:p-12">
+    <div className="relative overflow-hidden rounded-[1.5rem] border border-border bg-card px-5 py-4 text-center shadow-xl md:rounded-[2rem] md:px-10 md:py-8">
       <div className="absolute inset-x-8 top-0 h-1 rounded-b-full bg-gradient-to-r from-transparent via-primary to-transparent" />
       <div className="relative">
-        <div className="mx-auto flex h-18 w-18 items-center justify-center rounded-3xl bg-primary text-primary-foreground shadow-lg shadow-primary/20">{icon}</div>
-        <p className="mt-5 text-xs font-bold uppercase tracking-[0.2em] text-primary">{eyebrow}</p>
-        <h2 className="mt-3 font-display text-2xl font-extrabold leading-tight md:text-4xl">{title}</h2>
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-primary/20 md:h-16 md:w-16">{icon}</div>
+        <p className="mt-4 text-[0.65rem] font-bold uppercase tracking-[0.2em] text-primary md:text-xs">{eyebrow}</p>
+        <h2 className="mt-2 font-display text-xl font-extrabold leading-tight md:text-3xl">{title}</h2>
         {children}
       </div>
     </div>
   )
-}
-
-function RulePill({ label, value }: { label: string; value: string }) {
-  return <div className="rounded-2xl border border-border bg-background px-4 py-3"><p className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">{label}</p><p className="mt-1 font-display text-xl font-extrabold">{value}</p></div>
 }
 
 function RankingBlocks({

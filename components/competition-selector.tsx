@@ -168,7 +168,6 @@ function CompetitionPanelCard({ panel, children }: { panel: CompetitionPanelData
         <h3 className="font-display text-base font-extrabold md:text-xl">{panel.title}</h3>
       </header>
       {children}
-      {panel.note && <p className="border-t border-border px-3 py-3 text-xs text-muted-foreground md:px-5 md:text-sm">{panel.note}</p>}
     </section>
   )
 }

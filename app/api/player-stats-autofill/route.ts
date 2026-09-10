@@ -77,6 +77,7 @@ function parseCompetitionStats(text: string, competitionLabel: string): Partial<
   const matches = readNumberBeforeLabel(segment, "Matches")
   const minutes = readNumberBeforeLabel(segment, "Minutes played")
   const goals = readNumberBeforeLabel(segment, "Goals", ["conceded", "prevented", "against", "per", "outside", "inside"])
+  const goalsConceded = readNumberBeforeLabel(segment, "Goals conceded")
   const assists = readNumberBeforeLabel(segment, "Assists")
   const rating = readNumberBeforeLabel(segment, "Rating")
   const yellowCards = readNumberBeforeLabel(segment, "Yellow cards")
@@ -88,6 +89,7 @@ function parseCompetitionStats(text: string, competitionLabel: string): Partial<
     matches: matches ?? 0,
     minutes: minutes ?? 0,
     goals: goals ?? 0,
+    goalsConceded: goalsConceded ?? undefined,
     assists: assists ?? 0,
     rating,
     yellowCards: yellowCards ?? 0,

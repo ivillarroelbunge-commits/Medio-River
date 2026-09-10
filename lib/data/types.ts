@@ -195,6 +195,7 @@ export interface PlayerStatLine {
   yellowCards: number
   redCards: number
   cleanSheets: number
+  goalsConceded?: number
 }
 
 export interface PlayerSeasonStats {

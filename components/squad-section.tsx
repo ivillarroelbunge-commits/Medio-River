@@ -4,7 +4,7 @@ import { PlayerCard } from "@/components/player-card"
 export function SquadSection({ title, players }: { title: string; players: SquadPlayer[] }) {
   return (
     <section className="space-y-4 md:space-y-5">
-      <div className="flex items-end justify-between gap-4 border-b border-border pb-3">
+      <div className="flex items-end justify-between gap-4">
         <div className="flex items-center gap-3">
           <div>
             <h2 className="font-display text-[1.45rem] font-extrabold uppercase text-foreground md:text-3xl">
