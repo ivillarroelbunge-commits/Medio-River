@@ -65,6 +65,16 @@ export async function getPreloadedFeaturedNews(limit = 5): Promise<NewsArticle[]
   return fallback.slice(0, limit).map((article) => ({ ...article, content: [] }))
 }
 
+export async function getPreloadedLatestNews(limit = 12): Promise<NewsArticle[]> {
+  const latest = await fetchNewsSummariesFromSupabase(limit, false)
+  if (latest.length > 0) return latest
+
+  return [...newsArticles]
+    .sort((a, b) => +new Date(b.date) - +new Date(a.date))
+    .slice(0, limit)
+    .map((article) => ({ ...article, content: [] }))
+}
+
 export async function getPreloadedNewsArticle(slug: string): Promise<NewsArticle | null> {
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), FEATURED_NEWS_TIMEOUT_MS)
