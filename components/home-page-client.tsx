@@ -11,18 +11,20 @@ import { SiteHeader } from "@/components/site-header"
 import { useAppState } from "@/components/app-state-provider"
 import { useFastHomeNews } from "@/hooks/use-fast-home-news"
 import { useFastNextMatch } from "@/hooks/use-fast-next-match"
-import type { NewsArticle } from "@/lib/data/types"
+import type { Match, NewsArticle } from "@/lib/data/types"
 
 export function HomePageClient({
   initialFeaturedNews,
   initialLatestNews,
+  initialNextMatch,
 }: {
   initialFeaturedNews: NewsArticle[]
   initialLatestNews: NewsArticle[]
+  initialNextMatch: Match | null
 }) {
   const { news: appNews, matches, hasSyncedNews } = useAppState()
   const news = useFastHomeNews(appNews, hasSyncedNews, initialLatestNews)
-  const nextMatch = useFastNextMatch()
+  const nextMatch = useFastNextMatch(initialNextMatch)
   const liveCarouselItems = news.filter((article) => article.featured).slice(0, 5)
   const featured = liveCarouselItems.length > 0
     ? liveCarouselItems
