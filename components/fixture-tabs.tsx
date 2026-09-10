@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { BarChart3, Calendar, History } from "lucide-react"
 import type { CompetitionPanelData, Match } from "@/lib/data/types"
 import { CompetitionSelector } from "@/components/competition-selector"
@@ -15,6 +15,12 @@ const tabs = [
 ] as const
 
 type FixtureTab = (typeof tabs)[number]["key"]
+
+function getTabFromUrl(): FixtureTab | null {
+  if (typeof window === "undefined") return null
+  const requested = new URLSearchParams(window.location.search).get("tab")
+  return requested === "resultados" || requested === "tablas" || requested === "proximos" ? requested : null
+}
 
 export function FixtureTabs({
   upcoming,
@@ -31,6 +37,13 @@ export function FixtureTabs({
 }) {
   const [active, setActive] = useState<FixtureTab>(initialTab)
   const upcomingRest = nextMatch ? upcoming.filter((match) => match.id !== nextMatch.id) : upcoming
+
+  // Read the optional tab query only after hydration. Keeping request-specific
+  // searchParams out of the server page allows /fixture to remain ISR/static.
+  useEffect(() => {
+    const requestedTab = getTabFromUrl()
+    if (requestedTab) setActive(requestedTab)
+  }, [])
 
   return (
     <div id="resultados-previos" className="space-y-4 scroll-mt-24 md:space-y-6">
