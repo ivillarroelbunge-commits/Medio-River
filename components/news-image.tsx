@@ -1,6 +1,7 @@
+import Image from "next/image"
 import type { NewsArticle } from "@/lib/data/types"
 import type { Match } from "@/lib/data/types"
-import { getTeamCrest } from "@/lib/data"
+import { getTeamCrest } from "@/lib/data/teams"
 import { getNewsImage, getNewsImageStyle } from "@/lib/news-media"
 import { cn } from "@/lib/utils"
 
@@ -10,12 +11,14 @@ export function NewsImage({
   className,
   imageClassName,
   priority = false,
+  sizes = "100vw",
 }: {
   article: NewsArticle
   match?: Match
   className?: string
   imageClassName?: string
   priority?: boolean
+  sizes?: string
 }) {
   if (article.articleType === "player_ratings" && match) {
     const homeTeam = match.isHome ? "River Plate" : match.opponent
@@ -39,12 +42,13 @@ export function NewsImage({
 
   return (
     <div className={cn("relative overflow-hidden", className)}>
-      <img
+      <Image
         src={getNewsImage(article)}
         alt={article.title}
-        loading={priority ? "eager" : "lazy"}
-        fetchPriority={priority ? "high" : "auto"}
-        className={cn("absolute inset-0 h-full w-full object-cover", imageClassName)}
+        fill
+        sizes={sizes}
+        priority={priority}
+        className={cn("object-cover", imageClassName)}
         style={getNewsImageStyle(article)}
       />
     </div>

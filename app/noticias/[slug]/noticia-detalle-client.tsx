@@ -16,12 +16,12 @@ import type { NewsArticle } from "@/lib/data/types"
 import { createClient as createSupabaseBrowserClient } from "@/lib/supabase/client"
 import { fetchNewsArticleBySlug } from "@/lib/supabase/news"
 
-export function NoticiaDetalleClient() {
+export function NoticiaDetalleClient({ initialArticle }: { initialArticle: NewsArticle | null }) {
   const params = useParams<{ slug: string }>()
   const { news, matches, isHydrated } = useAppState()
   const stateArticle = news.find((item) => item.slug === params.slug)
   const [loadedArticle, setLoadedArticle] = useState<NewsArticle | null>(null)
-  const article = loadedArticle ?? stateArticle
+  const article = loadedArticle ?? initialArticle ?? stateArticle
   const relatedArticles = article
     ? news
         .filter((item) => item.id !== article.id)
@@ -59,7 +59,7 @@ export function NoticiaDetalleClient() {
     }
   }, [article?.articleType, article?.content.length, isHydrated, params.slug])
 
-  if (!isHydrated) {
+  if (!article && !isHydrated) {
     return <div className="min-h-dvh bg-background" />
   }
 
@@ -113,7 +113,7 @@ export function NoticiaDetalleClient() {
           {isRatingsArticle ? (
             <PlayerRatingsArticle matchId={article.matchId!} />
           ) : (
-            <NewsImage article={article} match={match} className="h-[16rem] w-full rounded-2xl md:h-[30rem] md:rounded-3xl" />
+            <NewsImage article={article} match={match} className="h-[16rem] w-full rounded-2xl md:h-[30rem] md:rounded-3xl" sizes="(min-width: 1024px) 896px, calc(100vw - 2rem)" />
           )}
 
           {shouldShowArticleContent && article.content.length > 0 && (

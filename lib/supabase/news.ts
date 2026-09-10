@@ -2,14 +2,16 @@ import type { SupabaseClient } from "@supabase/supabase-js"
 import type { NewsArticle, NewsTag } from "@/lib/data/types"
 import { normalizeNewsCategory } from "@/lib/news-taxonomy"
 
+// Images can be large data: URLs in legacy rows. Never include that blob in
+// list/article JSON: serve it through the cached image endpoint instead.
 export const NEWS_SELECT =
-  "id, slug, title, excerpt, intro, content, image, image_focus_x, image_focus_y, image_zoom, author, published_at, category, competition, tag, featured, article_type, match_id"
+  "id, slug, title, excerpt, intro, content, image_focus_x, image_focus_y, image_zoom, author, published_at, updated_at, category, competition, tag, featured, article_type, match_id"
 const NEWS_SUMMARY_SELECT =
-  "id, slug, title, excerpt, intro, image, image_focus_x, image_focus_y, image_zoom, author, published_at, category, competition, tag, featured, article_type, match_id"
+  "id, slug, title, excerpt, intro, image_focus_x, image_focus_y, image_zoom, author, published_at, updated_at, category, competition, tag, featured, article_type, match_id"
 const LEGACY_NEWS_SELECT =
-  "id, slug, title, excerpt, intro, content, image, author, published_at, category, competition, tag, featured"
+  "id, slug, title, excerpt, intro, content, author, published_at, updated_at, category, competition, tag, featured"
 const LEGACY_NEWS_SUMMARY_SELECT =
-  "id, slug, title, excerpt, intro, image, author, published_at, category, competition, tag, featured"
+  "id, slug, title, excerpt, intro, author, published_at, updated_at, category, competition, tag, featured"
 
 interface NewsRow {
   id: string
@@ -18,18 +20,32 @@ interface NewsRow {
   excerpt: string
   intro: string
   content: unknown
-  image: string | null
+  image?: string | null
   image_focus_x?: number | null
   image_focus_y?: number | null
   image_zoom?: number | null
   author: string
   published_at: string
+  updated_at?: string | null
   category: string
   competition: string | null
   tag: string
   featured: boolean
   article_type?: string | null
   match_id?: string | null
+}
+
+export function getNewsImageProxyPath(articleId: string, version?: string | null) {
+  // Put the cache-busting version in the pathname instead of a query string.
+  // Next Image accepts local API image paths by default, while query strings
+  // require an explicit localPatterns rule in Next 16.
+  const versionToken = version ? encodeURIComponent(version) : "current"
+  return `/api/news-image/${encodeURIComponent(articleId)}/${versionToken}`
+}
+
+function getMappedNewsImage(articleId: string, image?: string | null, version?: string | null) {
+  if (image && !image.startsWith("data:image/")) return image
+  return getNewsImageProxyPath(articleId, version)
 }
 
 export function mapNewsRowToArticle(row: NewsRow): NewsArticle {
@@ -40,7 +56,7 @@ export function mapNewsRowToArticle(row: NewsRow): NewsArticle {
     excerpt: row.excerpt,
     intro: row.intro,
     content: Array.isArray(row.content) ? row.content.map(String) : [],
-    image: row.image ?? undefined,
+    image: getMappedNewsImage(row.id, row.image, row.updated_at),
     imageFocusX: row.image_focus_x ?? undefined,
     imageFocusY: row.image_focus_y ?? undefined,
     imageZoom: row.image_zoom ?? undefined,
@@ -63,15 +79,17 @@ function mapNewsSummaryRowToArticle(row: Omit<NewsRow, "content">): NewsArticle 
 }
 
 export async function fetchNewsArticles(supabase: SupabaseClient) {
+  // Full article bodies are loaded only on the article route. Fetching every
+  // body (and historically every base64 image) on every page wasted bandwidth.
   let { data, error } = await supabase
     .from("news_articles")
-    .select(NEWS_SELECT)
+    .select(NEWS_SUMMARY_SELECT)
     .order("published_at", { ascending: false })
 
   if (error && isMissingImageCropColumn(error.message)) {
     const fallback = await supabase
       .from("news_articles")
-      .select(LEGACY_NEWS_SELECT)
+      .select(LEGACY_NEWS_SUMMARY_SELECT)
       .order("published_at", { ascending: false })
     data = fallback.data?.map((row) => ({
       ...row,
@@ -89,7 +107,7 @@ export async function fetchNewsArticles(supabase: SupabaseClient) {
   }
 
   return {
-    articles: (data as NewsRow[]).map(mapNewsRowToArticle),
+    articles: (data as Omit<NewsRow, "content">[]).map(mapNewsSummaryRowToArticle),
     error: null,
   }
 }

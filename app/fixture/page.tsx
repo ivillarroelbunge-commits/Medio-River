@@ -1,17 +1,23 @@
 import { FixturePageClient } from "@/components/fixture-page-client"
 import { getCompetitionPanelsWithLiveStandings } from "@/lib/football-standings-api"
+import { getPreloadedMatches, getPreviousFromMatches, getUpcomingFromMatches } from "@/lib/matches-preload"
 
-export const dynamic = "force-dynamic"
+// Refresh the fixture shell every minute. Promiedos standings keep their own
+// five-minute data cache, while match dates/statuses can update more often.
+export const revalidate = 60
 
-type FixtureTab = "proximos" | "resultados" | "tablas"
-
-export default async function FixturePage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
-  const [{ panels }, params] = await Promise.all([
+export default async function FixturePage() {
+  const [{ panels }, initialMatches] = await Promise.all([
     getCompetitionPanelsWithLiveStandings(),
-    searchParams,
+    getPreloadedMatches(),
   ])
 
-  const initialTab: FixtureTab = params.tab === "resultados" || params.tab === "tablas" ? params.tab : "proximos"
-
-  return <FixturePageClient standingsPanels={panels} initialTab={initialTab} />
+  return (
+    <FixturePageClient
+      standingsPanels={panels}
+      initialTab="proximos"
+      initialUpcoming={getUpcomingFromMatches(initialMatches)}
+      initialPrevious={getPreviousFromMatches(initialMatches)}
+    />
+  )
 }

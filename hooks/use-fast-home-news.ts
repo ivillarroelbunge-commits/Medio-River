@@ -36,18 +36,26 @@ function saveCachedHomeNews(articles: NewsArticle[]) {
   }
 }
 
-export function useFastHomeNews(fallbackNews: NewsArticle[], hasSyncedNews: boolean) {
+export function useFastHomeNews(
+  fallbackNews: NewsArticle[],
+  hasSyncedNews: boolean,
+  initialNews: NewsArticle[] = [],
+) {
   const supabase = useMemo(() => createSupabaseBrowserClient(), [])
-  const [news, setNews] = useState<NewsArticle[]>([])
+  // The server snapshot is at most one ISR window old and must win over a
+  // potentially hours-old localStorage snapshot to avoid a stale-news flash.
+  const [news, setNews] = useState<NewsArticle[]>(initialNews)
   const [allowFallback, setAllowFallback] = useState(false)
 
   useEffect(() => {
     let active = true
     let refreshInFlight = false
 
-    const cached = readCachedHomeNews()
-    if (cached?.length) {
-      setNews(cached)
+    if (initialNews.length === 0) {
+      const cached = readCachedHomeNews()
+      if (cached?.length) {
+        setNews(cached)
+      }
     }
 
     async function refresh() {
@@ -61,7 +69,7 @@ export function useFastHomeNews(fallbackNews: NewsArticle[], hasSyncedNews: bool
         setNews(articles)
         saveCachedHomeNews(articles)
       } catch {
-        // Keep the cached snapshot visible; the provider still has its own fallback sync.
+        // Keep the server/cached snapshot visible; the provider still has its own fallback sync.
       } finally {
         refreshInFlight = false
       }
@@ -98,7 +106,7 @@ export function useFastHomeNews(fallbackNews: NewsArticle[], hasSyncedNews: bool
       document.removeEventListener("visibilitychange", refreshOnFocus)
       void supabase.removeChannel(channel)
     }
-  }, [supabase])
+  }, [initialNews, supabase])
 
   if (news.length > 0) return news
   if (allowFallback && hasSyncedNews) return fallbackNews

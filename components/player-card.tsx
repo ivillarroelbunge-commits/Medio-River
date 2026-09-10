@@ -1,12 +1,17 @@
 "use client"
 
+import Image from "next/image"
 import Link from "next/link"
 import { useState } from "react"
 import type { SquadPlayer } from "@/lib/data/types"
 
 export function PlayerCard({ player }: { player: SquadPlayer }) {
   return (
-    <Link href={`/plantel/${player.id}`} className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+    <Link
+      href={`/plantel/${player.id}`}
+      prefetch={false}
+      className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+    >
       {player.fromAcademy && (
         <span className="absolute right-2 top-2 z-10 rounded-full bg-primary px-2 py-0.5 text-[8px] font-bold uppercase tracking-[0.1em] text-primary-foreground md:right-3 md:top-3 md:px-2.5 md:py-1 md:text-[10px] md:tracking-[0.12em]">
           Formado en River
@@ -23,7 +28,6 @@ export function PlayerCard({ player }: { player: SquadPlayer }) {
           <p className="mt-1 text-xs text-muted-foreground md:text-sm">{player.position}</p>
         </div>
       </div>
-
     </Link>
   )
 }
@@ -36,12 +40,12 @@ function PlayerPhoto({ player }: { player: SquadPlayer }) {
   }
 
   return (
-    <img
+    <Image
       src={player.image}
       alt={player.name}
-      loading="lazy"
-      decoding="async"
-      className="h-full w-full object-contain object-bottom"
+      fill
+      sizes="(min-width: 768px) 112px, 80px"
+      className="object-contain object-bottom"
       onError={() => setFailed(true)}
     />
   )

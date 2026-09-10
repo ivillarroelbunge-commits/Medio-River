@@ -44,17 +44,21 @@ function saveCachedNextMatch(match: Match | null) {
   }
 }
 
-export function useFastNextMatch() {
+export function useFastNextMatch(initialMatch: Match | null = null) {
   const supabase = useMemo(() => createSupabaseBrowserClient(), [])
-  const [match, setMatch] = useState<Match | null>(null)
+  const [match, setMatch] = useState<Match | null>(() => isFutureUpcomingMatch(initialMatch) ? initialMatch : null)
 
   useEffect(() => {
     let active = true
     let refreshInFlight = false
 
-    const cached = readCachedNextMatch()
-    if (cached) {
-      setMatch(cached)
+    // The ISR snapshot is fresher than the 12-hour local cache. Only use the
+    // browser cache as an offline/failed-preload fallback.
+    if (!isFutureUpcomingMatch(initialMatch)) {
+      const cached = readCachedNextMatch()
+      if (cached) {
+        setMatch(cached)
+      }
     }
 
     async function refresh() {
@@ -98,7 +102,7 @@ export function useFastNextMatch() {
       document.removeEventListener("visibilitychange", refreshOnFocus)
       void supabase.removeChannel(channel)
     }
-  }, [supabase])
+  }, [initialMatch?.date, initialMatch?.id, supabase])
 
   return match
 }
