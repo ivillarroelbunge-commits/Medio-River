@@ -7,17 +7,18 @@ import { ArrowLeft, BadgeCheck } from "lucide-react"
 import { SiteFooter } from "@/components/site-footer"
 import { SiteHeader } from "@/components/site-header"
 import { useAppState } from "@/components/app-state-provider"
-import type { PlayerStatsCompetitionKey, SquadPlayer } from "@/lib/data/types"
+import type { PlayerSeasonStats, PlayerStatLine, PlayerStatsCompetitionKey, SquadPlayer } from "@/lib/data/types"
 import {
   formatPlayerRating,
   getCompetitionStatLine,
   getPlayerTotalStats,
   playerStatsCompetitionLabels,
-  playerStatsSourceUrl,
   playerStatsUpdatedAt,
 } from "@/lib/player-stats"
 
 const statTabs: Array<PlayerStatsCompetitionKey | "total"> = ["total", "clausura", "sudamericana", "copaArgentina", "apertura"]
+
+type CrowdRatingLine = Partial<PlayerStatLine> & { ratingMatches?: number }
 
 export default function PlayerProfilePage() {
   const params = useParams<{ id: string }>()
@@ -49,7 +50,7 @@ export default function PlayerProfilePage() {
   }
 
   const stats = activeTab === "total" ? getPlayerTotalStats(player.id, playerSeasonStats) : getCompetitionStatLine(player.id, activeTab, playerSeasonStats)
-  const sourceId = playerSeasonStats[player.id]?.sourceId
+  const crowdRating = getCrowdRating(player.id, activeTab, playerSeasonStats)
   const updatedAt = playerSeasonStats[player.id]?.updatedAt ?? playerStatsUpdatedAt
   const height = getPlayerHeight(player.id)
 
@@ -133,15 +134,14 @@ export default function PlayerProfilePage() {
               <StatBox tone="dark" label="Minutos" value={formatNumber(stats.minutes)} />
               <StatBox tone="red" label="Goles" value={String(stats.goals)} />
               <StatBox tone="red" label="Asistencias" value={String(stats.assists)} />
-              <StatBox label="Rating FotMob" value={formatPlayerRating(stats.rating)} />
+              <StatBox label="Puntuación de la gente" value={formatPlayerRating(crowdRating)} />
               <StatBox label="Amarillas" value={String(stats.yellowCards)} />
               <StatBox label="Rojas" value={String(stats.redCards)} />
               <StatBox label="Vallas invictas" value={String(stats.cleanSheets)} />
             </div>
 
             <p className="mt-6 text-xs leading-5 text-muted-foreground">
-              Fuente base: <a href={playerStatsSourceUrl} target="_blank" rel="noreferrer" className="font-semibold text-primary hover:underline">FotMob River Plate stats</a>
-              {sourceId ? ` · ID jugador ${sourceId}` : ""} · actualizado el {updatedAt}. FotMob no expone titulares en este endpoint, por eso se muestran PJ y minutos.
+              Las estadísticas se actualizan con las formaciones e incidencias guardadas de los partidos de River. La puntuación es exclusivamente el promedio de las calificaciones de los usuarios de Medio River · actualizado al {updatedAt}.
             </p>
           </section>
         </div>
@@ -245,6 +245,34 @@ function StatBox({ label, tone = "plain", value }: { label: string; tone?: "plai
       <p className="mt-2 font-display text-3xl font-extrabold">{value}</p>
     </div>
   )
+}
+
+function getCrowdRating(
+  playerId: string,
+  competition: PlayerStatsCompetitionKey | "total",
+  statsMap: Record<string, PlayerSeasonStats>,
+) {
+  const playerStats = statsMap[playerId]
+  if (!playerStats) return null
+
+  if (competition !== "total") {
+    const line = playerStats.competitions[competition] as CrowdRatingLine | undefined
+    return (line?.ratingMatches ?? 0) > 0 && typeof line?.rating === "number" ? line.rating : null
+  }
+
+  let ratingSum = 0
+  let ratedMatches = 0
+
+  for (const rawLine of Object.values(playerStats.competitions)) {
+    const line = rawLine as CrowdRatingLine | undefined
+    const matches = line?.ratingMatches ?? 0
+    if (matches <= 0 || typeof line?.rating !== "number") continue
+
+    ratingSum += line.rating * matches
+    ratedMatches += matches
+  }
+
+  return ratedMatches > 0 ? Number((ratingSum / ratedMatches).toFixed(2)) : null
 }
 
 function formatNumber(value: number) {
