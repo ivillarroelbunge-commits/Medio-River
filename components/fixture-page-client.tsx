@@ -7,7 +7,15 @@ import { useAppState } from "@/components/app-state-provider"
 import { useFastUpcomingMatches } from "@/hooks/use-fast-upcoming-matches"
 import type { CompetitionPanelData } from "@/lib/data/types"
 
-export function FixturePageClient({ standingsPanels }: { standingsPanels: CompetitionPanelData[] }) {
+type FixtureTab = "proximos" | "resultados" | "tablas"
+
+export function FixturePageClient({
+  standingsPanels,
+  initialTab,
+}: {
+  standingsPanels: CompetitionPanelData[]
+  initialTab: FixtureTab
+}) {
   const { matches } = useAppState()
   const upcoming = useFastUpcomingMatches()
   const previous = matches.filter((match) => match.status === "played").sort((a, b) => +new Date(b.date) - +new Date(a.date))
@@ -21,7 +29,13 @@ export function FixturePageClient({ standingsPanels }: { standingsPanels: Compet
           <header>
             <h1 className="font-display text-[1.75rem] font-extrabold tracking-tight leading-tight md:text-4xl">Fixture y resultados</h1>
           </header>
-          <FixtureTabs upcoming={upcoming} previous={previous} nextMatch={nextMatch} standingsPanels={standingsPanels} />
+          <FixtureTabs
+            upcoming={upcoming}
+            previous={previous}
+            nextMatch={nextMatch}
+            standingsPanels={standingsPanels}
+            initialTab={initialTab}
+          />
         </div>
       </main>
       <SiteFooter />
