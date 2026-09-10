@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
 
 const STORAGE_KEY = "medio-river-trivia-participant-v1"
+const PENDING_RESULT_STORAGE_KEY = "medio-river-trivia-pending-result-v1"
 
 export interface TriviaParticipant {
   id: string
@@ -20,6 +21,13 @@ export interface PublicTriviaResult {
   playedAt: string
 }
 
+export interface PendingTriviaResult {
+  dailyKey: string
+  score: number
+  totalQuestions: number
+  createdAt: string
+}
+
 function normalizeParticipant(value: unknown): TriviaParticipant | null {
   if (!value || typeof value !== "object") return null
   const raw = value as Record<string, unknown>
@@ -31,6 +39,28 @@ function normalizeParticipant(value: unknown): TriviaParticipant | null {
     name: typeof raw.name === "string" && raw.name.trim() ? raw.name.trim() : null,
     email: typeof raw.email === "string" && raw.email.trim() ? raw.email.trim().toLowerCase() : null,
     playedKeys: Array.isArray(raw.playedKeys) ? raw.playedKeys.filter((item): item is string => typeof item === "string") : [],
+  }
+}
+
+function normalizePendingResult(value: unknown): PendingTriviaResult | null {
+  if (!value || typeof value !== "object") return null
+  const raw = value as Record<string, unknown>
+  if (
+    typeof raw.dailyKey !== "string" ||
+    typeof raw.score !== "number" ||
+    typeof raw.totalQuestions !== "number" ||
+    typeof raw.createdAt !== "string"
+  ) {
+    return null
+  }
+
+  if (raw.score < 0 || raw.totalQuestions <= 0 || raw.score > raw.totalQuestions) return null
+
+  return {
+    dailyKey: raw.dailyKey,
+    score: raw.score,
+    totalQuestions: raw.totalQuestions,
+    createdAt: raw.createdAt,
   }
 }
 
@@ -53,6 +83,27 @@ export function saveTriviaParticipant(participant: TriviaParticipant) {
 export function clearTriviaParticipant() {
   if (typeof window === "undefined") return
   window.localStorage.removeItem(STORAGE_KEY)
+}
+
+export function readPendingTriviaResult(): PendingTriviaResult | null {
+  if (typeof window === "undefined") return null
+
+  try {
+    const raw = window.localStorage.getItem(PENDING_RESULT_STORAGE_KEY)
+    return raw ? normalizePendingResult(JSON.parse(raw)) : null
+  } catch {
+    return null
+  }
+}
+
+export function savePendingTriviaResult(result: PendingTriviaResult) {
+  if (typeof window === "undefined") return
+  window.localStorage.setItem(PENDING_RESULT_STORAGE_KEY, JSON.stringify(result))
+}
+
+export function clearPendingTriviaResult() {
+  if (typeof window === "undefined") return
+  window.localStorage.removeItem(PENDING_RESULT_STORAGE_KEY)
 }
 
 export function createTriviaParticipant(): TriviaParticipant {
@@ -177,23 +228,37 @@ export async function submitDeviceTriviaResult(
   score: number,
   totalQuestions: number,
   dailyKey: string,
+  userId?: string | null,
 ) {
-  if (!participant.name) {
+  if (!userId && !participant.name) {
     return { ok: false as const, missingNickname: true as const, error: "Elegí un nickname antes de guardar el resultado." }
   }
 
+  const payload = userId
+    ? {
+        user_id: userId,
+        participant_id: null,
+        device_id: null,
+        daily_key: dailyKey,
+        score,
+        total_questions: totalQuestions,
+        participant_name: participant.name ?? "Usuario",
+        ranking_id: participant.id,
+      }
+    : {
+        user_id: null,
+        participant_id: participant.id,
+        device_id: participant.deviceId,
+        daily_key: dailyKey,
+        score,
+        total_questions: totalQuestions,
+        participant_name: participant.name as string,
+        ranking_id: participant.id,
+      }
+
   const { data, error } = await supabase
     .from("trivia_results")
-    .insert({
-      user_id: null,
-      participant_id: participant.id,
-      device_id: participant.deviceId,
-      daily_key: dailyKey,
-      score,
-      total_questions: totalQuestions,
-      participant_name: participant.name,
-      ranking_id: participant.id,
-    })
+    .insert(payload)
     .select("id, ranking_id, participant_name, daily_key, score, total_questions, played_at")
     .single()
 
@@ -212,7 +277,7 @@ export async function submitDeviceTriviaResult(
     result: {
       id: String(data.id),
       rankingId: String(data.ranking_id),
-      participantName: String(data.participant_name || participant.name),
+      participantName: String(data.participant_name || participant.name || "Usuario"),
       dailyKey: String(data.daily_key),
       score: Number(data.score),
       totalQuestions: Number(data.total_questions),
