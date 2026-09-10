@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js"
 import type { PlayerSeasonStats } from "@/lib/data/types"
 
 export const PLAYER_SEASON_STATS_SELECT = "player_id, source_id, updated_at, competitions"
+const DERIVED_PLAYER_STATS_VIEW = "player_derived_season_stats"
 
 export interface PlayerSeasonStatsRow {
   player_id: string
@@ -32,17 +33,38 @@ export function mapPlayerSeasonStatsToPayload(
   }
 }
 
+function rowsToStats(rows: PlayerSeasonStatsRow[] | null) {
+  if (!rows) return undefined
+
+  return Object.fromEntries(
+    rows.map((row) => [row.player_id, mapPlayerStatsRowToSeasonStats(row)]),
+  )
+}
+
 export async function fetchPlayerSeasonStats(supabase: SupabaseClient) {
-  const { data, error } = await supabase
+  const derived = await supabase
+    .from(DERIVED_PLAYER_STATS_VIEW)
+    .select(PLAYER_SEASON_STATS_SELECT)
+    .order("player_id", { ascending: true })
+
+  if (!derived.error && derived.data) {
+    return {
+      playerSeasonStats: rowsToStats(derived.data as PlayerSeasonStatsRow[]),
+      error: null,
+    }
+  }
+
+  // Keep the historical snapshot only as a resilience fallback. The player
+  // profile ignores its legacy FotMob ratings because those rows do not carry
+  // ratingMatches; public ratings come exclusively from Medio River votes.
+  const fallback = await supabase
     .from("player_season_stats")
     .select(PLAYER_SEASON_STATS_SELECT)
     .order("player_id", { ascending: true })
 
   return {
-    playerSeasonStats: data
-      ? Object.fromEntries((data as PlayerSeasonStatsRow[]).map((row) => [row.player_id, mapPlayerStatsRowToSeasonStats(row)]))
-      : undefined,
-    error,
+    playerSeasonStats: rowsToStats(fallback.data as PlayerSeasonStatsRow[] | null),
+    error: fallback.error,
   }
 }
 
