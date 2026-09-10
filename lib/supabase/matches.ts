@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
+import { getCanonicalTeamName } from "@/lib/data/teams"
 import type { Competition, Match, MatchDetail, MatchPenaltyKick } from "@/lib/data/types"
 
 export const MATCHES_SELECT = "id, date, opponent, competition, status, is_home, stadium, tv_channel, river_score, opponent_score, referee, detail"
@@ -22,7 +23,7 @@ export function mapMatchRowToMatch(row: MatchRow): Match {
   return {
     id: row.id,
     date: row.date,
-    opponent: row.opponent,
+    opponent: getCanonicalTeamName(row.opponent),
     competition: row.competition,
     status: row.status,
     isHome: row.is_home,
@@ -109,7 +110,7 @@ export function mapMatchToPayload(match: Match, userId?: string | null) {
   return {
     id: match.id,
     date: match.date,
-    opponent: match.opponent,
+    opponent: getCanonicalTeamName(match.opponent),
     competition: match.competition,
     status: match.status,
     is_home: match.isHome,
