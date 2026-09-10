@@ -18,7 +18,13 @@ const defaultCompetitions = ["Torneo Clausura", "Copa Sudamericana", "Copa Argen
 const INITIAL_VISIBLE = 9
 const LOAD_MORE_STEP = 6
 
-export function NoticiasPageClient({ initialFeaturedNews }: { initialFeaturedNews: NewsArticle[] }) {
+export function NoticiasPageClient({
+  initialFeaturedNews,
+  initialLatestNews,
+}: {
+  initialFeaturedNews: NewsArticle[]
+  initialLatestNews: NewsArticle[]
+}) {
   const { news: appNews, matches, hasSyncedNews } = useAppState()
   const [query, setQuery] = useState("")
   const [tag, setTag] = useState("Todas")
@@ -27,7 +33,9 @@ export function NoticiasPageClient({ initialFeaturedNews }: { initialFeaturedNew
   const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE)
   const [featuredOffset, setFeaturedOffset] = useState(0)
 
-  const listingNews = hasSyncedNews ? appNews : []
+  // The ISR snapshot is already fresh enough to render immediately. Once the
+  // global Supabase sync finishes, swap it in without showing a loading grid.
+  const listingNews = hasSyncedNews && appNews.length > 0 ? appNews : initialLatestNews
   const featuredSource = hasSyncedNews && appNews.length > 0 ? appNews : initialFeaturedNews
   const optionSource = listingNews.length > 0 ? listingNews : initialFeaturedNews
 
@@ -109,19 +117,11 @@ export function NoticiasPageClient({ initialFeaturedNews }: { initialFeaturedNew
             </div>
           </div>
 
-          {hasSyncedNews ? (
-            <div className="grid gap-4 sm:grid-cols-2 md:gap-6 xl:grid-cols-3">
-              {visibleArticles.map((article) => <NewsCard key={article.id} article={article} match={findArticleMatch(article, matches)} />)}
-            </div>
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-2 md:gap-6 xl:grid-cols-3" aria-label="Cargando más noticias">
-              {Array.from({ length: 6 }, (_, index) => (
-                <div key={index} className="h-[20rem] animate-pulse rounded-[1.4rem] bg-muted md:h-[25rem] md:rounded-[1.65rem]" />
-              ))}
-            </div>
-          )}
+          <div className="grid gap-4 sm:grid-cols-2 md:gap-6 xl:grid-cols-3">
+            {visibleArticles.map((article) => <NewsCard key={article.id} article={article} match={findArticleMatch(article, matches)} />)}
+          </div>
 
-          {hasSyncedNews && hasMore && (
+          {hasMore && (
             <div className="flex justify-center">
               <Button type="button" variant="outline" className="rounded-full px-6" onClick={() => setVisibleCount((count) => count + LOAD_MORE_STEP)}>
                 Cargar más
@@ -129,7 +129,7 @@ export function NoticiasPageClient({ initialFeaturedNews }: { initialFeaturedNew
             </div>
           )}
 
-          {hasSyncedNews && filtered.length === 0 && <p className="rounded-2xl border border-dashed border-border p-5 text-center text-sm text-muted-foreground md:p-8">No encontramos noticias con esos filtros.</p>}
+          {filtered.length === 0 && <p className="rounded-2xl border border-dashed border-border p-5 text-center text-sm text-muted-foreground md:p-8">No encontramos noticias con esos filtros.</p>}
         </div>
       </main>
       <SiteFooter />
@@ -187,7 +187,14 @@ function FeaturedLeadCard({ article, match }: { article: NewsArticle; match?: Ma
   return (
     <article className="overflow-hidden rounded-[1.5rem] border border-border shadow-[0_12px_34px_rgba(15,23,42,0.12)] md:rounded-[2rem] xl:h-full">
       <Link href={`/noticias/${article.slug}`} className="group relative block min-h-[16rem] overflow-hidden sm:min-h-[18rem] md:min-h-[30rem] xl:h-full xl:min-h-0">
-        <NewsImage article={article} match={match} priority className="absolute inset-0 h-full w-full" imageClassName="transition duration-500 group-hover:scale-[1.02]" />
+        <NewsImage
+          article={article}
+          match={match}
+          priority
+          sizes="(min-width: 1280px) 760px, calc(100vw - 2rem)"
+          className="absolute inset-0 h-full w-full"
+          imageClassName="transition duration-500 group-hover:scale-[1.02]"
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-black/84 via-black/26 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 pt-20 px-4 pb-4 sm:pt-24 md:px-7 md:pb-7 xl:px-8 xl:pb-8">
           <div className="flex flex-wrap gap-1.5 sm:gap-2">
@@ -216,7 +223,12 @@ function FeaturedSideCard({ article, match }: { article: NewsArticle; match?: Ma
   return (
     <article className="overflow-hidden rounded-[1.5rem] border border-border bg-card shadow-sm md:rounded-[2rem] xl:flex-1">
       <Link href={`/noticias/${article.slug}`} className="grid h-full grid-cols-[5.5rem_1fr] gap-3 p-3 sm:grid-cols-[9.5rem_1fr] sm:items-start md:gap-4 md:p-5 xl:h-full">
-        <NewsImage article={article} match={match} className="h-full min-h-[6.5rem] w-full rounded-[1rem] sm:min-h-[9.5rem] md:rounded-[1.35rem]" />
+        <NewsImage
+          article={article}
+          match={match}
+          sizes="(min-width: 640px) 152px, 88px"
+          className="h-full min-h-[6.5rem] w-full rounded-[1rem] sm:min-h-[9.5rem] md:rounded-[1.35rem]"
+        />
         <div className="flex h-full flex-col">
           <div>
             <p className="text-[0.72rem] font-extrabold uppercase tracking-[0.08em] text-primary">{normalizeNewsCategory(article.category)}</p>
