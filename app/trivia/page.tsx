@@ -17,11 +17,91 @@ export default function TriviaPage() {
               <h1 className="mx-auto max-w-3xl font-display text-[2rem] font-extrabold leading-none tracking-tight md:text-5xl">Trivia Millonaria</h1>
             </div>
           </header>
-          <DeviceTriviaGame />
+
+          <div id="trivia-game-compact">
+            <DeviceTriviaGame />
+          </div>
+
           <TriviaSaveProgress />
         </div>
       </main>
       <SiteFooter />
+
+      <style>{`
+        @media (min-width: 768px) {
+          #trivia-game-compact > div.overflow-hidden {
+            border-radius: 1.5rem;
+          }
+
+          #trivia-game-compact > div.overflow-hidden > div:first-child {
+            padding: 0.75rem 1.5rem;
+          }
+
+          #trivia-game-compact > div.overflow-hidden > div:first-child h2 {
+            font-size: 1.5rem;
+            line-height: 1.15;
+          }
+
+          #trivia-game-compact > div.overflow-hidden > div:first-child > div > div:last-child {
+            border-radius: 0.85rem;
+            padding: 0.45rem 0.75rem;
+          }
+
+          #trivia-game-compact > div.overflow-hidden > div:first-child > div > div:last-child p:last-child {
+            font-size: 1.5rem;
+            line-height: 1;
+          }
+
+          #trivia-game-compact > div.overflow-hidden > div:nth-child(2) {
+            padding: 0.9rem 1.5rem 1rem;
+          }
+
+          #trivia-game-compact > div.overflow-hidden > div:nth-child(2) > div:first-child {
+            height: 0.5rem;
+          }
+
+          #trivia-game-compact > div.overflow-hidden > div:nth-child(2) > div:nth-child(2) {
+            margin-top: 0.75rem;
+            border-radius: 1rem;
+            padding: 0.9rem 1rem;
+          }
+
+          #trivia-game-compact > div.overflow-hidden > div:nth-child(2) > div:nth-child(2) > div:first-child {
+            margin-bottom: 0.45rem;
+          }
+
+          #trivia-game-compact > div.overflow-hidden > div:nth-child(2) > div:nth-child(2) h2 {
+            font-size: 1.5rem;
+            line-height: 1.18;
+          }
+
+          #trivia-game-compact > div.overflow-hidden > div:nth-child(2) > ul {
+            margin-top: 0.7rem;
+            gap: 0.5rem;
+          }
+
+          #trivia-game-compact > div.overflow-hidden > div:nth-child(2) > ul button {
+            min-height: 3.5rem;
+            border-radius: 0.9rem;
+            padding: 0.55rem 0.75rem;
+          }
+
+          #trivia-game-compact > div.overflow-hidden > div:nth-child(2) > p {
+            margin-top: 0.7rem;
+            padding: 0.7rem 0.8rem;
+          }
+
+          #trivia-game-compact > div.overflow-hidden > div:nth-child(2) > div.flex.justify-end {
+            margin-top: 0.75rem;
+          }
+
+          #trivia-game-compact > div.overflow-hidden > div:nth-child(2) > div.flex.justify-end button {
+            height: 2.5rem;
+            padding-left: 1.5rem;
+            padding-right: 1.5rem;
+          }
+        }
+      `}</style>
     </div>
   )
 }
