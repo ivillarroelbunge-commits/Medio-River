@@ -1,104 +1,119 @@
-const ESPN_CREST_VERSION = "20260428"
-
-function espnCrest(id: number) {
-  return `https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/500/${id}.png&v=${ESPN_CREST_VERSION}`
-}
+const SUPABASE_PUBLIC_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "https://amftkabquesgzsurkols.supabase.co"
+const TEAM_CREST_STORAGE_BASE = `${SUPABASE_PUBLIC_URL}/storage/v1/object/public/team-crests`
 
 type TeamDefinition = {
   name: string
-  crest: string
+  promiedosId: string
+  crestSlug: string
   aliases?: string[]
 }
 
 /**
  * Single source of truth for team identities and crests.
  *
- * Every alias resolves to the same canonical team and therefore to the exact
- * same crest everywhere in the site (home, fixture, match detail, tables, etc.).
+ * Every crest in this registry was imported from Promiedos and is stored in
+ * our own Supabase Storage bucket. Every alias resolves to the same canonical
+ * team, Promiedos id and stored image everywhere on the site.
  */
 const TEAM_DEFINITIONS: TeamDefinition[] = [
-  { name: "Aldosivi", crest: "/crests/aldosivi.png" },
+  { name: "Aldosivi", promiedosId: "hccd", crestSlug: "aldosivi" },
   {
     name: "Argentinos Juniors",
-    crest: "/crests/argentinos.jpg",
+    promiedosId: "ihb",
+    crestSlug: "argentinos-juniors",
     aliases: ["Argentinos Jrs.", "Argentinos Jrs", "Argentinos"],
   },
-  { name: "Atlético Tucumán", crest: "/crests/atletico-tucuman.png" },
-  { name: "Banfield", crest: "/crests/banfield.jpg" },
-  { name: "Barracas Central", crest: "/crests/barracas-central.png" },
-  { name: "Belgrano", crest: "/crests/belgrano.png", aliases: ["Belgrano (Córdoba)"] },
-  { name: "Blooming", crest: "/crests/blooming.png" },
-  { name: "Boca Juniors", crest: "/crests/boca-juniors.jpg", aliases: ["Boca"] },
-  { name: "Carabobo", crest: "/crests/carabobo.png", aliases: ["Carabobo FC"] },
+  { name: "Atlético Tucumán", promiedosId: "gbfc", crestSlug: "atletico-tucuman" },
+  { name: "Banfield", promiedosId: "ihi", crestSlug: "banfield" },
+  { name: "Barracas Central", promiedosId: "jafb", crestSlug: "barracas-central" },
+  { name: "Belgrano", promiedosId: "fhid", crestSlug: "belgrano", aliases: ["Belgrano (Córdoba)"] },
+  { name: "Blooming", promiedosId: "hdac", crestSlug: "blooming" },
+  { name: "Boca Juniors", promiedosId: "igg", crestSlug: "boca-juniors", aliases: ["Boca"] },
+  { name: "Carabobo", promiedosId: "igie", crestSlug: "carabobo", aliases: ["Carabobo FC"] },
   {
     name: "Central Córdoba (Santiago del Estero)",
-    crest: espnCrest(11989),
+    promiedosId: "beafh",
+    crestSlug: "central-cordoba-sde",
     aliases: ["Central Córdoba", "Central Córdoba SdE", "Central Cordoba SdE"],
   },
-  { name: "Ciudad de Bolívar", crest: espnCrest(21799) },
-  { name: "Defensa y Justicia", crest: "/crests/defensa-y-justicia.jpg" },
-  { name: "Deportivo Riestra", crest: espnCrest(17702), aliases: ["Riestra"] },
+  { name: "Ciudad de Bolívar", promiedosId: "ghjha", crestSlug: "ciudad-de-bolivar", aliases: ["Ciudad De Bolivar"] },
+  { name: "Defensa y Justicia", promiedosId: "hcbh", crestSlug: "defensa-y-justicia", aliases: ["Defensa"] },
+  { name: "Deportivo Riestra", promiedosId: "bbjea", crestSlug: "deportivo-riestra", aliases: ["Riestra"] },
   {
     name: "Estudiantes de La Plata",
-    crest: "/crests/estudiantes.jpg",
+    promiedosId: "igh",
+    crestSlug: "estudiantes-la-plata",
     aliases: ["Estudiantes", "Estudiantes LP", "Estudiantes (LP)"],
   },
   {
     name: "Estudiantes de Río Cuarto",
-    crest: "/crests/estudiantes-de-rio-cuarto.png",
+    promiedosId: "bheaf",
+    crestSlug: "estudiantes-rio-cuarto",
     aliases: ["Estudiantes RC", "Estudiantes (RC)"],
   },
-  { name: "Estudiantes BA", crest: "/crests/estudiantes-ba.jpg", aliases: ["Estudiantes de Buenos Aires"] },
-  { name: "Flamengo", crest: espnCrest(819) },
+  {
+    name: "Estudiantes BA",
+    promiedosId: "hbbg",
+    crestSlug: "estudiantes-ba",
+    aliases: ["Estudiantes de Buenos Aires", "Estudiantes (BA)"],
+  },
+  { name: "Flamengo", promiedosId: "bcbf", crestSlug: "flamengo" },
   {
     name: "Gimnasia La Plata",
-    crest: "/crests/gimnasia.png",
+    promiedosId: "iia",
+    crestSlug: "gimnasia-la-plata",
     aliases: ["Gimnasia", "Gimnasia (LP)", "Gimnasia y Esgrima La Plata", "Gimnasia y Esgrima (LP)"],
   },
   {
     name: "Gimnasia (Mendoza)",
-    crest: espnCrest(11972),
-    aliases: ["Gimnasia de Mendoza", "Gimnasia Mendoza", "Gimnasia M."],
+    promiedosId: "bbjbf",
+    crestSlug: "gimnasia-mendoza",
+    aliases: ["Gimnasia de Mendoza", "Gimnasia Mendoza", "Gimnasia M.", "Gimnasia (M)"],
   },
-  { name: "Huracán", crest: "/crests/huracan.jpg" },
-  { name: "Independiente", crest: "/crests/independiente.jpg" },
-  { name: "Independiente Rivadavia", crest: "/crests/independiente-rivadavia.png" },
-  { name: "Independiente Santa Fe", crest: espnCrest(5488), aliases: ["Santa Fe"] },
+  { name: "Huracán", promiedosId: "iie", crestSlug: "huracan" },
+  { name: "Independiente", promiedosId: "ihe", crestSlug: "independiente" },
+  { name: "Independiente Rivadavia", promiedosId: "hcch", crestSlug: "independiente-rivadavia", aliases: ["Independiente Riv."] },
+  { name: "Independiente Santa Fe", promiedosId: "hgee", crestSlug: "independiente-santa-fe", aliases: ["Santa Fe"] },
   {
     name: "Instituto (Córdoba)",
-    crest: espnCrest(2975),
-    aliases: ["Instituto", "Instituto de Córdoba"],
+    promiedosId: "hchc",
+    crestSlug: "instituto",
+    aliases: ["Instituto", "Instituto de Córdoba", "Instituto AC Córdoba"],
   },
-  { name: "Junior", crest: "/crests/junior.jpg", aliases: ["Junior de Barranquilla"] },
-  { name: "Lanús", crest: "/crests/lanus.jpg" },
-  { name: "LDU Quito", crest: "/crests/ldu-quito.jpg", aliases: ["LDU"] },
-  { name: "Newell's Old Boys", crest: "/crests/newells.jpg", aliases: ["Newell's", "Newells"] },
-  { name: "Palmeiras", crest: "/crests/palmeiras.jpg" },
-  { name: "Platense", crest: espnCrest(7764) },
-  { name: "Racing Club", crest: "/crests/racing.jpg", aliases: ["Racing"] },
+  { name: "Junior", promiedosId: "hcae", crestSlug: "junior", aliases: ["Junior FC", "Junior de Barranquilla"] },
+  { name: "Lanús", promiedosId: "igj", crestSlug: "lanus" },
+  { name: "LDU Quito", promiedosId: "bcic", crestSlug: "ldu-quito", aliases: ["LDU", "Liga de Quito"] },
+  { name: "Newell's Old Boys", promiedosId: "ihh", crestSlug: "newells-old-boys", aliases: ["Newell's", "Newells"] },
+  { name: "Palmeiras", promiedosId: "bccc", crestSlug: "palmeiras" },
+  { name: "Platense", promiedosId: "hcah", crestSlug: "platense" },
+  { name: "Racing Club", promiedosId: "ihg", crestSlug: "racing-club", aliases: ["Racing"] },
   {
     name: "Red Bull Bragantino",
-    crest: "/crests/red-bull-bragantino.png",
+    promiedosId: "bchd",
+    crestSlug: "red-bull-bragantino",
     aliases: ["Bragantino", "RB Bragantino"],
   },
-  { name: "River Plate", crest: "/crests/river-plate.jpg", aliases: ["CA River Plate", "River"] },
-  { name: "Rosario Central", crest: "/crests/rosario-central.png" },
-  { name: "San Lorenzo", crest: "/crests/san-lorenzo.jpg", aliases: ["San Lorenzo de Almagro"] },
+  { name: "River Plate", promiedosId: "igi", crestSlug: "river-plate", aliases: ["CA River Plate", "River"] },
+  { name: "Rosario Central", promiedosId: "ihf", crestSlug: "rosario-central", aliases: ["Central"] },
+  { name: "San Lorenzo", promiedosId: "igf", crestSlug: "san-lorenzo", aliases: ["San Lorenzo de Almagro"] },
   {
     name: "Sarmiento (Junín)",
-    crest: "/crests/sarmiento.jpg",
+    promiedosId: "hbbh",
+    crestSlug: "sarmiento-junin",
     aliases: ["Sarmiento", "Sarmiento Junín"],
   },
   {
     name: "Talleres (Córdoba)",
-    crest: "/crests/talleres.jpg",
+    promiedosId: "jche",
+    crestSlug: "talleres-cordoba",
     aliases: ["Talleres", "Talleres de Córdoba"],
   },
-  { name: "Tigre", crest: "/crests/tigre.jpg" },
-  { name: "Unión (Santa Fe)", crest: espnCrest(20), aliases: ["Unión", "Unión de Santa Fe"] },
+  { name: "Tigre", promiedosId: "iid", crestSlug: "tigre" },
+  { name: "Unión (Santa Fe)", promiedosId: "hcag", crestSlug: "union-santa-fe", aliases: ["Unión", "Unión de Santa Fe"] },
   {
     name: "Vélez Sarsfield",
-    crest: "/crests/velez.jpg",
+    promiedosId: "ihc",
+    crestSlug: "velez-sarsfield",
     aliases: ["Vélez", "Velez", "Velez Sarsfield"],
   },
 ]
@@ -121,13 +136,22 @@ for (const definition of TEAM_DEFINITIONS) {
   }
 }
 
+function getStoredCrestUrl(definition: TeamDefinition) {
+  return `${TEAM_CREST_STORAGE_BASE}/${definition.crestSlug}.png`
+}
+
 export function getCanonicalTeamName(team: string) {
   const trimmed = team.trim()
   return TEAM_BY_KEY.get(normalizeTeamKey(trimmed))?.name ?? trimmed
 }
 
 export function getTeamCrest(team: string) {
-  return TEAM_BY_KEY.get(normalizeTeamKey(team))?.crest ?? "/crests/fallback.svg"
+  const definition = TEAM_BY_KEY.get(normalizeTeamKey(team))
+  return definition ? getStoredCrestUrl(definition) : "/crests/fallback.svg"
+}
+
+export function getPromiedosTeamId(team: string) {
+  return TEAM_BY_KEY.get(normalizeTeamKey(team))?.promiedosId
 }
 
 export function hasTeamCrest(team: string) {
