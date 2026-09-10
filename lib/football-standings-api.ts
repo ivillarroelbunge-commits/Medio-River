@@ -1,267 +1,200 @@
 import { competitionPanels } from "@/lib/data/matches"
 import type { CompetitionPanelData, StandingRow } from "@/lib/data/types"
 
-const ESPN_CORE_BASE_URL = "https://sports.core.api.espn.com"
-const STANDINGS_REVALIDATE_SECONDS = 60 * 30
-const DEFAULT_SEASON = "2026"
+const PROMIEDOS_BASE_URL = "https://api.promiedos.com.ar"
+const PROMIEDOS_XVER = process.env.PROMIEDOS_XVER ?? "1.11.7.5"
+const STANDINGS_REVALIDATE_SECONDS = 60 * 5
 
 type PanelKey = CompetitionPanelData["key"]
 
-interface EspnRef {
-  $ref?: string
+type PromiedosValue = {
+  key?: string
+  value?: unknown
 }
 
-interface EspnStat {
+type PromiedosEntity = {
+  object?: {
+    id?: string
+    name?: string
+    short_name?: string
+  }
+}
+
+type PromiedosStandingRow = {
+  entity?: PromiedosEntity
+  values?: PromiedosValue[]
+}
+
+type PromiedosTable = {
   name?: string
-  value?: number
+  table?: {
+    rows?: PromiedosStandingRow[]
+  }
 }
 
-interface EspnRecord {
-  type?: string
-  stats?: EspnStat[]
-}
-
-interface EspnStandingEntry {
-  team?: EspnRef
-  records?: EspnRecord[]
-}
-
-interface EspnStanding {
-  standings?: EspnStandingEntry[]
-}
-
-interface EspnStandingsCollection {
-  $ref?: string
-  items?: Array<EspnRef & { id?: string }>
-}
-
-interface EspnGroupCollection {
-  items?: EspnRef[]
-}
-
-interface EspnTeam {
-  displayName?: string
+type PromiedosTableGroup = {
   name?: string
-  location?: string
+  tables?: PromiedosTable[]
 }
 
-interface EspnSourceConfig {
-  league: string
-  type: string
-  group: string | "auto"
-  standingId?: string
-}
-
-const espnSources: Partial<Record<PanelKey, EspnSourceConfig>> = {
-  clausura: {
-    league: "arg.1",
-    type: "6",
-    group: "auto",
-    standingId: "0",
-  },
-  apertura: {
-    league: "arg.1",
-    type: "1",
-    group: "auto",
-    standingId: "0",
-  },
-  sudamericana: {
-    league: "conmebol.sudamericana",
-    type: "2",
-    group: "auto",
-    standingId: "0",
-  },
+type PromiedosLeaguePayload = {
+  tables_groups?: PromiedosTableGroup[]
 }
 
 export async function getCompetitionPanelsWithLiveStandings() {
-  const season = process.env.STANDINGS_SEASON ?? DEFAULT_SEASON
-  const panels = await Promise.all(
-    competitionPanels.map(async (panel) => {
-      const standings = await getLiveStandingsForPanel(panel.key, season)
-      if (standings.length === 0) return panel
+  const [argentina, sudamericana] = await Promise.all([
+    fetchPromiedosLeague("hc"),
+    fetchPromiedosLeague("dij"),
+  ])
 
-      return {
-        ...panel,
-        standings,
-        subtitle: `Tabla ESPN actualizada automáticamente · temporada ${season}`,
-      }
-    }),
-  )
-  const hasLiveStandings = panels.some((panel, index) => panel.standings !== competitionPanels[index].standings)
+  let livePanels = 0
+
+  const panels = competitionPanels.map((panel) => {
+    const standings = getLiveStandingsForPanel(panel.key, argentina, sudamericana)
+    if (standings.length === 0) return panel
+
+    livePanels += 1
+
+    return {
+      ...panel,
+      standings,
+      subtitle: "Tabla Promiedos actualizada automáticamente",
+    }
+  })
 
   return {
     panels,
-    source: hasLiveStandings ? "espn" as const : "static" as const,
-    warning: hasLiveStandings ? undefined : "No se pudieron leer tablas externas; se muestran datos locales.",
+    source: livePanels > 0 ? "promiedos" as const : "static" as const,
+    warning: livePanels > 0 ? undefined : "No se pudieron leer las tablas de Promiedos; se muestran datos locales.",
   }
 }
 
-async function getLiveStandingsForPanel(panelKey: PanelKey, season: string) {
-  if (panelKey === "anual") {
-    return getAnnualStandings(season)
+function getLiveStandingsForPanel(
+  panelKey: PanelKey,
+  argentina: PromiedosLeaguePayload | null,
+  sudamericana: PromiedosLeaguePayload | null,
+) {
+  if (panelKey === "clausura") {
+    return getRiverGroupStandings(argentina, "clausura")
   }
 
-  const source = espnSources[panelKey]
-  if (!source) return []
+  if (panelKey === "apertura") {
+    return getRiverGroupStandings(argentina, "apertura")
+  }
 
-  const candidateRows = await fetchCandidateRows(source, season)
-  const riverRows = candidateRows.find((rows) => rows.some((row) => row.team === "River Plate"))
+  if (panelKey === "anual") {
+    return getNamedTableStandings(argentina, "tabla anual")
+  }
 
-  return (riverRows ?? candidateRows[0] ?? [])
+  if (panelKey === "sudamericana") {
+    return getRiverGroupStandings(sudamericana, "fase de grupos")
+  }
+
+  return []
+}
+
+function getRiverGroupStandings(payload: PromiedosLeaguePayload | null, groupName: string) {
+  const group = payload?.tables_groups?.find((candidate) =>
+    normalizeLabel(candidate.name ?? "").includes(normalizeLabel(groupName)),
+  )
+
+  if (!group?.tables?.length) return []
+
+  const riverTable = group.tables.find((table) =>
+    (table.table?.rows ?? []).some((row) => normalizeTeamName(readTeamName(row)) === "River Plate"),
+  )
+
+  return mapPromiedosTable(riverTable)
+}
+
+function getNamedTableStandings(payload: PromiedosLeaguePayload | null, tableName: string) {
+  const normalizedTarget = normalizeLabel(tableName)
+
+  for (const group of payload?.tables_groups ?? []) {
+    const table = group.tables?.find((candidate) =>
+      normalizeLabel(candidate.name ?? "").includes(normalizedTarget),
+    )
+
+    if (table) return mapPromiedosTable(table)
+  }
+
+  return []
+}
+
+function mapPromiedosTable(table: PromiedosTable | undefined) {
+  return (table?.table?.rows ?? [])
+    .map(mapPromiedosStandingRow)
     .filter((row): row is StandingRow => Boolean(row))
 }
 
-async function getAnnualStandings(season: string) {
-  const annualSources: EspnSourceConfig[] = [
-    {
-      league: "arg.1",
-      type: "1",
-      group: "auto",
-      standingId: "0",
-    },
-    {
-      league: "arg.1",
-      type: "6",
-      group: "auto",
-      standingId: "0",
-    },
-  ]
-  const rowsBySource = await Promise.all(annualSources.map((source) => fetchCandidateRows(source, season)))
-  const accumulated = new Map<string, StandingRow>()
+function mapPromiedosStandingRow(row: PromiedosStandingRow): StandingRow | null {
+  const team = normalizeTeamName(readTeamName(row))
+  if (!team) return null
 
-  for (const rows of rowsBySource.flat()) {
-    for (const row of rows) {
-      const current = accumulated.get(row.team)
-      if (!current) {
-        accumulated.set(row.team, { ...row })
-        continue
-      }
-
-      current.played += row.played
-      current.won += row.won
-      current.drawn += row.drawn
-      current.lost += row.lost
-      current.goalDifference += row.goalDifference
-      current.points += row.points
-    }
-  }
-
-  return [...accumulated.values()].sort((a, b) => b.points - a.points || b.goalDifference - a.goalDifference || b.won - a.won)
-}
-
-async function fetchCandidateRows(source: EspnSourceConfig, season: string) {
-  const candidateStandings = await fetchCandidateStandings(source, season)
-  return Promise.all(
-    candidateStandings.map(async (standing) => {
-      const rows = await Promise.all((standing?.standings ?? []).map(mapEspnStandingEntry))
-      return rows
-        .filter((row): row is StandingRow => Boolean(row))
-        .sort((a, b) => b.points - a.points || b.goalDifference - a.goalDifference || b.won - a.won)
-    }),
-  )
-}
-
-async function fetchCandidateStandings(source: EspnSourceConfig, season: string) {
-  if (source.group !== "auto") {
-    const data = await fetchEspnJson<EspnStanding | EspnStandingsCollection>(buildEspnStandingsUrl(source, season, source.group))
-    const standing = isStanding(data) ? data : await fetchFirstStandingFromCollection(data)
-    return standing ? [standing] : []
-  }
-
-  const groups = await fetchEspnGroups(source, season)
-  const standings = await Promise.all(
-    groups.map(async (group) => {
-      const data = await fetchEspnJson<EspnStanding | EspnStandingsCollection>(buildEspnStandingsUrl(source, season, group))
-      return isStanding(data) ? data : fetchFirstStandingFromCollection(data)
-    }),
-  )
-
-  return standings.filter((standing): standing is EspnStanding => Boolean(standing))
-}
-
-async function fetchEspnGroups(source: EspnSourceConfig, season: string) {
-  const url = new URL(`/v2/sports/soccer/leagues/${source.league}/seasons/${season}/types/${source.type}/groups`, ESPN_CORE_BASE_URL)
-  url.searchParams.set("lang", "es")
-  url.searchParams.set("region", "ar")
-
-  const data = await fetchEspnJson<EspnGroupCollection>(url.toString())
-  const groupIds = data?.items
-    ?.map((group) => group.$ref?.match(/\/groups\/([^/?]+)/)?.[1])
-    .filter((groupId): groupId is string => Boolean(groupId))
-
-  return groupIds?.length ? groupIds : ["1"]
-}
-
-function buildEspnStandingsUrl(source: EspnSourceConfig, season: string, group: string) {
-  const basePath = `/v2/sports/soccer/leagues/${source.league}/seasons/${season}/types/${source.type}/groups/${group}/standings`
-  const path = source.standingId ? `${basePath}/${source.standingId}` : basePath
-  const url = new URL(path, ESPN_CORE_BASE_URL)
-  url.searchParams.set("lang", "es")
-  url.searchParams.set("region", "ar")
-  return url.toString()
-}
-
-async function fetchFirstStandingFromCollection(collection: EspnStandingsCollection | null) {
-  const firstStandingUrl = collection?.items?.[0]?.$ref
-  if (!firstStandingUrl) return null
-  return fetchEspnJson<EspnStanding>(firstStandingUrl)
-}
-
-function isStanding(value: EspnStanding | EspnStandingsCollection | null): value is EspnStanding {
-  return Array.isArray(value?.standings)
-}
-
-async function mapEspnStandingEntry(entry: EspnStandingEntry): Promise<StandingRow | null> {
-  const record = entry.records?.find((candidate) => candidate.type === "total") ?? entry.records?.[0]
-  const stats = record?.stats ?? []
-  const teamName = entry.team?.$ref ? await fetchEspnTeamName(entry.team.$ref) : null
-
-  if (!teamName) return null
+  const values = new Map((row.values ?? []).map((item) => [item.key ?? "", item.value]))
 
   return {
-    team: normalizeTeamName(teamName),
-    played: readStat(stats, "gamesPlayed"),
-    won: readStat(stats, "wins"),
-    drawn: readStat(stats, "ties"),
-    lost: readStat(stats, "losses"),
-    goalDifference: readStat(stats, "pointDifferential"),
-    points: readStat(stats, "points"),
+    team,
+    played: readNumber(values.get("GamePlayed")),
+    won: readNumber(values.get("GamesWon")),
+    drawn: readNumber(values.get("GamesEven")),
+    lost: readNumber(values.get("GamesLost")),
+    goalDifference: readNumber(values.get("Ratio")),
+    points: readNumber(values.get("Points")),
   }
 }
 
-async function fetchEspnTeamName(teamUrl: string) {
-  const team = await fetchEspnJson<EspnTeam>(teamUrl)
-  return team?.displayName ?? team?.name ?? team?.location ?? null
+function readTeamName(row: PromiedosStandingRow) {
+  return row.entity?.object?.name ?? row.entity?.object?.short_name ?? ""
 }
 
-async function fetchEspnJson<T>(url: string): Promise<T | null> {
+function readNumber(value: unknown) {
+  const parsed = typeof value === "number" ? value : Number.parseFloat(String(value ?? "0"))
+  return Number.isFinite(parsed) ? Math.trunc(parsed) : 0
+}
+
+async function fetchPromiedosLeague(leagueId: string): Promise<PromiedosLeaguePayload | null> {
   try {
-    const response = await fetch(url.replace("http://", "https://"), {
+    const response = await fetch(`${PROMIEDOS_BASE_URL}/league/tables_and_fixtures/${leagueId}`, {
       headers: {
         Accept: "application/json",
+        "X-VER": PROMIEDOS_XVER,
+        "User-Agent": "Mozilla/5.0 (MedioRiver/1.0)",
+        Referer: "https://www.promiedos.com.ar/",
       },
       next: { revalidate: STANDINGS_REVALIDATE_SECONDS },
     })
 
     if (!response.ok) return null
 
-    return (await response.json()) as T
+    const data = (await response.json()) as PromiedosLeaguePayload
+    return Array.isArray(data?.tables_groups) ? data : null
   } catch {
     return null
   }
 }
 
-function readStat(stats: EspnStat[], name: string) {
-  return Math.trunc(stats.find((stat) => stat.name === name)?.value ?? 0)
+function normalizeLabel(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase()
 }
 
 function normalizeTeamName(team: string) {
+  const normalized = team.trim()
   const aliases: Record<string, string> = {
     "CA River Plate": "River Plate",
     "River Plate": "River Plate",
-    "RB Bragantino": "Red Bull Bragantino",
-    Bragantino: "Red Bull Bragantino",
+    "Argentinos Jrs.": "Argentinos Juniors",
+    "Atlético Tucumán": "Atlético Tucumán",
+    "Estudiantes (RC)": "Estudiantes de Río Cuarto",
+    "Gimnasia (LP)": "Gimnasia La Plata",
+    "Independiente Rivadavia": "Independiente Rivadavia",
+    "Newell's": "Newell's Old Boys",
+    "Rosario Central": "Rosario Central",
   }
 
-  return aliases[team] ?? team
+  return aliases[normalized] ?? normalized
 }
