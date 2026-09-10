@@ -36,8 +36,11 @@ interface NewsRow {
 }
 
 export function getNewsImageProxyPath(articleId: string, version?: string | null) {
-  const path = `/api/news-image/${encodeURIComponent(articleId)}`
-  return version ? `${path}?v=${encodeURIComponent(version)}` : path
+  // Put the cache-busting version in the pathname instead of a query string.
+  // Next Image accepts local API image paths by default, while query strings
+  // require an explicit localPatterns rule in Next 16.
+  const versionToken = version ? encodeURIComponent(version) : "current"
+  return `/api/news-image/${encodeURIComponent(articleId)}/${versionToken}`
 }
 
 function getMappedNewsImage(articleId: string, image?: string | null, version?: string | null) {
