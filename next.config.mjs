@@ -10,7 +10,16 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
-    unoptimized: true,
+    // News images come from several trusted editorial sources. Let Next/Vercel
+    // resize and convert them instead of sending the original full-size asset to
+    // every device. The editor controls these URLs; they are not user supplied.
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "**",
+      },
+    ],
+    minimumCacheTTL: 60 * 60 * 24,
   },
 }
 
