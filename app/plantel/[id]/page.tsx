@@ -65,57 +65,56 @@ export default function PlayerProfilePage() {
             Volver al plantel
           </Link>
 
-          <section className="relative overflow-hidden rounded-[1.5rem] border border-border bg-card shadow-xl md:rounded-[2rem]">
-            <div className="absolute inset-x-0 top-0 h-2 bg-gradient-to-r from-primary via-secondary to-primary" />
-            <div className="grid gap-0 lg:grid-cols-[0.8fr_1.2fr]">
-              <div className="relative min-h-[20rem] overflow-hidden bg-secondary p-4 text-secondary-foreground md:min-h-[24rem] md:p-8">
-                <div className="absolute -left-16 -top-20 h-60 w-60 rounded-full bg-primary/50 blur-3xl" />
-                <div className="absolute -bottom-24 right-4 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
-                <div className="absolute inset-0 opacity-15 [background-image:linear-gradient(115deg,transparent_0%,transparent_44%,white_45%,white_48%,transparent_49%,transparent_100%)]" />
-                <div className="relative flex h-full flex-col justify-between gap-5 md:gap-8">
-                  <div className="flex flex-wrap gap-2">
-                    {player.fromAcademy && (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-xs font-bold uppercase tracking-[0.12em] text-primary-foreground">
-                        <BadgeCheck className="h-3.5 w-3.5" />
-                        Formado en River
-                      </span>
-                    )}
-                    <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.12em] text-white/75 ring-1 ring-white/15">
-                      {player.line}
+          <section className="grid gap-4 md:gap-5 lg:grid-cols-[0.8fr_1.2fr]">
+            <div className="relative min-h-[20rem] overflow-hidden rounded-[1.5rem] border border-border bg-secondary p-4 text-secondary-foreground shadow-xl md:min-h-[24rem] md:rounded-[2rem] md:p-8">
+              <div className="absolute inset-x-0 top-0 h-2 bg-gradient-to-r from-primary via-secondary to-primary" />
+              <div className="absolute -left-16 -top-20 h-60 w-60 rounded-full bg-primary/50 blur-3xl" />
+              <div className="absolute -bottom-24 right-4 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
+              <div className="absolute inset-0 opacity-15 [background-image:linear-gradient(115deg,transparent_0%,transparent_44%,white_45%,white_48%,transparent_49%,transparent_100%)]" />
+              <div className="relative flex h-full flex-col justify-between gap-5 md:gap-8">
+                <div className="flex flex-wrap gap-2">
+                  {player.fromAcademy && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-xs font-bold uppercase tracking-[0.12em] text-primary-foreground">
+                      <BadgeCheck className="h-3.5 w-3.5" />
+                      Formado en River
                     </span>
-                  </div>
+                  )}
+                  <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.12em] text-white/75 ring-1 ring-white/15">
+                    {player.line}
+                  </span>
+                </div>
 
-                  <div className="mx-auto flex flex-col items-center">
-                    <div className="relative h-56 w-48 overflow-hidden rounded-[1.75rem] border border-white/15 bg-white shadow-2xl shadow-black/30 md:h-72 md:w-64 md:rounded-[2.2rem]">
-                      <PlayerPhoto player={player} />
-                    </div>
-                    <div className="-mt-7 rounded-2xl bg-primary px-4 py-2.5 text-center shadow-xl md:-mt-8 md:px-5 md:py-3">
-                      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/70">Dorsal</p>
-                      <p className="font-display text-3xl font-extrabold leading-none text-primary-foreground md:text-4xl">#{player.number}</p>
-                    </div>
+                <div className="mx-auto flex flex-col items-center">
+                  <div className="relative h-56 w-48 overflow-hidden rounded-[1.75rem] border border-white/15 bg-white shadow-2xl shadow-black/30 md:h-72 md:w-64 md:rounded-[2.2rem]">
+                    <PlayerPhoto player={player} />
+                  </div>
+                  <div className="-mt-7 rounded-2xl bg-primary px-4 py-2.5 text-center shadow-xl md:-mt-8 md:px-5 md:py-3">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/70">Dorsal</p>
+                    <p className="font-display text-3xl font-extrabold leading-none text-primary-foreground md:text-4xl">#{player.number}</p>
                   </div>
                 </div>
               </div>
+            </div>
 
-              <div className="relative p-4 md:p-8">
-                <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">#{player.number} · {player.position}</p>
-                <h1 className="mt-2 font-display text-[2.1rem] font-extrabold tracking-tight leading-none text-foreground md:text-6xl">{player.name}</h1>
-                <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-                  Perfil del jugador con estadísticas de temporada, vista total y desglose por torneo.
-                </p>
+            <div className="relative overflow-hidden rounded-[1.5rem] border border-border bg-card p-4 shadow-xl md:rounded-[2rem] md:p-8">
+              <div className="absolute inset-x-0 top-0 h-2 bg-gradient-to-r from-primary via-secondary to-primary" />
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">#{player.number} · {player.position}</p>
+              <h1 className="mt-2 font-display text-[2.1rem] font-extrabold tracking-tight leading-none text-foreground md:text-6xl">{player.name}</h1>
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
+                Perfil del jugador con estadísticas de temporada, vista total y desglose por torneo.
+              </p>
 
-                <div className="mt-6 grid gap-3 sm:grid-cols-3">
-                  <BioBlock label="Edad" value={`${player.age}`} />
-                  <BioBlock label="País" value={player.nationality} />
-                  <BioBlock label="Pierna" value={player.foot} />
-                </div>
+              <div className="mt-6 grid gap-3 sm:grid-cols-3">
+                <BioBlock label="Edad" value={`${player.age}`} />
+                <BioBlock label="País" value={player.nationality} />
+                <BioBlock label="Pierna" value={player.foot} />
+              </div>
 
-                <div className="mt-6 grid gap-3 sm:grid-cols-4">
-                  <HeroStat icon={<Trophy className="h-4 w-4" />} label="PJ" value={String(totalStats.matches)} />
-                  <HeroStat icon={<Clock className="h-4 w-4" />} label="Minutos" value={formatNumber(totalStats.minutes)} />
-                  <HeroStat icon={isGoalkeeper ? <Shield className="h-4 w-4" /> : <Goal className="h-4 w-4" />} label={isGoalkeeper ? "Vallas" : "Goles"} value={String(isGoalkeeper ? totalStats.cleanSheets : totalStats.goals)} />
-                  <HeroStat icon={<Star className="h-4 w-4" />} label="Rating" value={formatPlayerRating(totalStats.rating)} />
-                </div>
+              <div className="mt-6 grid gap-3 sm:grid-cols-4">
+                <HeroStat icon={<Trophy className="h-4 w-4" />} label="PJ" value={String(totalStats.matches)} />
+                <HeroStat icon={<Clock className="h-4 w-4" />} label="Minutos" value={formatNumber(totalStats.minutes)} />
+                <HeroStat icon={isGoalkeeper ? <Shield className="h-4 w-4" /> : <Goal className="h-4 w-4" />} label={isGoalkeeper ? "Vallas" : "Goles"} value={String(isGoalkeeper ? totalStats.cleanSheets : totalStats.goals)} />
+                <HeroStat icon={<Star className="h-4 w-4" />} label="Rating" value={formatPlayerRating(totalStats.rating)} />
               </div>
             </div>
           </section>
