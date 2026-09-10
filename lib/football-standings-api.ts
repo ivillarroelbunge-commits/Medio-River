@@ -1,4 +1,5 @@
 import { competitionPanels } from "@/lib/data/matches"
+import { getCanonicalTeamName } from "@/lib/data/teams"
 import type { CompetitionPanelData, StandingRow } from "@/lib/data/types"
 
 const PROMIEDOS_BASE_URL = "https://api.promiedos.com.ar"
@@ -103,7 +104,7 @@ function getRiverGroupStandings(payload: PromiedosLeaguePayload | null, groupNam
   if (!group?.tables?.length) return []
 
   const riverTable = group.tables.find((table) =>
-    (table.table?.rows ?? []).some((row) => normalizeTeamName(readTeamName(row)) === "River Plate"),
+    (table.table?.rows ?? []).some((row) => getCanonicalTeamName(readTeamName(row)) === "River Plate"),
   )
 
   return mapPromiedosTable(riverTable)
@@ -130,7 +131,7 @@ function mapPromiedosTable(table: PromiedosTable | undefined) {
 }
 
 function mapPromiedosStandingRow(row: PromiedosStandingRow): StandingRow | null {
-  const team = normalizeTeamName(readTeamName(row))
+  const team = getCanonicalTeamName(readTeamName(row))
   if (!team) return null
 
   const values = new Map((row.values ?? []).map((item) => [item.key ?? "", item.value]))
@@ -189,26 +190,4 @@ function normalizeLabel(value: string) {
     .replace(/[\u0300-\u036f]/g, "")
     .trim()
     .toLowerCase()
-}
-
-function normalizeTeamName(team: string) {
-  const normalized = team.trim()
-  const aliases: Record<string, string> = {
-    "CA River Plate": "River Plate",
-    "River Plate": "River Plate",
-    "Argentinos Jrs.": "Argentinos Juniors",
-    "Bragantino": "Red Bull Bragantino",
-    "Carabobo FC": "Carabobo",
-    "Central Córdoba SdE": "Central Córdoba (Santiago del Estero)",
-    "Estudiantes (RC)": "Estudiantes de Río Cuarto",
-    "Estudiantes RC": "Estudiantes de Río Cuarto",
-    "Gimnasia (LP)": "Gimnasia La Plata",
-    "Gimnasia de Mendoza": "Gimnasia (Mendoza)",
-    "Newell's": "Newell's Old Boys",
-    "Sarmiento Junín": "Sarmiento (Junín)",
-    "Talleres de Córdoba": "Talleres (Córdoba)",
-    "Unión de Santa Fe": "Unión (Santa Fe)",
-  }
-
-  return aliases[normalized] ?? normalized
 }
