@@ -11,7 +11,7 @@ export function NewsCard({ article, match }: { article: NewsArticle; match?: Mat
     <article className="flex w-full flex-col overflow-hidden rounded-[1.35rem] border border-border bg-card shadow-[0_10px_26px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:shadow-[0_14px_30px_rgba(15,23,42,0.12)] md:rounded-[1.65rem]">
       <Link href={`/noticias/${article.slug}`} className="group flex h-full flex-col">
         <div className="relative">
-          <NewsImage article={article} match={match} className="h-36 w-full md:h-44" />
+          <NewsImage article={article} match={match} className="h-36 w-full md:h-44" sizes="(min-width: 1280px) 30vw, (min-width: 640px) 50vw, 100vw" />
           <span className={`absolute left-3 top-3 inline-flex rounded-full px-3 py-1 text-[0.65rem] font-extrabold uppercase tracking-[0.08em] text-white shadow-sm md:left-4 md:top-4 md:px-3.5 md:py-1.5 md:text-xs ${displayTag === "Opinión" ? "bg-black" : "bg-primary"}`}>
             {displayTag}
           </span>
