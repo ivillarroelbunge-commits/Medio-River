@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import { BarChart3, Calendar, History } from "lucide-react"
-import type { Match } from "@/lib/data/types"
+import type { CompetitionPanelData, Match } from "@/lib/data/types"
 import { CompetitionSelector } from "@/components/competition-selector"
 import { PreviousResults, UpcomingMatches } from "@/components/match-lists"
 import { Scoreboard } from "@/components/scoreboard"
@@ -15,7 +15,17 @@ const tabs = [
   { key: "tablas", label: "Tablas", icon: BarChart3 },
 ] as const
 
-export function FixtureTabs({ upcoming, previous, nextMatch }: { upcoming: Match[]; previous: Match[]; nextMatch?: Match }) {
+export function FixtureTabs({
+  upcoming,
+  previous,
+  nextMatch,
+  standingsPanels,
+}: {
+  upcoming: Match[]
+  previous: Match[]
+  nextMatch?: Match
+  standingsPanels: CompetitionPanelData[]
+}) {
   const [active, setActive] = useState<(typeof tabs)[number]["key"]>("proximos")
   const searchParams = useSearchParams()
   const upcomingRest = nextMatch ? upcoming.filter((match) => match.id !== nextMatch.id) : upcoming
@@ -48,7 +58,7 @@ export function FixtureTabs({ upcoming, previous, nextMatch }: { upcoming: Match
         </div>
       )}
       {active === "resultados" && <PreviousResults matches={previous} />}
-      {active === "tablas" && <CompetitionSelector />}
+      {active === "tablas" && <CompetitionSelector initialPanels={standingsPanels} />}
     </div>
   )
 }
