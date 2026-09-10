@@ -13,15 +13,23 @@ import { useFastHomeNews } from "@/hooks/use-fast-home-news"
 import { useFastNextMatch } from "@/hooks/use-fast-next-match"
 import type { NewsArticle } from "@/lib/data/types"
 
-export function HomePageClient({ initialFeaturedNews }: { initialFeaturedNews: NewsArticle[] }) {
-  const { news: appNews, matches, isHydrated, hasSyncedNews } = useAppState()
-  const news = useFastHomeNews(appNews, hasSyncedNews)
+export function HomePageClient({
+  initialFeaturedNews,
+  initialLatestNews,
+}: {
+  initialFeaturedNews: NewsArticle[]
+  initialLatestNews: NewsArticle[]
+}) {
+  const { news: appNews, matches, hasSyncedNews } = useAppState()
+  const news = useFastHomeNews(appNews, hasSyncedNews, initialLatestNews)
   const nextMatch = useFastNextMatch()
   const liveCarouselItems = news.filter((article) => article.featured).slice(0, 5)
-  const featured = news.length > 0
-    ? (liveCarouselItems.length > 0 ? liveCarouselItems : news.slice(0, 5))
-    : initialFeaturedNews
-  const latest = news.slice(0, 6)
+  const featured = liveCarouselItems.length > 0
+    ? liveCarouselItems
+    : initialFeaturedNews.length > 0
+      ? initialFeaturedNews
+      : news.slice(0, 5)
+  const latest = news.length > 0 ? news.slice(0, 6) : initialLatestNews.slice(0, 6)
 
   return (
     <div className="flex min-h-dvh flex-col">
@@ -69,7 +77,7 @@ export function HomePageClient({ initialFeaturedNews }: { initialFeaturedNews: N
             )}
           </section>
 
-          {isHydrated && <LatestTweetsSection />}
+          <LatestTweetsSection />
         </div>
       </main>
       <SiteFooter />
