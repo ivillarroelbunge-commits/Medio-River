@@ -62,6 +62,7 @@ export default function MatchDetailPage() {
   const activeLineupTeam = activeLineupSide === "home" ? homeTeam : awayTeam
   const activeLineup = activeLineupSide === "home" ? homeLineup : awayLineup
   const activeLineupTone = activeLineupTeam === "River Plate" ? "river" : "opponent"
+  const preserveSourceLineupOrder = detail?.sourceLabel === "Promiedos"
 
   return (
     <div className="flex min-h-dvh flex-col bg-muted/20">
@@ -162,11 +163,11 @@ export default function MatchDetailPage() {
                     )
                   })}
                 </div>
-                <LineupPanel title={activeLineupTeam} lineup={activeLineup} tone={activeLineupTone} />
+                <LineupPanel title={activeLineupTeam} lineup={activeLineup} tone={activeLineupTone} preserveOrder={preserveSourceLineupOrder} />
               </div>
               <div className="hidden gap-5 md:grid md:grid-cols-2">
-                <LineupPanel title={homeTeam} lineup={homeLineup} tone={homeLineupTone} />
-                <LineupPanel title={awayTeam} lineup={awayLineup} tone={awayLineupTone} />
+                <LineupPanel title={homeTeam} lineup={homeLineup} tone={homeLineupTone} preserveOrder={preserveSourceLineupOrder} />
+                <LineupPanel title={awayTeam} lineup={awayLineup} tone={awayLineupTone} preserveOrder={preserveSourceLineupOrder} />
               </div>
             </section>
           )}
@@ -500,20 +501,20 @@ function SubstitutionEvent({ event, align = "left" }: { event: MatchSubstitution
   )
 }
 
-function LineupPanel({ title, lineup, tone }: { title: string; lineup?: MatchLineup; tone: "river" | "opponent" }) {
+function LineupPanel({ title, lineup, tone, preserveOrder = false }: { title: string; lineup?: MatchLineup; tone: "river" | "opponent"; preserveOrder?: boolean }) {
   return (
     <section className="space-y-3 md:space-y-4">
       <h3 className="hidden font-display text-lg font-extrabold text-foreground md:block md:text-xl">{title}</h3>
 
       {lineup && lineup.starters.length > 0 ? (
         <div className="rounded-2xl border border-border bg-background p-3.5 md:p-5">
-          <PlayerList title="Titulares" players={lineup.starters} tone={tone} />
+          <PlayerList title="Titulares" players={lineup.starters} tone={tone} preserveOrder={preserveOrder} />
           <div className="mt-5 rounded-2xl bg-muted/50 p-3 md:mt-7 md:bg-transparent md:p-0">
             <p className="text-xs text-muted-foreground md:text-sm">Entrenador</p>
             <p className="mt-1 text-base font-semibold text-foreground md:text-lg">{lineup.coach}</p>
           </div>
           <div className="my-5 h-px bg-border md:my-7" />
-          <PlayerList title="Suplentes" players={lineup.substitutes} tone={tone} compact />
+          <PlayerList title="Suplentes" players={lineup.substitutes} tone={tone} compact preserveOrder={preserveOrder} />
         </div>
       ) : (
         <EmptyState text="Formación sin cargar." />
@@ -522,8 +523,8 @@ function LineupPanel({ title, lineup, tone }: { title: string; lineup?: MatchLin
   )
 }
 
-function PlayerList({ title, players, tone, compact = false }: { title: string; players: string[]; tone: "river" | "opponent"; compact?: boolean }) {
-  const orderedPlayers = orderLineupPlayers(players, tone)
+function PlayerList({ title, players, tone, compact = false, preserveOrder = false }: { title: string; players: string[]; tone: "river" | "opponent"; compact?: boolean; preserveOrder?: boolean }) {
+  const orderedPlayers = orderLineupPlayers(players, tone, preserveOrder)
 
   return (
     <div>
@@ -637,8 +638,8 @@ const riverLineOrderByNumber = new Map<number, number>([
   [38, 3],
 ])
 
-function orderLineupPlayers(players: string[], tone: "river" | "opponent") {
-  if (tone !== "river") return players
+function orderLineupPlayers(players: string[], tone: "river" | "opponent", preserveOrder = false) {
+  if (preserveOrder || tone !== "river") return players
 
   return players
     .map((player, index) => {
