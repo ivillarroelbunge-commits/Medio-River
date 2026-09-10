@@ -4,6 +4,7 @@ import type { CompetitionPanelData, StandingRow } from "@/lib/data/types"
 const PROMIEDOS_BASE_URL = "https://api.promiedos.com.ar"
 const PROMIEDOS_XVER = process.env.PROMIEDOS_XVER ?? "1.11.7.5"
 const STANDINGS_REVALIDATE_SECONDS = 60 * 5
+const PROMIEDOS_TIMEOUT_MS = 5000
 
 type PanelKey = CompetitionPanelData["key"]
 
@@ -163,6 +164,7 @@ async function fetchPromiedosLeague(leagueId: string): Promise<PromiedosLeaguePa
         "User-Agent": "Mozilla/5.0 (MedioRiver/1.0)",
         Referer: "https://www.promiedos.com.ar/",
       },
+      signal: AbortSignal.timeout(PROMIEDOS_TIMEOUT_MS),
       next: { revalidate: STANDINGS_REVALIDATE_SECONDS },
     })
 
