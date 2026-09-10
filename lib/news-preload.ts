@@ -2,6 +2,7 @@ import { newsArticles } from "@/lib/data/news"
 import type { NewsArticle, NewsTag } from "@/lib/data/types"
 import { normalizeNewsCategory } from "@/lib/news-taxonomy"
 import { getSupabaseEnv } from "@/lib/supabase/env"
+import { getNewsImageProxyPath } from "@/lib/supabase/news"
 
 const FEATURED_NEWS_REVALIDATE_SECONDS = 60
 const FEATURED_NEWS_TIMEOUT_MS = 1800
@@ -11,7 +12,6 @@ const NEWS_SUMMARY_SELECT = [
   "title",
   "excerpt",
   "intro",
-  "image",
   "image_focus_x",
   "image_focus_y",
   "image_zoom",
@@ -32,7 +32,6 @@ type NewsSummaryRow = {
   title: string
   excerpt: string
   intro: string
-  image: string | null
   image_focus_x?: number | null
   image_focus_y?: number | null
   image_zoom?: number | null
@@ -156,7 +155,7 @@ function mapNewsSummaryRow(row: NewsSummaryRow): NewsArticle {
     excerpt: row.excerpt,
     intro: row.intro,
     content: [],
-    image: row.image ?? undefined,
+    image: getNewsImageProxyPath(row.id),
     imageFocusX: row.image_focus_x ?? undefined,
     imageFocusY: row.image_focus_y ?? undefined,
     imageZoom: row.image_zoom ?? undefined,
