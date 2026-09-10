@@ -1,7 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { useSearchParams } from "next/navigation"
+import { useState } from "react"
 import { BarChart3, Calendar, History } from "lucide-react"
 import type { CompetitionPanelData, Match } from "@/lib/data/types"
 import { CompetitionSelector } from "@/components/competition-selector"
@@ -15,27 +14,23 @@ const tabs = [
   { key: "tablas", label: "Tablas", icon: BarChart3 },
 ] as const
 
+type FixtureTab = (typeof tabs)[number]["key"]
+
 export function FixtureTabs({
   upcoming,
   previous,
   nextMatch,
   standingsPanels,
+  initialTab,
 }: {
   upcoming: Match[]
   previous: Match[]
   nextMatch?: Match
   standingsPanels: CompetitionPanelData[]
+  initialTab: FixtureTab
 }) {
-  const [active, setActive] = useState<(typeof tabs)[number]["key"]>("proximos")
-  const searchParams = useSearchParams()
+  const [active, setActive] = useState<FixtureTab>(initialTab)
   const upcomingRest = nextMatch ? upcoming.filter((match) => match.id !== nextMatch.id) : upcoming
-
-  useEffect(() => {
-    const tab = searchParams.get("tab")
-    if (tab === "proximos" || tab === "resultados" || tab === "tablas") {
-      setActive(tab)
-    }
-  }, [searchParams])
 
   return (
     <div id="resultados-previos" className="space-y-4 scroll-mt-24 md:space-y-6">
