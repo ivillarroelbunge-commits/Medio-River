@@ -3,7 +3,7 @@ import { getCompetitionPanelsWithLiveStandings } from "@/lib/football-standings-
 
 // Promiedos standings are already cached for five minutes. Let the whole route
 // use ISR as well instead of rebuilding the page in a function for every visit.
-export const revalidate = 60 * 5
+export const revalidate = 300
 
 export default async function FixturePage() {
   const { panels } = await getCompetitionPanelsWithLiveStandings()
