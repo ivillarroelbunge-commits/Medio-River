@@ -13,8 +13,8 @@ export function PlayerCard({ player }: { player: SquadPlayer }) {
         </span>
       )}
 
-      <div className="flex items-center gap-3 bg-gradient-to-r from-muted/80 to-card p-4 pb-3 md:gap-4 md:p-5 md:pb-4">
-        <div className="relative h-24 w-20 shrink-0 overflow-hidden rounded-2xl border border-border bg-white md:h-32 md:w-28">
+      <div className="flex items-center gap-3 bg-gradient-to-r from-muted/80 to-card p-3 py-2.5 md:gap-4 md:p-5 md:pb-4">
+        <div className="relative h-24 w-20 shrink-0 overflow-hidden rounded-xl border border-border bg-white md:h-32 md:w-28 md:rounded-2xl">
           <PlayerPhoto player={player} />
         </div>
         <div className="min-w-0">
@@ -24,11 +24,6 @@ export function PlayerCard({ player }: { player: SquadPlayer }) {
         </div>
       </div>
 
-      <div className="mt-auto grid grid-cols-3 gap-1.5 px-4 py-4 text-sm md:gap-2 md:px-5 md:py-5">
-        <InfoBlock label="Edad" value={`${player.age}`} />
-        <InfoBlock label="País" value={player.nationality} />
-        <InfoBlock label="Pierna" value={player.foot} />
-      </div>
     </Link>
   )
 }
@@ -46,7 +41,7 @@ function PlayerPhoto({ player }: { player: SquadPlayer }) {
       alt={player.name}
       loading="lazy"
       decoding="async"
-      className="h-full w-full object-cover object-top"
+      className="h-full w-full object-contain object-bottom"
       onError={() => setFailed(true)}
     />
   )
@@ -63,15 +58,6 @@ function PlayerInitials({ name }: { name: string }) {
   return (
     <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-muted to-card text-2xl font-extrabold text-primary">
       {initials}
-    </div>
-  )
-}
-
-function InfoBlock({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex min-h-14 flex-col justify-between rounded-xl border border-border bg-muted/25 px-2 py-2.5 text-center md:min-h-16 md:px-3 md:py-3">
-      <p className="text-[9px] font-bold uppercase tracking-[0.1em] text-muted-foreground md:text-[10px] md:tracking-[0.12em]">{label}</p>
-      <p className="mt-1 truncate text-xs font-semibold leading-tight text-foreground md:text-sm" title={value}>{value}</p>
     </div>
   )
 }
