@@ -1,77 +1,135 @@
-const CREST_VERSION = "20260428"
+const ESPN_CREST_VERSION = "20260428"
 
 function espnCrest(id: number) {
-  return `https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/500/${id}.png&v=${CREST_VERSION}`
+  return `https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/500/${id}.png&v=${ESPN_CREST_VERSION}`
 }
 
-const TEAM_CRESTS: Record<string, string> = {
-  Aldosivi: espnCrest(9739),
-  "River Plate": espnCrest(16),
-  "Atlético Tucumán": espnCrest(9785),
-  "Boca Juniors": espnCrest(5),
-  "Barracas Central": espnCrest(10060),
-  Belgrano: espnCrest(4),
-  "Belgrano (Córdoba)": espnCrest(4),
-  Blooming: espnCrest(6047),
-  "Central Córdoba": espnCrest(11989),
-  "Central Córdoba (Santiago del Estero)": espnCrest(11989),
-  "Racing Club": espnCrest(15),
-  Carabobo: espnCrest(6037),
-  "Argentinos Juniors": espnCrest(3),
-  Banfield: espnCrest(235),
-  "Defensa y Justicia": espnCrest(8950),
-  "Deportivo Riestra": espnCrest(17702),
-  Estudiantes: espnCrest(8),
-  "Estudiantes LP": espnCrest(8),
-  "Estudiantes de La Plata": espnCrest(8),
-  "Estudiantes de Río Cuarto": espnCrest(19685),
-  "Estudiantes BA": "/crests/estudiantes-ba.jpg",
-  Flamengo: espnCrest(819),
-  Gimnasia: espnCrest(9),
-  "Gimnasia (Mendoza)": espnCrest(11972),
-  "Gimnasia La Plata": espnCrest(9),
-  "Gimnasia y Esgrima La Plata": espnCrest(9),
-  Huracán: espnCrest(10),
-  Independiente: espnCrest(11),
-  "Independiente Rivadavia": espnCrest(9744),
-  "Independiente Santa Fe": espnCrest(5488),
-  Instituto: espnCrest(2975),
-  "Instituto (Córdoba)": espnCrest(2975),
-  Lanús: espnCrest(12),
-  "LDU Quito": espnCrest(4816),
-  "Newell's": espnCrest(14),
-  "Newell's Old Boys": espnCrest(14),
-  Palmeiras: espnCrest(2029),
-  Platense: espnCrest(7764),
-  "Rosario Central": espnCrest(17),
-  Sarmiento: espnCrest(10158),
-  "Sarmiento (Junín)": espnCrest(10158),
-  "Sarmiento Junín": "/crests/sarmiento.jpg",
-  "San Lorenzo": espnCrest(18),
-  Talleres: espnCrest(19),
-  "Talleres (Córdoba)": espnCrest(19),
-  Tigre: espnCrest(7767),
-  Unión: espnCrest(20),
-  "Unión (Santa Fe)": espnCrest(20),
-  Vélez: espnCrest(21),
-  "Vélez Sarsfield": espnCrest(21),
-  "Ciudad de Bolívar": espnCrest(21799),
-  "Red Bull Bragantino": espnCrest(6079),
+type TeamDefinition = {
+  name: string
+  crest: string
+  aliases?: string[]
 }
+
+/**
+ * Single source of truth for team identities and crests.
+ *
+ * Every alias resolves to the same canonical team and therefore to the exact
+ * same crest everywhere in the site (home, fixture, match detail, tables, etc.).
+ */
+const TEAM_DEFINITIONS: TeamDefinition[] = [
+  { name: "Aldosivi", crest: "/crests/aldosivi.png" },
+  {
+    name: "Argentinos Juniors",
+    crest: "/crests/argentinos.jpg",
+    aliases: ["Argentinos Jrs.", "Argentinos Jrs", "Argentinos"],
+  },
+  { name: "Atlético Tucumán", crest: "/crests/atletico-tucuman.png" },
+  { name: "Banfield", crest: "/crests/banfield.jpg" },
+  { name: "Barracas Central", crest: "/crests/barracas-central.png" },
+  { name: "Belgrano", crest: "/crests/belgrano.png", aliases: ["Belgrano (Córdoba)"] },
+  { name: "Blooming", crest: "/crests/blooming.png" },
+  { name: "Boca Juniors", crest: "/crests/boca-juniors.jpg", aliases: ["Boca"] },
+  { name: "Carabobo", crest: "/crests/carabobo.png", aliases: ["Carabobo FC"] },
+  {
+    name: "Central Córdoba (Santiago del Estero)",
+    crest: espnCrest(11989),
+    aliases: ["Central Córdoba", "Central Córdoba SdE", "Central Cordoba SdE"],
+  },
+  { name: "Ciudad de Bolívar", crest: espnCrest(21799) },
+  { name: "Defensa y Justicia", crest: "/crests/defensa-y-justicia.jpg" },
+  { name: "Deportivo Riestra", crest: espnCrest(17702), aliases: ["Riestra"] },
+  {
+    name: "Estudiantes de La Plata",
+    crest: "/crests/estudiantes.jpg",
+    aliases: ["Estudiantes", "Estudiantes LP", "Estudiantes (LP)"],
+  },
+  {
+    name: "Estudiantes de Río Cuarto",
+    crest: "/crests/estudiantes-de-rio-cuarto.png",
+    aliases: ["Estudiantes RC", "Estudiantes (RC)"],
+  },
+  { name: "Estudiantes BA", crest: "/crests/estudiantes-ba.jpg", aliases: ["Estudiantes de Buenos Aires"] },
+  { name: "Flamengo", crest: espnCrest(819) },
+  {
+    name: "Gimnasia La Plata",
+    crest: "/crests/gimnasia.png",
+    aliases: ["Gimnasia", "Gimnasia (LP)", "Gimnasia y Esgrima La Plata", "Gimnasia y Esgrima (LP)"],
+  },
+  {
+    name: "Gimnasia (Mendoza)",
+    crest: espnCrest(11972),
+    aliases: ["Gimnasia de Mendoza", "Gimnasia Mendoza", "Gimnasia M."],
+  },
+  { name: "Huracán", crest: "/crests/huracan.jpg" },
+  { name: "Independiente", crest: "/crests/independiente.jpg" },
+  { name: "Independiente Rivadavia", crest: "/crests/independiente-rivadavia.png" },
+  { name: "Independiente Santa Fe", crest: espnCrest(5488), aliases: ["Santa Fe"] },
+  {
+    name: "Instituto (Córdoba)",
+    crest: espnCrest(2975),
+    aliases: ["Instituto", "Instituto de Córdoba"],
+  },
+  { name: "Junior", crest: "/crests/junior.jpg", aliases: ["Junior de Barranquilla"] },
+  { name: "Lanús", crest: "/crests/lanus.jpg" },
+  { name: "LDU Quito", crest: "/crests/ldu-quito.jpg", aliases: ["LDU"] },
+  { name: "Newell's Old Boys", crest: "/crests/newells.jpg", aliases: ["Newell's", "Newells"] },
+  { name: "Palmeiras", crest: "/crests/palmeiras.jpg" },
+  { name: "Platense", crest: espnCrest(7764) },
+  { name: "Racing Club", crest: "/crests/racing.jpg", aliases: ["Racing"] },
+  {
+    name: "Red Bull Bragantino",
+    crest: "/crests/red-bull-bragantino.png",
+    aliases: ["Bragantino", "RB Bragantino"],
+  },
+  { name: "River Plate", crest: "/crests/river-plate.jpg", aliases: ["CA River Plate", "River"] },
+  { name: "Rosario Central", crest: "/crests/rosario-central.png" },
+  { name: "San Lorenzo", crest: "/crests/san-lorenzo.jpg", aliases: ["San Lorenzo de Almagro"] },
+  {
+    name: "Sarmiento (Junín)",
+    crest: "/crests/sarmiento.jpg",
+    aliases: ["Sarmiento", "Sarmiento Junín"],
+  },
+  {
+    name: "Talleres (Córdoba)",
+    crest: "/crests/talleres.jpg",
+    aliases: ["Talleres", "Talleres de Córdoba"],
+  },
+  { name: "Tigre", crest: "/crests/tigre.jpg" },
+  { name: "Unión (Santa Fe)", crest: espnCrest(20), aliases: ["Unión", "Unión de Santa Fe"] },
+  {
+    name: "Vélez Sarsfield",
+    crest: "/crests/velez.jpg",
+    aliases: ["Vélez", "Velez", "Velez Sarsfield"],
+  },
+]
 
 function normalizeTeamKey(team: string) {
   return team
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
-    .trim()
     .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim()
     .replace(/\s+/g, " ")
 }
 
-const NORMALIZED_TEAM_CRESTS = Object.fromEntries(
-  Object.entries(TEAM_CRESTS).map(([team, crest]) => [normalizeTeamKey(team), crest]),
-)
+const TEAM_BY_KEY = new Map<string, TeamDefinition>()
+
+for (const definition of TEAM_DEFINITIONS) {
+  for (const value of [definition.name, ...(definition.aliases ?? [])]) {
+    TEAM_BY_KEY.set(normalizeTeamKey(value), definition)
+  }
+}
+
+export function getCanonicalTeamName(team: string) {
+  const trimmed = team.trim()
+  return TEAM_BY_KEY.get(normalizeTeamKey(trimmed))?.name ?? trimmed
+}
 
 export function getTeamCrest(team: string) {
-  return TEAM_CRESTS[team] ?? NORMALIZED_TEAM_CRESTS[normalizeTeamKey(team)] ?? "/crests/fallback.svg"
+  return TEAM_BY_KEY.get(normalizeTeamKey(team))?.crest ?? "/crests/fallback.svg"
+}
+
+export function hasTeamCrest(team: string) {
+  return TEAM_BY_KEY.has(normalizeTeamKey(team))
 }
