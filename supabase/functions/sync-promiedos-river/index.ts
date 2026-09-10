@@ -6,12 +6,17 @@ const RIVER = "igi"
 const BA = "America/Argentina/Buenos_Aires"
 const SOURCE_TZ = "America/Los_Angeles"
 const BACKFILL_FROM = Date.parse("2026-07-01T00:00:00-03:00")
+const LINEUP_ORDER_VERSION = 2
 
 const LEAGUES = [
   { id: "hc", competition: "league" as const },
   { id: "gea", competition: "Copa Argentina" as const },
   { id: "dij", competition: "Copa Sudamericana" as const },
 ]
+
+const FALLBACK_JERSEY_NUMBERS = new Map<string, number>([
+  ["manuel arteaga", 70],
+])
 
 type Competition =
   | "Torneo Apertura"
@@ -59,9 +64,11 @@ type Lineup = {
   starters: string[]
   substitutes: string[]
   numbers: Record<string, number>
+  orderVersion: number
 }
 type Detail = {
   sourceLabel: string
+  lineupOrderVersion: number
   referee?: string
   resultNote?: string
   penaltyShootout?: {
@@ -236,7 +243,7 @@ async function backfill(existing: Existing[]) {
       !match.detail ||
       !match.referee ||
       placeholder(match.stadium) ||
-      !hasLineupNumbers(match.detail)
+      !hasCurrentLineupData(match.detail)
     ) {
       ids.add(match.promiedos_game_id)
     }
@@ -246,7 +253,9 @@ async function backfill(existing: Existing[]) {
   return details.filter((value): value is Normalized => Boolean(value))
 }
 
-function hasLineupNumbers(detail: any) {
+function hasCurrentLineupData(detail: any) {
+  if (Number(detail?.lineupOrderVersion ?? 0) < LINEUP_ORDER_VERSION) return false
+
   const river = detail?.lineups?.river
   const opponent = detail?.lineups?.opponent
   if (!river || !opponent) return false
@@ -408,6 +417,7 @@ function detail(game: Game, homeRiver: boolean, opponent: string, referee: strin
 
   const result: Detail = {
     sourceLabel: "Promiedos",
+    lineupOrderVersion: LINEUP_ORDER_VERSION,
     ...(referee ? { referee } : {}),
     goals,
     cards,
@@ -454,7 +464,7 @@ function detail(game: Game, homeRiver: boolean, opponent: string, referee: strin
   return result
 }
 
-function lineup(value: any, defendersRightToLeft = false): Lineup {
+function lineup(value: any, linesRightToLeft = false): Lineup {
   const staff = Array.isArray(value?.staff) ? value.staff : []
   const coach =
     clean(
@@ -468,7 +478,7 @@ function lineup(value: any, defendersRightToLeft = false): Lineup {
     ) || "Sin dato"
 
   const starting = Array.isArray(value?.starting) ? value.starting : []
-  const orderedStarting = defendersRightToLeft ? orderDefendersRightToLeft(starting) : starting
+  const orderedStarting = linesRightToLeft ? orderLinesRightToLeft(starting) : starting
   const bench = Array.isArray(value?.bench) ? value.bench : []
   const numbers: Record<string, number> = {}
 
@@ -476,8 +486,8 @@ function lineup(value: any, defendersRightToLeft = false): Lineup {
     players
       .map((player) => {
         const name = clean(String(player?.name ?? ""))
-        const jerseyNumber = Number(player?.jersey_num)
-        if (name && validJerseyNumber(jerseyNumber)) numbers[name] = Math.trunc(jerseyNumber)
+        const number = jerseyNumber(player, name)
+        if (name && number) numbers[name] = number
         return name
       })
       .filter(Boolean)
@@ -487,34 +497,41 @@ function lineup(value: any, defendersRightToLeft = false): Lineup {
     starters: names(orderedStarting),
     substitutes: names(bench),
     numbers,
+    orderVersion: LINEUP_ORDER_VERSION,
   }
 }
 
-function orderDefendersRightToLeft(players: any[]) {
-  const defenders = players
-    .filter(isDefender)
-    .map((player, index) => ({ player, index, y: pitchY(player) }))
-    .sort((a, b) => b.y - a.y || a.index - b.index)
+function orderLinesRightToLeft(players: any[]) {
+  const withPosition = players.map((player, index) => ({
+    player,
+    index,
+    x: pitchX(player),
+    y: pitchY(player),
+  }))
+
+  if (withPosition.filter((entry) => Number.isFinite(entry.x) && Number.isFinite(entry.y)).length < 8) {
+    return players
+  }
+
+  return withPosition
+    .sort((a, b) => a.x - b.x || b.y - a.y || a.index - b.index)
     .map(({ player }) => player)
-
-  if (defenders.length < 2) return players
-
-  let defenderIndex = 0
-  return players.map((player) => {
-    if (!isDefender(player)) return player
-    return defenders[defenderIndex++] ?? player
-  })
 }
 
-function isDefender(player: any) {
-  const position = norm(String(player?.position ?? ""))
-  const formationPosition = norm(String(player?.formation_position ?? ""))
-  return position === "defensor" || formationPosition.startsWith("defensa ")
+function pitchX(player: any) {
+  const value = Number(player?.pitch_location?.x)
+  return Number.isFinite(value) ? value : Number.POSITIVE_INFINITY
 }
 
 function pitchY(player: any) {
   const value = Number(player?.pitch_location?.y)
   return Number.isFinite(value) ? value : 50
+}
+
+function jerseyNumber(player: any, name: string) {
+  const value = Number(player?.jersey_num)
+  if (validJerseyNumber(value)) return Math.trunc(value)
+  return FALLBACK_JERSEY_NUMBERS.get(norm(name)) ?? null
 }
 
 function gameInfo(game: Game) {
