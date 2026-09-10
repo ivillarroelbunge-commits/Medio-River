@@ -1,20 +1,23 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { Check, Clock, Flame, Medal, ShieldQuestion, Trophy, X } from "lucide-react"
+import { Check, Clock, Flame, LogIn, Medal, ShieldQuestion, Trophy, UserRound, X } from "lucide-react"
 import { useAppState } from "@/components/app-state-provider"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { createClient } from "@/lib/supabase/client"
 import {
+  clearPendingTriviaResult,
   clearTriviaParticipant,
   createTriviaParticipant,
   fetchPublicTriviaResults,
   markTriviaParticipantPlayed,
+  readPendingTriviaResult,
   readTriviaParticipant,
   registerTriviaNickname,
   resolveTriviaParticipant,
+  savePendingTriviaResult,
   saveTriviaParticipant,
   submitDeviceTriviaResult,
   syncTriviaParticipantWithAccount,
@@ -30,7 +33,7 @@ import {
 } from "@/lib/trivia-daily"
 import { cn } from "@/lib/utils"
 
-type Phase = "start" | "playing" | "nickname" | "finished"
+type Phase = "start" | "playing" | "identity" | "nickname" | "finished"
 
 export function DeviceTriviaGame() {
   const { currentUser, dailyTrivias, triviaQuestions } = useAppState()
@@ -65,44 +68,88 @@ export function DeviceTriviaGame() {
   useEffect(() => {
     let active = true
 
-    async function hydrateParticipant() {
-      let local = readTriviaParticipant()
-      if (local) {
-        const resolved = await resolveTriviaParticipant(supabase, local)
-        if (resolved.ok && resolved.participant) {
-          local = resolved.participant
-          saveTriviaParticipant(local)
+    async function hydrateTrivia() {
+      try {
+        let local = readTriviaParticipant()
+        if (local) {
+          const resolved = await resolveTriviaParticipant(supabase, local)
+          if (resolved.ok && resolved.participant) {
+            local = resolved.participant
+            saveTriviaParticipant(local)
+          }
         }
-      }
 
-      if (currentUser) {
-        const synced = await syncTriviaParticipantWithAccount(supabase, local)
-        if (synced.ok && synced.participant) local = synced.participant
-      }
+        if (currentUser) {
+          const synced = await syncTriviaParticipantWithAccount(supabase, local)
+          if (!synced.ok) {
+            throw new Error(synced.error ?? "No pudimos vincular tu jugador con la cuenta.")
+          }
+          if (synced.participant) local = synced.participant
+        }
 
-      if (active) {
-        setParticipant(local)
-        setNickname(local?.name ?? "")
+        let publicResults = await fetchPublicTriviaResults(supabase)
+        const pending = readPendingTriviaResult()
+
+        if (pending && pending.dailyKey !== weeklyKey) {
+          clearPendingTriviaResult()
+        }
+
+        if (pending?.dailyKey === weeklyKey) {
+          if (currentUser && local) {
+            const alreadySaved = publicResults.some(
+              (result) => result.rankingId === local?.id && result.dailyKey === pending.dailyKey,
+            )
+
+            if (!alreadySaved) {
+              const saved = await submitDeviceTriviaResult(
+                supabase,
+                local,
+                pending.score,
+                pending.totalQuestions,
+                pending.dailyKey,
+                currentUser.id,
+              )
+
+              if (!saved.ok && !("alreadyPlayed" in saved && saved.alreadyPlayed)) {
+                throw new Error(saved.error ?? "No se pudo guardar el resultado después de iniciar sesión.")
+              }
+
+              if (saved.ok) publicResults = [...publicResults, saved.result]
+            }
+
+            local = markTriviaParticipantPlayed(local, pending.dailyKey)
+            clearPendingTriviaResult()
+
+            if (active) {
+              setScore(pending.score)
+              setPhase("finished")
+            }
+          } else if (!currentUser && active) {
+            setScore(pending.score)
+            setPhase("identity")
+          }
+        }
+
+        if (active) {
+          setParticipant(local)
+          setNickname(local?.name ?? "")
+          setResults(publicResults)
+        }
+      } catch (error) {
+        if (active) {
+          setSaveError(error instanceof Error ? error.message : "No pudimos cargar la trivia en este momento.")
+        }
+      } finally {
+        if (active) setReady(true)
       }
     }
 
-    void Promise.all([
-      hydrateParticipant(),
-      fetchPublicTriviaResults(supabase)
-        .then((rows) => {
-          if (active) setResults(rows)
-        })
-        .catch(() => {
-          if (active) setSaveError("No pudimos cargar el ranking en este momento.")
-        }),
-    ]).finally(() => {
-      if (active) setReady(true)
-    })
+    void hydrateTrivia()
 
     return () => {
       active = false
     }
-  }, [currentUser, supabase])
+  }, [currentUser, supabase, weeklyKey])
 
   const total = weeklyQuestions.length
   const question = weeklyQuestions[current]
@@ -146,18 +193,27 @@ export function DeviceTriviaGame() {
   const saveResult = async (activeParticipant: TriviaParticipant) => {
     setIsSaving(true)
     setSaveError(null)
-    const saved = await submitDeviceTriviaResult(supabase, activeParticipant, score, total, weeklyKey)
+    const saved = await submitDeviceTriviaResult(
+      supabase,
+      activeParticipant,
+      score,
+      total,
+      weeklyKey,
+      currentUser?.id,
+    )
     setIsSaving(false)
 
     if (!saved.ok) {
       if ("alreadyPlayed" in saved && saved.alreadyPlayed) {
         const updated = markTriviaParticipantPlayed(activeParticipant, weeklyKey)
+        clearPendingTriviaResult()
         setParticipant(updated)
         setPhase("start")
         return
       }
       if ("invalidDevice" in saved && saved.invalidDevice) {
         clearTriviaParticipant()
+        clearPendingTriviaResult()
         setParticipant(null)
         setPhase("start")
       }
@@ -166,6 +222,7 @@ export function DeviceTriviaGame() {
     }
 
     const updated = markTriviaParticipantPlayed(activeParticipant, weeklyKey)
+    clearPendingTriviaResult()
     setParticipant(updated)
     setResults((value) => [...value, saved.result])
     setPhase("finished")
@@ -181,12 +238,27 @@ export function DeviceTriviaGame() {
 
     if (!participant) return
 
+    if (!currentUser && !participant.name) {
+      setPhase("identity")
+      return
+    }
+
     if (!participant.name) {
-      setPhase("nickname")
+      setSaveError("No pudimos identificar tu jugador. Recargá la página e intentá nuevamente.")
       return
     }
 
     await saveResult(participant)
+  }
+
+  const continueWithLogin = () => {
+    savePendingTriviaResult({
+      dailyKey: weeklyKey,
+      score,
+      totalQuestions: total,
+      createdAt: new Date().toISOString(),
+    })
+    window.location.assign(`/iniciar-sesion?next=${encodeURIComponent("/trivia")}`)
   }
 
   const saveNicknameAndResult = async (event: React.FormEvent) => {
@@ -262,7 +334,46 @@ export function DeviceTriviaGame() {
           <Button onClick={startGame} size="lg" className="mt-6 rounded-full px-10">
             Jugar trivia semanal
           </Button>
-          <p className="mx-auto mt-3 max-w-md text-xs leading-5 text-muted-foreground">Si es tu primera vez, al terminar elegís un nickname único para aparecer en la tabla.</p>
+          <p className="mx-auto mt-3 max-w-md text-xs leading-5 text-muted-foreground">Si jugás sin sesión iniciada, al terminar podés iniciar sesión con tu cuenta o continuar con un nickname.</p>
+          {saveError && <p className="mx-auto mt-4 max-w-md rounded-xl border border-primary/20 bg-primary/5 px-3 py-2 text-sm text-primary">{saveError}</p>}
+        </GameHero>
+        <RankingBlocks currentParticipantId={participant?.id} weeklyRanking={weeklyRanking} globalRanking={globalRanking} />
+      </div>
+    )
+  }
+
+  if (phase === "identity") {
+    return (
+      <div className="space-y-6">
+        <GameHero icon={<Trophy className="h-8 w-8" />} eyebrow="Terminaste la trivia" title="¿Cómo querés guardar tu resultado?">
+          <p className="mt-3 font-display text-5xl font-extrabold text-primary md:text-6xl">{score}<span className="text-3xl text-muted-foreground">/{total}</span></p>
+          <p className="mx-auto mt-3 max-w-lg text-muted-foreground">No necesitás una cuenta para participar. Elegí cómo querés identificarte y guardar este resultado.</p>
+
+          <div className="mx-auto mt-6 grid max-w-2xl gap-3 text-left md:grid-cols-2">
+            <div className="flex flex-col rounded-2xl border border-primary/30 bg-primary/5 p-4 md:p-5">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+                <LogIn className="h-5 w-5" />
+              </div>
+              <h3 className="mt-4 font-display text-lg font-extrabold">Iniciar sesión</h3>
+              <p className="mt-2 flex-1 text-sm leading-6 text-muted-foreground">Si ya tenés cuenta, vinculamos este resultado a tu perfil. Tus resultados quedan guardados y podés participar desde cualquier dispositivo.</p>
+              <Button type="button" size="lg" className="mt-5 w-full rounded-full" onClick={continueWithLogin}>
+                Iniciar sesión
+              </Button>
+            </div>
+
+            <div className="flex flex-col rounded-2xl border border-border bg-background p-4 md:p-5">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted text-foreground">
+                <UserRound className="h-5 w-5" />
+              </div>
+              <h3 className="mt-4 font-display text-lg font-extrabold">Continuar con nickname</h3>
+              <p className="mt-2 flex-1 text-sm leading-6 text-muted-foreground">No necesitás cuenta. Tus resultados se guardan con tu nickname y quedan asociados a este dispositivo.</p>
+              <Button type="button" size="lg" variant="outline" className="mt-5 w-full rounded-full" onClick={() => setPhase("nickname")}>
+                Usar un nickname
+              </Button>
+            </div>
+          </div>
+
+          <p className="mx-auto mt-4 max-w-lg text-xs leading-5 text-muted-foreground">Si continuás con nickname, más adelante podés crear una cuenta para guardar tu historial en el perfil y acceder desde cualquier dispositivo.</p>
           {saveError && <p className="mx-auto mt-4 max-w-md rounded-xl border border-primary/20 bg-primary/5 px-3 py-2 text-sm text-primary">{saveError}</p>}
         </GameHero>
         <RankingBlocks currentParticipantId={participant?.id} weeklyRanking={weeklyRanking} globalRanking={globalRanking} />
@@ -273,7 +384,7 @@ export function DeviceTriviaGame() {
   if (phase === "nickname") {
     return (
       <div className="space-y-6">
-        <GameHero icon={<Trophy className="h-8 w-8" />} eyebrow="Terminaste la trivia" title="Elegí tu nickname">
+        <GameHero icon={<Trophy className="h-8 w-8" />} eyebrow="Participar sin cuenta" title="Elegí tu nickname">
           <p className="mt-3 font-display text-5xl font-extrabold text-primary md:text-6xl">{score}<span className="text-3xl text-muted-foreground">/{total}</span></p>
           <p className="mx-auto mt-3 max-w-md text-muted-foreground">Lo vas a usar para acumular tus puntos y aparecer en la tabla general. Cada nickname es único.</p>
           <form onSubmit={saveNicknameAndResult} className="mx-auto mt-6 max-w-md space-y-3 rounded-2xl border border-border bg-background p-4 text-left md:p-5">
@@ -290,7 +401,7 @@ export function DeviceTriviaGame() {
                 required
               />
             </div>
-            <p className="text-xs leading-5 text-muted-foreground">Queda guardado en este navegador. Si después vinculás una cuenta, conservás este mismo jugador y sus puntos.</p>
+            <p className="text-xs leading-5 text-muted-foreground">Sin cuenta, tus resultados quedan asociados a este dispositivo. Si después vinculás una cuenta, conservás el jugador y sus puntos en tu perfil.</p>
             <Button type="submit" size="lg" className="w-full rounded-full" disabled={isSaving}>
               {isSaving ? "Guardando..." : "Guardar resultado"}
             </Button>
@@ -308,7 +419,8 @@ export function DeviceTriviaGame() {
         <GameHero icon={<Trophy className="h-8 w-8" />} eyebrow="Resultado guardado" title="Resultado de la semana">
           <p className="mt-3 font-display text-5xl font-extrabold text-primary md:text-6xl">{score}<span className="text-3xl text-muted-foreground">/{total}</span></p>
           <p className="mt-3 text-muted-foreground">Tu resultado quedó guardado y ya suma al ranking general.</p>
-          {!currentUser && <p className="mx-auto mt-3 max-w-md text-xs leading-5 text-muted-foreground">Podés seguir jugando sin cuenta. Si más adelante iniciás sesión o te registrás, este jugador se vincula sin perder sus puntos.</p>}
+          {!currentUser && <p className="mx-auto mt-3 max-w-md text-xs leading-5 text-muted-foreground">Con nickname, tu historial queda asociado a este dispositivo. Vinculá una cuenta para verlo en tu perfil y seguir desde cualquier dispositivo.</p>}
+          {currentUser && <p className="mx-auto mt-3 max-w-md text-xs leading-5 text-muted-foreground">Este resultado quedó vinculado a tu cuenta y se guarda en tu perfil.</p>}
         </GameHero>
         <RankingBlocks currentParticipantId={participant?.id} weeklyRanking={buildWeeklyRanking(results, weeklyKey)} globalRanking={buildGlobalRanking(results)} />
       </div>
