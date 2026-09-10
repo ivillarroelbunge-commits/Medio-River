@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
 import { getCanonicalTeamName } from "@/lib/data/teams"
-import type { Competition, Match, MatchDetail, MatchPenaltyKick } from "@/lib/data/types"
+import type { Competition, Match, MatchDetail, MatchLineup, MatchPenaltyKick } from "@/lib/data/types"
 
 export const MATCHES_SELECT = "id, date, opponent, competition, status, is_home, stadium, tv_channel, river_score, opponent_score, referee, detail"
 
@@ -17,6 +17,10 @@ export interface MatchRow {
   opponent_score: number | null
   referee: string | null
   detail: MatchDetail | null
+}
+
+type StoredMatchLineup = MatchLineup & {
+  numbers?: Record<string, number>
 }
 
 export function mapMatchRowToMatch(row: MatchRow): Match {
@@ -37,27 +41,77 @@ export function mapMatchRowToMatch(row: MatchRow): Match {
 }
 
 function normalizeMatchDetail(matchId: string, detail: MatchDetail | null) {
-  if (!detail || matchId !== "match-25") return detail
+  if (!detail) return detail
+
+  const detailWithNumbers = {
+    ...detail,
+    lineups: {
+      river: addJerseyNumbers(detail.lineups.river as StoredMatchLineup),
+      opponent: addJerseyNumbers(detail.lineups.opponent as StoredMatchLineup),
+    },
+  }
+
+  if (matchId !== "match-25") return detailWithNumbers
 
   return {
-    ...detail,
-    penaltyShootout: detail.penaltyShootout
+    ...detailWithNumbers,
+    penaltyShootout: detailWithNumbers.penaltyShootout
       ? {
-          ...detail.penaltyShootout,
-          kicks: detail.penaltyShootout.kicks
+          ...detailWithNumbers.penaltyShootout,
+          kicks: detailWithNumbers.penaltyShootout.kicks
             ? {
-                river: orderPenaltyKicks(detail.penaltyShootout.kicks.river, riverSanLorenzoPenaltyOrder.river),
-                opponent: orderPenaltyKicks(detail.penaltyShootout.kicks.opponent, riverSanLorenzoPenaltyOrder.opponent),
+                river: orderPenaltyKicks(detailWithNumbers.penaltyShootout.kicks.river, riverSanLorenzoPenaltyOrder.river),
+                opponent: orderPenaltyKicks(detailWithNumbers.penaltyShootout.kicks.opponent, riverSanLorenzoPenaltyOrder.opponent),
               }
-            : detail.penaltyShootout.kicks,
+            : detailWithNumbers.penaltyShootout.kicks,
         }
-      : detail.penaltyShootout,
-    cards: detail.cards.map((card) => (
+      : detailWithNumbers.penaltyShootout,
+    cards: detailWithNumbers.cards.map((card) => (
       card.team === "river" && normalizeName(card.player).includes("anibal moreno") && card.minute === "103"
         ? { ...card, minute: "93" }
         : card
     )),
   }
+}
+
+function addJerseyNumbers(lineup: StoredMatchLineup): MatchLineup {
+  const numberByNormalizedName = new Map<string, number>()
+  for (const [name, number] of Object.entries(lineup.numbers ?? {})) {
+    if (isValidJerseyNumber(number)) {
+      numberByNormalizedName.set(normalizeLineupName(name), Math.trunc(number))
+    }
+  }
+
+  const withNumber = (player: string) => {
+    if (/^#\d+\s+/.test(player)) return player
+
+    const exact = lineup.numbers?.[player]
+    const number = isValidJerseyNumber(exact)
+      ? Math.trunc(exact)
+      : numberByNormalizedName.get(normalizeLineupName(player))
+
+    return number ? `#${number} ${player}` : player
+  }
+
+  return {
+    coach: lineup.coach,
+    starters: lineup.starters.map(withNumber),
+    substitutes: lineup.substitutes.map(withNumber),
+  }
+}
+
+function isValidJerseyNumber(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value) && value > 0
+}
+
+function normalizeLineupName(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/^#\d+\s+/, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim()
 }
 
 const riverSanLorenzoPenaltyOrder = {
