@@ -139,7 +139,7 @@ export default function PlayerProfilePage() {
                     <DetailItem label="Dorsal" value={String(player.number)} />
                     <DetailItem label="País" value={player.nationality} />
                     <DetailItem label="Pierna hábil" value={player.foot} />
-                  <DetailItem label="Altura" value={height} isLast />
+                    <DetailItem label="Altura" value={height} isLast />
                   </div>
                 </div>
 
@@ -328,6 +328,32 @@ function formatNumber(value: number) {
 function getPlayerHeight(playerId: string) {
   const heights: Record<string, string> = {
     "player-centurion": "183 cm",
+    "player-beltran": "191 cm",
+    "player-jeremias-martinet": "188 cm",
+    "player-tobias-ramirez": "178 cm",
+    "player-francisco-ortega": "178 cm",
+    "player-rivero": "185 cm",
+    "player-giovanni-gonzalez": "173 cm",
+    "player-acuna": "173 cm",
+    "player-martinez-quarta": "183 cm",
+    "player-montiel": "175 cm",
+    "player-otamendi": "183 cm",
+    "player-facundo-gonzalez": "180 cm",
+    "player-portillo": "183 cm",
+    "player-moreno": "178 cm",
+    "player-mauro-arambarri": "175 cm",
+    "player-vera": "178 cm",
+    "player-thiago-almada": "170 cm",
+    "player-juan-cruz-meza": "183 cm",
+    "player-galvan": "168 cm",
+    "player-lucas-silva": "178 cm",
+    "player-tobias-andrada": "178 cm",
+    "player-lautaro-pereyra": "178 cm",
+    "player-driussi": "178 cm",
+    "player-angel-correa": "173 cm",
+    "player-lucas-beltran": "175 cm",
+    "player-rafael-borre": "175 cm",
+    "player-ruberto": "183 cm",
   }
 
   return heights[playerId] ?? "—"
