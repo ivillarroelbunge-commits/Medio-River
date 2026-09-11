@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react"
 import { ChevronDown, Download, RotateCcw, Sparkles, Trash2 } from "lucide-react"
 import { formationLayouts, formationOptions } from "@/lib/team-builder"
 import { useAppState } from "@/components/app-state-provider"
@@ -13,6 +13,16 @@ export function TeamBuilderPageClientV2() {
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null)
   const [assignments, setAssignments] = useState<Record<string, string>>({})
   const [isExporting, setIsExporting] = useState(false)
+  const [draggedSlot, setDraggedSlot] = useState<string | null>(null)
+  const [dragOverSlot, setDragOverSlot] = useState<string | null>(null)
+  const dragPointer = useRef<{
+    pointerId: number
+    sourceSlot: string
+    startX: number
+    startY: number
+    active: boolean
+  } | null>(null)
+  const suppressClick = useRef(false)
 
   const slots = formationLayouts[formation]
   const selectedSlotData = selectedSlot ? slots.find((slot) => slot.id === selectedSlot) : null
@@ -27,7 +37,11 @@ export function TeamBuilderPageClientV2() {
     () =>
       squadPlayers
         .filter((player) => !assignedIds.has(player.id) || player.id === selectedPlayerId)
-        .sort((a, b) => sortPlayersForSlot(a, b, selectedSlotData)),
+        .sort((a, b) => {
+          if (a.id === selectedPlayerId) return -1
+          if (b.id === selectedPlayerId) return 1
+          return sortPlayersForSlot(a, b, selectedSlotData)
+        }),
     [squadPlayers, selectedPlayerId, selectedSlotData, assignments],
   )
 
@@ -64,11 +78,101 @@ export function TeamBuilderPageClientV2() {
 
   const handleAssignPlayer = (playerId: string) => {
     if (!selectedSlot) return
+
     setAssignments((previous) => {
+      if (previous[selectedSlot] === playerId) {
+        const next = { ...previous }
+        delete next[selectedSlot]
+        return next
+      }
+
       const next = Object.fromEntries(Object.entries(previous).filter(([, value]) => value !== playerId))
       next[selectedSlot] = playerId
       return next
     })
+  }
+
+  const moveOrSwapPlayers = (sourceSlot: string, targetSlot: string) => {
+    if (sourceSlot === targetSlot) return
+
+    setAssignments((previous) => {
+      const sourcePlayerId = previous[sourceSlot]
+      if (!sourcePlayerId) return previous
+
+      const targetPlayerId = previous[targetSlot]
+      const next = { ...previous, [targetSlot]: sourcePlayerId }
+
+      if (targetPlayerId) next[sourceSlot] = targetPlayerId
+      else delete next[sourceSlot]
+
+      return next
+    })
+
+    setSelectedSlot(targetSlot)
+  }
+
+  const resetDrag = () => {
+    dragPointer.current = null
+    setDraggedSlot(null)
+    setDragOverSlot(null)
+  }
+
+  const handlePlayerPointerDown = (
+    event: ReactPointerEvent<HTMLButtonElement>,
+    slotId: string,
+    hasPlayer: boolean,
+  ) => {
+    if (!hasPlayer || (event.pointerType === "mouse" && event.button !== 0)) return
+
+    dragPointer.current = {
+      pointerId: event.pointerId,
+      sourceSlot: slotId,
+      startX: event.clientX,
+      startY: event.clientY,
+      active: false,
+    }
+    event.currentTarget.setPointerCapture(event.pointerId)
+  }
+
+  const handlePlayerPointerMove = (event: ReactPointerEvent<HTMLButtonElement>) => {
+    const currentDrag = dragPointer.current
+    if (!currentDrag || currentDrag.pointerId !== event.pointerId) return
+
+    const distance = Math.hypot(event.clientX - currentDrag.startX, event.clientY - currentDrag.startY)
+    if (!currentDrag.active && distance < 8) return
+
+    if (!currentDrag.active) {
+      currentDrag.active = true
+      suppressClick.current = true
+      setDraggedSlot(currentDrag.sourceSlot)
+    }
+
+    event.preventDefault()
+    const element = document.elementFromPoint(event.clientX, event.clientY)
+    const target = element?.closest("[data-team-slot]") as HTMLElement | null
+    const targetSlot = target?.dataset.teamSlot ?? null
+    setDragOverSlot(targetSlot)
+  }
+
+  const handlePlayerPointerUp = (event: ReactPointerEvent<HTMLButtonElement>) => {
+    const currentDrag = dragPointer.current
+    if (!currentDrag || currentDrag.pointerId !== event.pointerId) return
+
+    if (currentDrag.active && dragOverSlot && dragOverSlot !== currentDrag.sourceSlot) {
+      moveOrSwapPlayers(currentDrag.sourceSlot, dragOverSlot)
+    }
+
+    resetDrag()
+    if (suppressClick.current) {
+      window.setTimeout(() => {
+        suppressClick.current = false
+      }, 0)
+    }
+  }
+
+  const handlePlayerPointerCancel = () => {
+    resetDrag()
+    suppressClick.current = false
   }
 
   const handleFormationChange = (nextFormation: FormationCode) => {
@@ -85,6 +189,7 @@ export function TeamBuilderPageClientV2() {
     setFormation(nextFormation)
     setAssignments(remapped.assignments)
     setSelectedSlot(selectedSlot ? remapped.slotMap.get(selectedSlot) ?? null : null)
+    resetDrag()
   }
 
   const downloadTitle = !isTeamComplete
@@ -142,6 +247,7 @@ export function TeamBuilderPageClientV2() {
               onClick={() => {
                 setAssignments({})
                 setSelectedSlot(null)
+                resetDrag()
               }}
               className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border bg-card text-muted-foreground shadow-sm transition hover:border-primary/40 hover:bg-muted hover:text-primary disabled:cursor-not-allowed disabled:opacity-40 md:border-white/10 md:bg-white/10 md:text-white md:hover:bg-white md:hover:text-zinc-950"
               aria-label="Limpiar equipo"
@@ -178,6 +284,8 @@ export function TeamBuilderPageClientV2() {
             {slots.map((slot) => {
               const player = squadPlayers.find((item) => item.id === assignments[slot.id])
               const isActive = selectedSlot === slot.id
+              const isDragging = draggedSlot === slot.id
+              const isDropTarget = Boolean(draggedSlot && dragOverSlot === slot.id && draggedSlot !== slot.id)
               const slotLabel = spanishSlotCode(slot)
 
               return (
@@ -185,19 +293,28 @@ export function TeamBuilderPageClientV2() {
                   key={slot.id}
                   type="button"
                   tabIndex={-1}
+                  data-team-slot={slot.id}
+                  onPointerDown={(event) => handlePlayerPointerDown(event, slot.id, Boolean(player))}
+                  onPointerMove={handlePlayerPointerMove}
+                  onPointerUp={handlePlayerPointerUp}
+                  onPointerCancel={handlePlayerPointerCancel}
                   onClick={(event) => {
+                    if (suppressClick.current) {
+                      event.preventDefault()
+                      return
+                    }
                     event.currentTarget.blur()
                     handleSelectSlot(slot.id)
                   }}
-                  className={`absolute -translate-x-1/2 -translate-y-1/2 text-center transition ${isActive ? "z-20 scale-105" : "z-10 hover:scale-105"}`}
+                  className={`absolute -translate-x-1/2 -translate-y-1/2 text-center transition ${player ? "touch-none cursor-grab active:cursor-grabbing" : "touch-manipulation"} ${isDragging ? "z-30 scale-110 opacity-65" : isActive || isDropTarget ? "z-20 scale-105" : "z-10 hover:scale-105"}`}
                   style={{ left: `${slot.x}%`, top: `${slot.y}%` }}
                   aria-label={`${slotLabel}: ${player?.name ?? "sin jugador"}`}
                 >
                   {player ? (
-                    <SelectedPlayerMarker player={player} active={isActive} />
+                    <SelectedPlayerMarker player={player} active={isActive || isDropTarget} />
                   ) : (
                     <div
-                      className={`mx-auto flex h-9 w-9 items-center justify-center rounded-full border-2 border-white text-[10px] font-extrabold text-white shadow-lg shadow-black/25 transition md:h-11 md:w-11 md:text-[11px] ${isActive ? "bg-zinc-950 ring-4 ring-primary/35" : "bg-primary"}`}
+                      className={`mx-auto flex h-9 w-9 items-center justify-center rounded-full border-2 border-white text-[10px] font-extrabold text-white shadow-lg shadow-black/25 transition md:h-11 md:w-11 md:text-[11px] ${isActive || isDropTarget ? "bg-zinc-950 ring-4 ring-primary/35" : "bg-primary"}`}
                     >
                       {slotLabel}
                     </div>
@@ -210,10 +327,21 @@ export function TeamBuilderPageClientV2() {
 
         {selectedSlotData && (
           <div className="space-y-2.5 xl:hidden">
-            <h2 className="font-display text-xl font-extrabold text-foreground">{selectionHeading(selectedSlotData)}</h2>
+            <div>
+              <h2 className="font-display text-xl font-extrabold text-foreground">
+                {selectedPlayer?.name ?? selectionHeading(selectedSlotData)}
+              </h2>
+              {selectedPlayer && <p className="mt-0.5 text-xs text-muted-foreground">Volvé a tocarlo para quitarlo.</p>}
+            </div>
             <div className="flex gap-2 overflow-x-auto pb-1">
               {availablePlayers.map((player) => (
-                <PlayerOptionCard key={player.id} player={player} onSelect={() => handleAssignPlayer(player.id)} compact />
+                <PlayerOptionCard
+                  key={player.id}
+                  player={player}
+                  selected={player.id === selectedPlayerId}
+                  onSelect={() => handleAssignPlayer(player.id)}
+                  compact
+                />
               ))}
             </div>
           </div>
@@ -223,8 +351,9 @@ export function TeamBuilderPageClientV2() {
       <aside className="order-2 hidden space-y-3 rounded-[1.5rem] border border-border bg-card p-4 shadow-sm md:space-y-4 md:rounded-[1.75rem] md:p-5 xl:sticky xl:top-24 xl:flex xl:max-h-[calc(100dvh-7rem)] xl:flex-col xl:overflow-hidden">
         <div>
           <h2 className="font-display text-xl font-extrabold md:text-2xl">
-            {selectedSlotData ? selectionHeading(selectedSlotData) : "Elegí una posición"}
+            {selectedSlotData ? selectedPlayer?.name ?? selectionHeading(selectedSlotData) : "Elegí una posición"}
           </h2>
+          {selectedPlayer && <p className="mt-1 text-xs text-muted-foreground">Volvé a tocarlo para quitarlo.</p>}
         </div>
 
         <div className="hidden rounded-2xl border border-border bg-muted/25 p-2 xl:block">
@@ -276,7 +405,12 @@ export function TeamBuilderPageClientV2() {
         <div className="min-h-0 flex-1 space-y-1.5 overflow-y-auto pr-1">
           {selectedSlotData ? (
             availablePlayers.map((player) => (
-              <PlayerOptionCard key={player.id} player={player} onSelect={() => handleAssignPlayer(player.id)} />
+              <PlayerOptionCard
+                key={player.id}
+                player={player}
+                selected={player.id === selectedPlayerId}
+                onSelect={() => handleAssignPlayer(player.id)}
+              />
             ))
           ) : (
             <div className="w-full rounded-2xl border border-dashed border-border bg-muted/25 p-5 text-sm leading-6 text-muted-foreground">
@@ -306,17 +440,31 @@ function PitchLines() {
   )
 }
 
-function PlayerOptionCard({ player, onSelect, compact = false }: { player: SquadPlayer; onSelect: () => void; compact?: boolean }) {
+function PlayerOptionCard({
+  player,
+  onSelect,
+  compact = false,
+  selected = false,
+}: {
+  player: SquadPlayer
+  onSelect: () => void
+  compact?: boolean
+  selected?: boolean
+}) {
   if (compact) {
     return (
       <button
         type="button"
         onClick={onSelect}
-        className="flex w-44 shrink-0 items-center gap-2 rounded-xl border border-border bg-background px-2 py-2 text-left shadow-sm transition hover:border-primary/40 hover:bg-muted/40 sm:w-48"
+        aria-pressed={selected}
+        className={`flex w-44 shrink-0 items-center gap-2 rounded-xl border px-2 py-2 text-left shadow-sm transition sm:w-48 ${selected ? "border-primary bg-primary/5 ring-2 ring-primary/15" : "border-border bg-background hover:border-primary/40 hover:bg-muted/40"}`}
       >
         <PlayerThumb player={player} className="h-12 w-12 rounded-lg" />
         <div className="min-w-0 flex-1">
-          <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-primary">#{player.number}</p>
+          <div className="flex items-center justify-between gap-1">
+            <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-primary">#{player.number}</p>
+            {selected && <span className="text-[9px] font-black uppercase tracking-[0.08em] text-primary">Elegido</span>}
+          </div>
           <p className="whitespace-nowrap text-[13px] font-semibold leading-tight text-foreground">{shortPlayerName(player.name)}</p>
         </div>
       </button>
@@ -327,13 +475,15 @@ function PlayerOptionCard({ player, onSelect, compact = false }: { player: Squad
     <button
       type="button"
       onClick={onSelect}
-      className="flex w-full items-center gap-2.5 rounded-xl border border-border bg-background/70 px-2.5 py-2 text-left transition hover:border-primary/40 hover:bg-muted/40 hover:shadow-sm"
+      aria-pressed={selected}
+      className={`flex w-full items-center gap-2.5 rounded-xl border px-2.5 py-2 text-left transition hover:shadow-sm ${selected ? "border-primary bg-primary/5 ring-2 ring-primary/15" : "border-border bg-background/70 hover:border-primary/40 hover:bg-muted/40"}`}
     >
       <PlayerThumb player={player} className="h-10 w-10 rounded-lg" />
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline gap-2">
           <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-primary">#{player.number}</p>
           <p className="truncate text-sm font-semibold leading-tight text-foreground">{player.name}</p>
+          {selected && <span className="ml-auto shrink-0 text-[9px] font-black uppercase tracking-[0.08em] text-primary">Elegido</span>}
         </div>
         <p className="mt-0.5 truncate text-[11px] leading-tight text-muted-foreground">{player.position}</p>
       </div>
