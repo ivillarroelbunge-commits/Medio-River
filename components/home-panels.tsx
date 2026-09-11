@@ -28,11 +28,11 @@ export function HomeNextMatchPanel({ match }: { match: Match }) {
 
       <div className="relative mt-3 flex flex-1 flex-col justify-center gap-2.5 md:mt-4 md:gap-4">
         <div className="flex items-center gap-2.5 md:gap-3">
-          <span className="rounded-2xl bg-white p-1.5 shadow-md md:p-2">
+          <span className="flex h-10 w-10 items-center justify-center md:h-14 md:w-14">
             <TeamCrest team={homeTeam} size="md" className="md:h-12 md:w-12" />
           </span>
           <span className="font-display text-base font-extrabold text-white/45 md:text-xl">VS</span>
-          <span className="rounded-2xl bg-white p-1.5 shadow-md md:p-2">
+          <span className="flex h-10 w-10 items-center justify-center md:h-14 md:w-14">
             <TeamCrest team={awayTeam} size="md" className="md:h-12 md:w-12" />
           </span>
         </div>
