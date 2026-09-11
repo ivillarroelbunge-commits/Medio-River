@@ -339,6 +339,7 @@ function mergeOptions(options: string[], defaults: string[], current?: string) {
 
 function RichTextEditor({ value, onChange }: { value: string; onChange: (value: string) => void }) {
   const editorRef = useRef<HTMLDivElement>(null)
+  const initialInnerHtml = useRef({ __html: value })
 
   const runCommand = (command: string, argument?: string) => {
     editorRef.current?.focus()
@@ -385,7 +386,7 @@ function RichTextEditor({ value, onChange }: { value: string; onChange: (value: 
         id="news-content"
         contentEditable
         className="min-h-56 px-3 py-3 text-sm leading-7 outline-none empty:before:text-muted-foreground empty:before:content-['Escribí_la_noticia...'] md:min-h-72 md:px-4 md:text-base md:leading-8 [&_a]:font-semibold [&_a]:text-primary [&_a]:underline [&_h2]:mb-2 [&_h2]:mt-5 [&_h2]:text-xl [&_h2]:font-extrabold md:[&_h2]:text-2xl [&_h3]:mb-2 [&_h3]:mt-4 [&_h3]:text-lg [&_h3]:font-bold md:[&_h3]:text-xl [&_p]:mb-4"
-        dangerouslySetInnerHTML={{ __html: value }}
+        dangerouslySetInnerHTML={initialInnerHtml.current}
         onInput={(event) => onChange(event.currentTarget.innerHTML)}
         onBlur={(event) => onChange(sanitizeNewsContentHtml(event.currentTarget.innerHTML))}
       />
