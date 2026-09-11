@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react"
-import { ChevronDown, Download, RotateCcw, Sparkles, Trash2 } from "lucide-react"
+import { ChevronDown, Download, RotateCcw, Trash2 } from "lucide-react"
 import { formationLayouts, formationOptions } from "@/lib/team-builder"
 import { useAppState } from "@/components/app-state-provider"
 import type { FormationCode, SquadPlayer, TeamBuilderSlot } from "@/lib/data/types"
@@ -202,27 +202,23 @@ export function TeamBuilderPageClientV2() {
 
   return (
     <>
-      <div className="grid min-w-0 gap-4 md:gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <section className="order-1 min-w-0 space-y-4 overflow-hidden text-foreground md:rounded-[2rem] md:border md:border-zinc-200 md:bg-gradient-to-br md:from-zinc-950 md:via-zinc-900 md:to-red-950 md:p-5 md:text-white md:shadow-xl md:shadow-black/10 xl:order-1">
-          <div className="flex min-w-0 flex-wrap items-start justify-between gap-3">
+      <div className="grid min-w-0 gap-4 md:gap-6 xl:mx-auto xl:w-fit xl:grid-cols-[360px_600px] xl:items-start xl:gap-8">
+        <div className="order-1 min-w-0 space-y-4 xl:order-1">
+          <div className="flex min-w-0 flex-col items-start gap-3">
             <div className="min-w-0">
-              <p className="hidden items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[0.65rem] font-bold uppercase tracking-[0.16em] text-white/70 md:inline-flex md:text-xs md:tracking-[0.2em]">
-                <Sparkles className="h-3.5 w-3.5 text-primary" />
-                Pizarra táctica
-              </p>
-              <h1 className="font-display text-3xl font-extrabold tracking-tight md:mt-3 md:text-4xl">Arma tu equipo</h1>
-              <p className="mt-1 hidden text-sm text-white/60 md:block">
+              <h1 className="font-display text-3xl font-extrabold tracking-tight md:text-4xl">Arma tu equipo</h1>
+              <p className="mt-1 hidden text-sm text-muted-foreground md:block">
                 {completedCount}/{slots.length} jugadores elegidos · Formación {formation}
               </p>
             </div>
 
-            <div className="flex w-full min-w-0 items-center gap-2 md:w-auto md:justify-end">
+            <div className="flex w-full min-w-0 items-center gap-2 md:w-auto md:justify-start">
               <label className="relative w-44 shrink-0 sm:w-52 md:w-48">
                 <span className="sr-only">Formación</span>
                 <select
                   value={formation}
                   onChange={(event) => handleFormationChange(event.target.value as FormationCode)}
-                  className="h-10 w-full appearance-none rounded-full border border-border bg-card px-4 pr-10 text-sm font-extrabold text-foreground shadow-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 md:border-white/10 md:bg-white/10 md:text-white md:focus:bg-white/15"
+                  className="h-10 w-full appearance-none rounded-full border border-border bg-card px-4 pr-10 text-sm font-extrabold text-foreground shadow-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                 >
                   {formationOptions.map((option) => (
                     <option key={option} value={option} className="bg-background text-foreground">
@@ -230,7 +226,7 @@ export function TeamBuilderPageClientV2() {
                     </option>
                   ))}
                 </select>
-                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground md:text-white/70" />
+                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               </label>
 
               <button
@@ -241,7 +237,7 @@ export function TeamBuilderPageClientV2() {
                   setSelectedSlot(null)
                   resetDrag()
                 }}
-                className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border bg-card text-muted-foreground shadow-sm transition hover:border-primary/40 hover:bg-muted hover:text-primary disabled:cursor-not-allowed disabled:opacity-40 md:border-white/10 md:bg-white/10 md:text-white md:hover:bg-white md:hover:text-zinc-950"
+                className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border bg-card text-muted-foreground shadow-sm transition hover:border-primary/40 hover:bg-muted hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"
                 aria-label="Limpiar equipo"
                 title="Limpiar equipo"
               >
@@ -252,7 +248,7 @@ export function TeamBuilderPageClientV2() {
                 type="button"
                 onClick={() => setIsThemePickerOpen(true)}
                 disabled={!isTeamComplete || isExporting}
-                className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm transition hover:-translate-y-0.5 hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-400 disabled:shadow-none md:disabled:bg-white/10 md:disabled:text-white/30"
+                className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm transition hover:-translate-y-0.5 hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-400 disabled:shadow-none"
                 aria-label={downloadTitle}
                 title={downloadTitle}
               >
@@ -261,10 +257,62 @@ export function TeamBuilderPageClientV2() {
             </div>
           </div>
 
-          <div className="relative mx-0 w-full max-w-full overflow-hidden md:mx-auto md:max-w-[620px] md:rounded-[1.75rem] md:border md:border-white/15 md:bg-[#061f0f] md:p-3 md:shadow-2xl md:shadow-black/35">
-            <div className="pointer-events-none absolute inset-x-8 top-0 hidden h-24 rounded-full bg-primary/25 blur-3xl md:block" />
+          <aside className="hidden space-y-3 rounded-[1.5rem] border border-border bg-card p-4 shadow-sm md:space-y-4 md:rounded-[1.75rem] md:p-5 xl:sticky xl:top-24 xl:flex xl:max-h-[calc(100dvh-7rem)] xl:flex-col xl:overflow-hidden">
+          <div>
+            <h2 className="font-display text-xl font-extrabold md:text-2xl">
+              {selectedSlotData ? selectedPlayer?.name ?? selectionHeading(selectedSlotData) : "Elegí una posición"}
+            </h2>
+            {selectedPlayer && <p className="mt-1 text-xs text-muted-foreground">Volvé a tocarlo para quitarlo.</p>}
+          </div>
+
+          {selectedSlotData && (
+            <div className="hidden items-center justify-between rounded-2xl border border-border bg-muted/35 px-3 py-2 xl:flex">
+              <div className="min-w-0">
+                <p className="text-xs font-bold uppercase tracking-[0.14em] text-muted-foreground">Actual</p>
+                <p className="truncate text-sm font-semibold">{selectedPlayer?.name ?? "Sin jugador"}</p>
+              </div>
+              <button
+                type="button"
+                disabled={!selectedPlayerId}
+                onClick={() => {
+                  if (!selectedSlot) return
+                  setAssignments((previous) => {
+                    const next = { ...previous }
+                    delete next[selectedSlot]
+                    return next
+                  })
+                }}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition hover:bg-background hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"
+                aria-label="Quitar jugador"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </div>
+          )}
+
+          <div className="min-h-0 flex-1 space-y-1.5 overflow-y-auto pr-1">
+            {selectedSlotData ? (
+              availablePlayers.map((player) => (
+                <PlayerOptionCard
+                  key={player.id}
+                  player={player}
+                  selected={player.id === selectedPlayerId}
+                  onSelect={() => handleAssignPlayer(player.id)}
+                />
+              ))
+            ) : (
+              <div className="w-full rounded-2xl border border-dashed border-border bg-muted/25 p-5 text-sm leading-6 text-muted-foreground">
+                Tocá una posición en la cancha para elegir el jugador.
+              </div>
+            )}
+          </div>
+          </aside>
+        </div>
+
+        <section className="order-2 min-w-0 space-y-4 overflow-hidden text-foreground xl:order-2">
+          <div className="relative mx-0 w-full max-w-full overflow-hidden md:max-w-[540px] xl:h-[700px] xl:w-[600px] xl:max-w-none">
             <div
-              className="relative aspect-[10/13] overflow-hidden rounded-[1.25rem] border-[3px] border-white/95 shadow-2xl shadow-black/25 md:rounded-[1.35rem]"
+              className="relative aspect-[10/13] overflow-hidden rounded-[1.25rem] border-[3px] border-white/95 shadow-2xl shadow-black/25 md:rounded-[1.35rem] xl:h-full xl:aspect-auto"
               style={{
                 backgroundImage:
                   "linear-gradient(0deg, rgba(255,255,255,0.09) 1px, transparent 1px), repeating-linear-gradient(0deg, #10842b 0 12.5%, #0a7425 12.5% 25%)",
@@ -339,78 +387,6 @@ export function TeamBuilderPageClientV2() {
             </div>
           )}
         </section>
-
-        <aside className="order-2 hidden space-y-3 rounded-[1.5rem] border border-border bg-card p-4 shadow-sm md:space-y-4 md:rounded-[1.75rem] md:p-5 xl:sticky xl:top-24 xl:flex xl:max-h-[calc(100dvh-7rem)] xl:flex-col xl:overflow-hidden">
-          <div>
-            <h2 className="font-display text-xl font-extrabold md:text-2xl">
-              {selectedSlotData ? selectedPlayer?.name ?? selectionHeading(selectedSlotData) : "Elegí una posición"}
-            </h2>
-            {selectedPlayer && <p className="mt-1 text-xs text-muted-foreground">Volvé a tocarlo para quitarlo.</p>}
-          </div>
-
-          <div className="hidden rounded-2xl border border-border bg-muted/25 p-2 xl:block">
-            <p className="mb-2 px-1 text-[10px] font-black uppercase tracking-[0.16em] text-muted-foreground">Posiciones</p>
-            <div className="grid grid-cols-4 gap-1.5">
-              {slots.map((slot) => {
-                const isActive = selectedSlot === slot.id
-                const player = squadPlayers.find((item) => item.id === assignments[slot.id])
-                return (
-                  <button
-                    key={slot.id}
-                    type="button"
-                    onClick={() => setSelectedSlot(slot.id)}
-                    className={`rounded-xl px-2 py-2 text-center text-[11px] font-black transition ${isActive ? "bg-primary text-primary-foreground shadow-sm" : player ? "bg-zinc-950 text-white hover:bg-zinc-800" : "bg-background text-muted-foreground hover:text-foreground"}`}
-                    title={player?.name ?? slot.role}
-                  >
-                    {spanishSlotCode(slot)}
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-
-          {selectedSlotData && (
-            <div className="hidden items-center justify-between rounded-2xl border border-border bg-muted/35 px-3 py-2 xl:flex">
-              <div className="min-w-0">
-                <p className="text-xs font-bold uppercase tracking-[0.14em] text-muted-foreground">Actual</p>
-                <p className="truncate text-sm font-semibold">{selectedPlayer?.name ?? "Sin jugador"}</p>
-              </div>
-              <button
-                type="button"
-                disabled={!selectedPlayerId}
-                onClick={() => {
-                  if (!selectedSlot) return
-                  setAssignments((previous) => {
-                    const next = { ...previous }
-                    delete next[selectedSlot]
-                    return next
-                  })
-                }}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition hover:bg-background hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"
-                aria-label="Quitar jugador"
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
-            </div>
-          )}
-
-          <div className="min-h-0 flex-1 space-y-1.5 overflow-y-auto pr-1">
-            {selectedSlotData ? (
-              availablePlayers.map((player) => (
-                <PlayerOptionCard
-                  key={player.id}
-                  player={player}
-                  selected={player.id === selectedPlayerId}
-                  onSelect={() => handleAssignPlayer(player.id)}
-                />
-              ))
-            ) : (
-              <div className="w-full rounded-2xl border border-dashed border-border bg-muted/25 p-5 text-sm leading-6 text-muted-foreground">
-                Tocá una posición en la cancha para elegir el jugador.
-              </div>
-            )}
-          </div>
-        </aside>
       </div>
 
       {isThemePickerOpen && (
@@ -638,6 +614,8 @@ function spanishSlotCode(slot: TeamBuilderSlot) {
     lcf: "EI",
     cf: "DC",
     rcf: "ED",
+    lcd: "DC",
+    rcd: "DC",
   }
   return idMap[slot.id] ?? slot.code
 }
