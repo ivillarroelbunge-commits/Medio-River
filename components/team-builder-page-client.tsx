@@ -1,7 +1,7 @@
 "use client"
 
-import { useMemo, useRef, useState } from "react"
-import { Download, RotateCcw, Sparkles, Trash2 } from "lucide-react"
+import { useMemo, useState } from "react"
+import { ChevronDown, Download, RotateCcw, Sparkles, Trash2 } from "lucide-react"
 import { formationLayouts, formationOptions } from "@/lib/team-builder"
 import { useAppState } from "@/components/app-state-provider"
 import type { FormationCode, SquadPlayer, TeamBuilderSlot } from "@/lib/data/types"
@@ -13,7 +13,6 @@ export function TeamBuilderPageClient() {
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null)
   const [assignments, setAssignments] = useState<Record<string, string>>({})
   const [isExporting, setIsExporting] = useState(false)
-  const selectorRef = useRef<HTMLElement>(null)
 
   const slots = formationLayouts[formation]
   const selectedSlotData = selectedSlot ? slots.find((slot) => slot.id === selectedSlot) : null
@@ -56,13 +55,11 @@ export function TeamBuilderPageClient() {
   }
 
   const handleSelectSlot = (slotId: string) => {
+    const scrollTop = window.scrollY
     setSelectedSlot(slotId)
-
-    if (window.matchMedia("(max-width: 1279px)").matches) {
-      window.setTimeout(() => {
-        selectorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
-      }, 40)
-    }
+    window.requestAnimationFrame(() => {
+      window.scrollTo({ top: scrollTop })
+    })
   }
 
   const handleFormationChange = (nextFormation: FormationCode) => {
@@ -82,18 +79,18 @@ export function TeamBuilderPageClient() {
   }
 
   return (
-    <div className="grid gap-4 md:gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
-      <section className="order-2 space-y-4 rounded-[1.5rem] border border-zinc-200 bg-gradient-to-br from-zinc-950 via-zinc-900 to-red-950 p-3 text-white shadow-xl shadow-black/10 md:rounded-[2rem] md:p-5 xl:order-1">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <p className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[0.65rem] font-bold uppercase tracking-[0.16em] text-white/70 md:text-xs md:tracking-[0.2em]">
+    <div className="grid min-w-0 gap-4 md:gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+      <section className="order-1 min-w-0 space-y-4 overflow-hidden text-foreground md:rounded-[2rem] md:border md:border-zinc-200 md:bg-gradient-to-br md:from-zinc-950 md:via-zinc-900 md:to-red-950 md:p-5 md:text-white md:shadow-xl md:shadow-black/10 xl:order-1">
+        <div className="flex min-w-0 flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="hidden items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[0.65rem] font-bold uppercase tracking-[0.16em] text-white/70 md:inline-flex md:text-xs md:tracking-[0.2em]">
               <Sparkles className="h-3.5 w-3.5 text-primary" />
               Pizarra táctica
             </p>
-            <h1 className="mt-3 font-display text-2xl font-extrabold tracking-tight md:text-4xl">Arma tu equipo</h1>
-            <p className="mt-1 text-sm text-white/60">{completedCount}/11 jugadores elegidos · Formación {formation}</p>
+            <h1 className="font-display text-3xl font-extrabold tracking-tight md:mt-3 md:text-4xl">Arma tu equipo</h1>
+            <p className="mt-1 hidden text-sm text-white/60 md:block">{completedCount}/11 jugadores elegidos · Formación {formation}</p>
           </div>
-          <label className="w-full max-w-sm space-y-2 md:ml-auto">
+          <label className="hidden w-full max-w-sm space-y-2 md:ml-auto md:block">
             <span className="text-[0.65rem] font-black uppercase tracking-[0.18em] text-white/55">Nombre del equipo</span>
             <input
               value={teamName}
@@ -103,16 +100,22 @@ export function TeamBuilderPageClient() {
               className="h-11 w-full rounded-full border border-white/15 bg-white/10 px-4 text-sm font-bold text-white placeholder:text-white/35 outline-none transition focus:border-primary focus:bg-white/15"
             />
           </label>
-          <div className="flex w-full flex-wrap items-center gap-2 md:w-auto md:justify-end">
-            <button
-              type="button"
-              onClick={downloadTeamImage}
-              disabled={isExporting}
-              className="inline-flex flex-1 items-center justify-center gap-2 rounded-full bg-white px-3 py-2 text-[0.68rem] font-black uppercase tracking-[0.1em] text-zinc-950 shadow-lg shadow-black/20 transition hover:-translate-y-0.5 hover:bg-primary hover:text-primary-foreground disabled:cursor-wait disabled:opacity-70 sm:flex-none md:px-4 md:text-xs md:tracking-[0.12em]"
-            >
-              <Download className="h-4 w-4" />
-              {isExporting ? "Generando..." : "Descargar PNG"}
-            </button>
+          <div className="flex min-w-0 w-full items-center gap-2 md:w-auto md:justify-end">
+            <label className="relative min-w-0 flex-1 md:w-48 md:flex-none">
+              <span className="sr-only">Formación</span>
+              <select
+                value={formation}
+                onChange={(event) => handleFormationChange(event.target.value as FormationCode)}
+                className="h-10 w-full appearance-none rounded-full border border-border bg-card px-4 pr-10 text-sm font-extrabold text-foreground shadow-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 md:border-white/10 md:bg-white/10 md:text-white md:focus:bg-white/15"
+              >
+                {formationOptions.map((option) => (
+                  <option key={option} value={option} className="bg-background text-foreground">
+                    {option}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground md:text-white/70" />
+            </label>
             <button
               type="button"
               disabled={!hasAssignments}
@@ -120,34 +123,33 @@ export function TeamBuilderPageClient() {
                 setAssignments({})
                 setSelectedSlot(null)
               }}
-              className="inline-flex flex-1 items-center justify-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-2 text-[0.68rem] font-black uppercase tracking-[0.1em] text-white shadow-lg shadow-black/10 transition hover:-translate-y-0.5 hover:bg-white hover:text-zinc-950 disabled:cursor-not-allowed disabled:opacity-40 sm:flex-none md:px-4 md:text-xs md:tracking-[0.12em]"
+              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border bg-card text-muted-foreground shadow-sm transition hover:border-primary/40 hover:bg-muted hover:text-primary disabled:cursor-not-allowed disabled:opacity-40 md:border-white/10 md:bg-white/10 md:text-white md:hover:bg-white md:hover:text-zinc-950"
+              aria-label="Limpiar equipo"
+              title="Limpiar equipo"
             >
               <RotateCcw className="h-4 w-4" />
-              Limpiar
             </button>
-            <div className="flex w-full gap-1 overflow-x-auto rounded-full border border-white/10 bg-white/10 p-1 shadow-sm backdrop-blur md:inline-flex md:w-auto md:flex-wrap md:overflow-visible">
-              {formationOptions.map((option) => (
-                <button
-                  key={option}
-                  type="button"
-                  onClick={() => handleFormationChange(option)}
-                  className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-bold transition ${option === formation ? "bg-primary text-primary-foreground shadow-sm" : "text-white/62 hover:bg-white/10 hover:text-white"}`}
-                >
-                  {option}
-                </button>
-              ))}
-            </div>
+            <button
+              type="button"
+              onClick={downloadTeamImage}
+              disabled={isExporting}
+              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm transition hover:-translate-y-0.5 hover:bg-primary/90 disabled:cursor-wait disabled:opacity-70"
+              aria-label={isExporting ? "Generando imagen" : "Descargar imagen"}
+              title={isExporting ? "Generando imagen" : "Descargar imagen"}
+            >
+              <Download className="h-4 w-4" />
+            </button>
           </div>
         </div>
 
-        <div className="relative mx-auto w-full max-w-[620px] overflow-hidden rounded-[1.25rem] border border-white/15 bg-[#061f0f] p-1.5 shadow-2xl shadow-black/35 md:rounded-[1.75rem] md:p-3">
-          <div className="pointer-events-none absolute inset-x-8 top-0 h-24 rounded-full bg-primary/25 blur-3xl" />
+        <div className="relative mx-0 w-full max-w-full overflow-hidden md:mx-auto md:max-w-[620px] md:rounded-[1.75rem] md:border md:border-white/15 md:bg-[#061f0f] md:p-3 md:shadow-2xl md:shadow-black/35">
+          <div className="pointer-events-none absolute inset-x-8 top-0 hidden h-24 rounded-full bg-primary/25 blur-3xl md:block" />
           <div
-            className="relative aspect-[10/13] overflow-hidden rounded-[1rem] border-2 border-white/95 md:rounded-[1.35rem] md:border-[3px]"
+            className="relative aspect-[10/13] overflow-hidden rounded-[1.25rem] border-[3px] border-white/95 shadow-2xl shadow-black/25 md:rounded-[1.35rem]"
             style={{
               backgroundImage:
-                "linear-gradient(90deg, rgba(255,255,255,0.09) 1px, transparent 1px), repeating-linear-gradient(90deg, #10842b 0 12.5%, #0a7425 12.5% 25%)",
-              backgroundSize: "25% 100%, 100% 100%",
+                "linear-gradient(0deg, rgba(255,255,255,0.09) 1px, transparent 1px), repeating-linear-gradient(0deg, #10842b 0 12.5%, #0a7425 12.5% 25%)",
+              backgroundSize: "100% 25%, 100% 100%",
             }}
           >
             <div className="absolute inset-x-0 top-[50%] border-t-[3px] border-white/90" />
@@ -166,11 +168,16 @@ export function TeamBuilderPageClient() {
             {slots.map((slot) => {
               const player = squadPlayers.find((item) => item.id === assignments[slot.id])
               const isActive = selectedSlot === slot.id
+              const slotLabel = spanishSlotCode(slot)
               return (
                 <button
                   key={slot.id}
                   type="button"
-                  onClick={() => handleSelectSlot(slot.id)}
+                  tabIndex={-1}
+                  onClick={(event) => {
+                    event.currentTarget.blur()
+                    handleSelectSlot(slot.id)
+                  }}
                   className={`absolute -translate-x-1/2 -translate-y-1/2 text-center transition ${isActive ? "z-20 scale-105" : "z-10 hover:scale-105"}`}
                   style={{ left: `${slot.x}%`, top: `${slot.y}%` }}
                 >
@@ -179,7 +186,7 @@ export function TeamBuilderPageClient() {
                   ) : (
                     <div className="space-y-1 md:space-y-1.5">
                       <div className={`mx-auto flex h-8 w-8 items-center justify-center rounded-full border-2 border-white text-[9px] font-extrabold text-white shadow-lg shadow-black/25 transition md:h-11 md:w-11 md:text-[11px] ${isActive ? "bg-zinc-950 ring-4 ring-primary/35" : "bg-primary"}`}>
-                        {slot.code}
+                        {slotLabel}
                       </div>
                       <p className="rounded-full bg-black/45 px-1.5 py-0.5 text-[8px] font-bold uppercase text-white shadow-sm md:px-2 md:text-[10px]">{slot.role}</p>
                     </div>
@@ -189,17 +196,58 @@ export function TeamBuilderPageClient() {
             })}
           </div>
         </div>
+
+        {selectedSlotData && (
+          <div className="space-y-3 xl:hidden">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-primary">Seleccionar jugador</p>
+              <h2 className="mt-1 font-display text-xl font-extrabold text-foreground">
+                {spanishSlotCode(selectedSlotData)} · {selectedSlotData.role}
+              </h2>
+            </div>
+            <div className="flex gap-3 overflow-x-auto pb-1">
+              {availablePlayers.map((player) => (
+                <button
+                  key={player.id}
+                  type="button"
+                  onClick={() => {
+                    if (!selectedSlot) return
+                    setAssignments((previous) => {
+                      const next = Object.fromEntries(Object.entries(previous).filter(([, value]) => value !== player.id))
+                      next[selectedSlot] = player.id
+                      return next
+                    })
+                  }}
+                  className="flex w-40 shrink-0 flex-col gap-2 rounded-2xl border border-border bg-background px-3 py-3 text-left shadow-sm transition hover:border-primary/40 hover:bg-muted/40"
+                >
+                  <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-muted">
+                    {player.image ? (
+                      <img src={player.image} alt={player.name} className="h-full w-full object-cover object-top" />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-xl font-bold text-muted-foreground">{player.name.charAt(0)}</div>
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-primary">#{player.number}</p>
+                    <p className="line-clamp-2 text-sm font-semibold leading-tight text-foreground">{player.name}</p>
+                    <p className="mt-1 line-clamp-2 text-xs leading-tight text-muted-foreground">{player.position}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </section>
 
-      <aside ref={selectorRef} className="order-1 space-y-3 rounded-[1.5rem] border border-border bg-card p-4 shadow-sm md:space-y-4 md:rounded-[1.75rem] md:p-5 xl:sticky xl:top-24 xl:order-2 xl:flex xl:max-h-[calc(100dvh-7rem)] xl:flex-col xl:overflow-hidden">
+      <aside className="order-2 hidden space-y-3 rounded-[1.5rem] border border-border bg-card p-4 shadow-sm md:space-y-4 md:rounded-[1.75rem] md:p-5 xl:sticky xl:top-24 xl:flex xl:max-h-[calc(100dvh-7rem)] xl:flex-col xl:overflow-hidden">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Seleccionar jugador</p>
           <h2 className="mt-1 font-display text-xl font-extrabold md:text-2xl">
-            {selectedSlotData ? `${selectedSlotData.code} · ${selectedSlotData.role}` : "Elegí una posición"}
+            {selectedSlotData ? `${spanishSlotCode(selectedSlotData)} · ${selectedSlotData.role}` : "Elegí una posición"}
           </h2>
         </div>
 
-        <div className="rounded-2xl border border-border bg-muted/25 p-2">
+        <div className="hidden rounded-2xl border border-border bg-muted/25 p-2 xl:block">
           <p className="mb-2 px-1 text-[10px] font-black uppercase tracking-[0.16em] text-muted-foreground">Posiciones</p>
           <div className="grid grid-cols-6 gap-1.5 xl:grid-cols-4">
             {slots.map((slot) => {
@@ -213,7 +261,7 @@ export function TeamBuilderPageClient() {
                   className={`rounded-xl px-2 py-2 text-center text-[10px] font-black transition md:text-[11px] ${isActive ? "bg-primary text-primary-foreground shadow-sm" : player ? "bg-zinc-950 text-white hover:bg-zinc-800" : "bg-background text-muted-foreground hover:text-foreground"}`}
                   title={player?.name ?? slot.role}
                 >
-                  {slot.code}
+                  {spanishSlotCode(slot)}
                 </button>
               )
             })}
@@ -221,7 +269,7 @@ export function TeamBuilderPageClient() {
         </div>
 
         {selectedSlotData && (
-          <div className="flex items-center justify-between rounded-2xl border border-border bg-muted/35 px-3 py-2">
+          <div className="hidden items-center justify-between rounded-2xl border border-border bg-muted/35 px-3 py-2 xl:flex">
             <div className="min-w-0">
               <p className="text-xs font-bold uppercase tracking-[0.14em] text-muted-foreground">Actual</p>
               <p className="truncate text-sm font-semibold">{selectedPlayer?.name ?? "Sin jugador"}</p>
@@ -245,7 +293,7 @@ export function TeamBuilderPageClient() {
           </div>
         )}
 
-        <div className="max-h-[18rem] space-y-2 overflow-y-auto pr-1 md:max-h-[24rem] xl:min-h-0 xl:max-h-[31rem] xl:flex-1">
+        <div className="flex gap-3 overflow-x-auto pb-1 xl:block xl:min-h-0 xl:max-h-[31rem] xl:flex-1 xl:space-y-2 xl:overflow-y-auto xl:pr-1">
           {selectedSlotData ? (
             availablePlayers.map((player) => (
               <button
@@ -259,9 +307,9 @@ export function TeamBuilderPageClient() {
                     return next
                   })
                 }}
-                className="flex w-full items-center gap-3 rounded-2xl border border-border bg-background/70 px-3 py-2 text-left transition hover:-translate-y-0.5 hover:border-primary/40 hover:bg-muted/40 hover:shadow-sm md:py-2.5"
+                className="flex w-40 shrink-0 flex-col gap-2 rounded-2xl border border-border bg-background/70 px-3 py-3 text-left transition hover:-translate-y-0.5 hover:border-primary/40 hover:bg-muted/40 hover:shadow-sm xl:w-full xl:flex-row xl:items-center xl:gap-3 xl:py-2.5"
               >
-                <div className="h-10 w-10 shrink-0 overflow-hidden rounded-xl bg-muted md:h-12 md:w-12">
+                <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-muted xl:h-12 xl:w-12">
                   {player.image ? (
                     <img src={player.image} alt={player.name} className="h-full w-full object-cover object-top" />
                   ) : (
@@ -270,14 +318,14 @@ export function TeamBuilderPageClient() {
                 </div>
                 <div className="min-w-0">
                   <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-primary">#{player.number}</p>
-                  <p className="truncate text-sm font-semibold text-foreground md:text-base">{player.name}</p>
-                  <p className="truncate text-xs text-muted-foreground md:text-sm">{player.position}</p>
+                  <p className="line-clamp-2 text-sm font-semibold leading-tight text-foreground xl:truncate xl:text-base">{player.name}</p>
+                  <p className="mt-1 line-clamp-2 text-xs leading-tight text-muted-foreground xl:truncate xl:text-sm">{player.position}</p>
                 </div>
               </button>
             ))
           ) : (
-            <div className="rounded-2xl border border-dashed border-border bg-muted/25 p-5 text-sm leading-6 text-muted-foreground">
-              Elegí una posición desde los botones de arriba o tocando la cancha. Después te muestro primero los jugadores más naturales para ese puesto.
+            <div className="w-full rounded-2xl border border-dashed border-border bg-muted/25 p-5 text-sm leading-6 text-muted-foreground">
+              Tocá una posición en la cancha para elegir el jugador.
             </div>
           )}
         </div>
@@ -288,17 +336,19 @@ export function TeamBuilderPageClient() {
 
 function SelectedPlayerMarker({ player, active }: { player: SquadPlayer; active: boolean }) {
   return (
-    <div className="w-[64px] md:w-[96px]">
-      <div className={`mx-auto h-10 w-10 overflow-hidden rounded-full border-2 bg-white shadow-xl shadow-black/30 md:h-14 md:w-14 md:border-[3px] ${active ? "border-primary ring-4 ring-primary/35" : "border-white"}`}>
+    <div className="relative w-[70px] md:w-[104px]">
+      <div className={`relative z-10 mx-auto h-10 w-10 overflow-hidden rounded-full border-2 bg-white shadow-xl shadow-black/30 md:h-14 md:w-14 md:border-[3px] ${active ? "border-primary ring-4 ring-primary/35" : "border-white"}`}>
         {player.image ? (
           <img src={player.image} alt={player.name} className="h-full w-full object-cover object-top" />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-primary text-sm font-bold text-primary-foreground">{player.number}</div>
         )}
       </div>
-      <div className="mt-1 rounded-lg border border-white/40 bg-zinc-950/90 px-1 py-1 text-center text-white shadow-lg shadow-black/25 backdrop-blur md:rounded-xl md:px-1.5 md:py-1.5">
-        <p className="text-[8px] font-black leading-none text-primary md:text-[10px]">#{player.number}</p>
-        <p className="mt-0.5 truncate text-[8px] font-extrabold leading-none md:text-[10px]">{shortPlayerName(player.name)}</p>
+      <span className="absolute left-1/2 top-8 z-20 flex h-4 w-4 -translate-x-1/2 items-center justify-center rounded-full bg-primary text-[7px] font-black leading-none text-primary-foreground shadow-md shadow-black/20 md:top-11 md:h-5 md:w-5 md:text-[8px]">
+        {player.number}
+      </span>
+      <div className="mt-0.5 rounded-full border border-zinc-200 bg-white px-2 pb-1 pt-2 text-center text-zinc-950 shadow-lg shadow-black/20 md:mt-1 md:px-3 md:pb-1.5 md:pt-2.5">
+        <p className="truncate text-[9px] font-extrabold leading-none md:text-[11px]">{shortPlayerName(player.name)}</p>
       </div>
     </div>
   )
@@ -307,6 +357,35 @@ function SelectedPlayerMarker({ player, active }: { player: SquadPlayer; active:
 function shortPlayerName(name: string) {
   const parts = name.trim().split(" ")
   return parts.length > 1 ? parts.at(-1) ?? name : name
+}
+
+function spanishSlotCode(slot: TeamBuilderSlot) {
+  const idMap: Record<string, string> = {
+    gk: "ARQ",
+    lb: "LI",
+    lwb: "LI",
+    rb: "LD",
+    rwb: "LD",
+    lcb: "DFC",
+    cb: "DFC",
+    rcb: "DFC",
+    cdm: "MCD",
+    lcdm: "MCD",
+    rcdm: "MCD",
+    lcm: "MC",
+    cm: "MC",
+    rcm: "MC",
+    lm: "MI",
+    rm: "MD",
+    cam: "MCO",
+    lam: "EI",
+    ram: "ED",
+    lcf: "EI",
+    cf: "DC",
+    rcf: "ED",
+  }
+
+  return idMap[slot.id] ?? slot.code
 }
 
 function normalizeExportTeamName(teamName: string) {
@@ -630,9 +709,10 @@ function drawExportPlayer({
   player?: SquadPlayer
   image?: HTMLImageElement
 }) {
-  const label = player ? shortPlayerName(player.name).toUpperCase() : slot.code
-  const number = player ? `#${player.number}` : slot.code
-  const initials = player ? playerInitials(player.name) : slot.code.slice(0, 2)
+  const slotLabel = spanishSlotCode(slot)
+  const label = player ? shortPlayerName(player.name).toUpperCase() : slotLabel
+  const number = player ? `#${player.number}` : slotLabel
+  const initials = player ? playerInitials(player.name) : slotLabel.slice(0, 2)
 
   context.save()
   context.translate(x, y)

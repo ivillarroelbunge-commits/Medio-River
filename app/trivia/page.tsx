@@ -1,7 +1,6 @@
 import { SiteFooter } from "@/components/site-footer"
 import { SiteHeader } from "@/components/site-header"
 import { DeviceTriviaGame } from "@/components/device-trivia-game"
-import { TriviaSaveProgress } from "@/components/trivia-save-progress"
 
 export default function TriviaPage() {
   return (
@@ -21,8 +20,6 @@ export default function TriviaPage() {
           <div id="trivia-game-compact">
             <DeviceTriviaGame />
           </div>
-
-          <TriviaSaveProgress />
         </div>
       </main>
       <SiteFooter />

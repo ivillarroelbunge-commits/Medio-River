@@ -1,7 +1,8 @@
 "use client"
 
+import Link from "next/link"
 import { useEffect, useMemo, useState } from "react"
-import { Check, Clock, LogIn, Medal, ShieldQuestion, Trophy, UserRound, X } from "lucide-react"
+import { Check, Clock, LogIn, Medal, ShieldCheck, ShieldQuestion, Trophy, UserRound, X } from "lucide-react"
 import { useAppState } from "@/components/app-state-provider"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -409,6 +410,8 @@ export function DeviceTriviaGame() {
   }
 
   if (phase === "finished") {
+    const shouldShowAccountCta = !currentUser && Boolean(participant?.name)
+
     return (
       <div className="space-y-6">
         <GameHero icon={<Trophy className="h-8 w-8" />} eyebrow="Resultado guardado" title="Resultado de la semana">
@@ -417,6 +420,7 @@ export function DeviceTriviaGame() {
           {!currentUser && <p className="mx-auto mt-3 max-w-md text-xs leading-5 text-muted-foreground">Con nickname, tu historial queda asociado a este dispositivo. Vinculá una cuenta para verlo en tu perfil y seguir desde cualquier dispositivo.</p>}
           {currentUser && <p className="mx-auto mt-3 max-w-md text-xs leading-5 text-muted-foreground">Este resultado quedó vinculado a tu cuenta y se guarda en tu perfil.</p>}
         </GameHero>
+        {shouldShowAccountCta && <SaveProgressCta />}
         <RankingBlocks currentParticipantId={participant?.id} weeklyRanking={buildWeeklyRanking(results, weeklyKey)} globalRanking={buildGlobalRanking(results)} />
       </div>
     )
@@ -508,6 +512,28 @@ function GameHero({ children, eyebrow, icon, title }: { children: React.ReactNod
   )
 }
 
+function SaveProgressCta() {
+  return (
+    <section className="rounded-[1.5rem] border border-border bg-card p-5 text-center shadow-sm md:rounded-[2rem] md:p-7">
+      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+        <ShieldCheck className="h-6 w-6" />
+      </div>
+      <h2 className="mt-4 font-display text-xl font-extrabold md:text-2xl">Guardá tu progreso en una cuenta</h2>
+      <p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-muted-foreground">
+        Tus resultados con nickname quedan asociados a este dispositivo. Si los vinculás a una cuenta, se guardan en tu perfil y podés seguir participando desde cualquier dispositivo sin perder tu historial ni tus puntos.
+      </p>
+      <div className="mx-auto mt-5 flex max-w-md flex-col gap-2 sm:flex-row sm:justify-center">
+        <Button asChild size="lg" className="rounded-full px-8">
+          <Link href="/registrarse?next=/trivia">Crear cuenta</Link>
+        </Button>
+        <Button asChild size="lg" variant="outline" className="rounded-full px-8">
+          <Link href="/iniciar-sesion?next=/trivia">Ya tengo cuenta</Link>
+        </Button>
+      </div>
+    </section>
+  )
+}
+
 function RankingBlocks({
   currentParticipantId,
   weeklyRanking,
@@ -517,20 +543,47 @@ function RankingBlocks({
   weeklyRanking: Array<{ id: string; name: string; score: number; totalQuestions: number }>
   globalRanking: Array<{ id: string; name: string; totalScore: number; gamesPlayed: number }>
 }) {
+  const [activeRanking, setActiveRanking] = useState<"weekly" | "global">("weekly")
+  const weeklyRows = weeklyRanking.map((entry) => ({ id: entry.id, name: entry.name, value: `${entry.score}/${entry.totalQuestions}` }))
+  const globalRows = globalRanking.map((entry) => ({ id: entry.id, name: entry.name, value: `${entry.totalScore} pts` }))
+
   return (
-    <div className="grid gap-4 md:gap-6 lg:grid-cols-2">
-      <RankingCard
-        title="Ranking semanal"
-        subtitle="Esta semana"
-        rows={weeklyRanking.map((entry) => ({ id: entry.id, name: entry.name, value: `${entry.score}/${entry.totalQuestions}` }))}
-        currentParticipantId={currentParticipantId}
-      />
-      <RankingCard
-        title="Ranking general"
-        subtitle="Acumulado"
-        rows={globalRanking.map((entry) => ({ id: entry.id, name: entry.name, value: `${entry.totalScore} pts` }))}
-        currentParticipantId={currentParticipantId}
-      />
+    <div className="space-y-3 md:space-y-0">
+      <div className="grid grid-cols-2 overflow-hidden rounded-2xl border border-border bg-card shadow-sm md:hidden">
+        <button
+          type="button"
+          onClick={() => setActiveRanking("weekly")}
+          className={cn(
+            "px-4 py-3 text-sm font-extrabold transition-colors",
+            activeRanking === "weekly" ? "bg-primary text-primary-foreground" : "text-muted-foreground",
+          )}
+        >
+          Semanal
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveRanking("global")}
+          className={cn(
+            "px-4 py-3 text-sm font-extrabold transition-colors",
+            activeRanking === "global" ? "bg-primary text-primary-foreground" : "text-muted-foreground",
+          )}
+        >
+          General
+        </button>
+      </div>
+
+      <div className="md:hidden">
+        {activeRanking === "weekly" ? (
+          <RankingCard title="Ranking semanal" subtitle="Esta semana" rows={weeklyRows} currentParticipantId={currentParticipantId} />
+        ) : (
+          <RankingCard title="Ranking general" subtitle="Acumulado" rows={globalRows} currentParticipantId={currentParticipantId} />
+        )}
+      </div>
+
+      <div className="hidden gap-4 md:grid md:gap-6 lg:grid-cols-2">
+        <RankingCard title="Ranking semanal" subtitle="Esta semana" rows={weeklyRows} currentParticipantId={currentParticipantId} />
+        <RankingCard title="Ranking general" subtitle="Acumulado" rows={globalRows} currentParticipantId={currentParticipantId} />
+      </div>
     </div>
   )
 }
