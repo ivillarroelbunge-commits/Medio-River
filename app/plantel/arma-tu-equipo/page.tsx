@@ -1,6 +1,6 @@
 import { SiteFooter } from "@/components/site-footer"
 import { SiteHeader } from "@/components/site-header"
-import { TeamBuilderPageClient } from "@/components/team-builder-page-client"
+import { TeamBuilderPageClientV2 } from "@/components/team-builder-page-client-v2"
 
 export default function ArmaTuEquipoPage() {
   return (
@@ -8,7 +8,7 @@ export default function ArmaTuEquipoPage() {
       <SiteHeader />
       <main className="flex-1">
         <div className="container-prose py-5 md:py-10">
-          <TeamBuilderPageClient />
+          <TeamBuilderPageClientV2 />
         </div>
       </main>
       <SiteFooter />
