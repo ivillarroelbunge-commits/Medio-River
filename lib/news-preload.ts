@@ -1,5 +1,6 @@
 import { newsArticles } from "@/lib/data/news"
 import type { NewsArticle, NewsTag } from "@/lib/data/types"
+import { getCarouselNewsArticles, sortNewsByDateDesc } from "@/lib/news-carousel"
 import { normalizeNewsCategory } from "@/lib/news-taxonomy"
 import { getSupabaseEnv } from "@/lib/supabase/env"
 import { getNewsImageProxyPath } from "@/lib/supabase/news"
@@ -58,11 +59,9 @@ export async function getPreloadedFeaturedNews(limit = 5): Promise<NewsArticle[]
   const latest = await fetchNewsSummariesFromSupabase(limit, false)
   if (latest.length > 0) return latest
 
-  const localFeatured = newsArticles
-    .filter((article) => article.featured)
-    .sort((a, b) => +new Date(b.date) - +new Date(a.date))
+  const localFeatured = getCarouselNewsArticles(newsArticles, limit)
 
-  const fallback = localFeatured.length > 0 ? localFeatured : newsArticles
+  const fallback = localFeatured.length > 0 ? localFeatured : sortNewsByDateDesc(newsArticles)
   return fallback.slice(0, limit).map((article) => ({ ...article, content: [] }))
 }
 
@@ -111,7 +110,7 @@ export async function getPreloadedNewsArticle(slug: string): Promise<NewsArticle
   }
 }
 
-async function fetchNewsSummariesFromSupabase(limit: number, featuredOnly: boolean): Promise<NewsArticle[]> {
+async function fetchNewsSummariesFromSupabase(limit: number, carouselOnly: boolean): Promise<NewsArticle[]> {
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), FEATURED_NEWS_TIMEOUT_MS)
 
@@ -122,8 +121,8 @@ async function fetchNewsSummariesFromSupabase(limit: number, featuredOnly: boole
     endpoint.searchParams.set("order", "published_at.desc")
     endpoint.searchParams.set("limit", String(limit))
 
-    if (featuredOnly) {
-      endpoint.searchParams.set("featured", "eq.true")
+    if (carouselOnly) {
+      endpoint.searchParams.set("or", "(featured.eq.true,article_type.eq.player_ratings)")
     }
 
     const response = await fetch(endpoint, {
@@ -134,7 +133,7 @@ async function fetchNewsSummariesFromSupabase(limit: number, featuredOnly: boole
       signal: controller.signal,
       next: {
         revalidate: FEATURED_NEWS_REVALIDATE_SECONDS,
-        tags: [featuredOnly ? "featured-news" : "latest-news"],
+        tags: [carouselOnly ? "featured-news" : "latest-news"],
       },
     })
 

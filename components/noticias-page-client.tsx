@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button"
 import { useAppState } from "@/components/app-state-provider"
 import type { Match, NewsArticle } from "@/lib/data/types"
 import { timeAgo } from "@/lib/format"
+import { getCarouselNewsArticles } from "@/lib/news-carousel"
 import { defaultNewsCategories, normalizeNewsCategory } from "@/lib/news-taxonomy"
 
 const defaultCategories = defaultNewsCategories
@@ -49,7 +50,7 @@ export function NoticiasPageClient({
   )
 
   const featuredStories = useMemo(() => {
-    const highlighted = featuredSource.filter((article) => article.featured)
+    const highlighted = getCarouselNewsArticles(featuredSource, 3)
     return (highlighted.length > 0 ? highlighted : featuredSource).slice(0, 3)
   }, [featuredSource])
 

@@ -12,6 +12,7 @@ import { useAppState } from "@/components/app-state-provider"
 import { useFastHomeNews } from "@/hooks/use-fast-home-news"
 import { useFastNextMatch } from "@/hooks/use-fast-next-match"
 import type { Match, NewsArticle } from "@/lib/data/types"
+import { getCarouselNewsArticles } from "@/lib/news-carousel"
 
 export function HomePageClient({
   initialFeaturedNews,
@@ -25,12 +26,11 @@ export function HomePageClient({
   const { news: appNews, matches, hasSyncedNews } = useAppState()
   const news = useFastHomeNews(appNews, hasSyncedNews, initialLatestNews)
   const nextMatch = useFastNextMatch(initialNextMatch)
-  const liveCarouselItems = news.filter((article) => article.featured).slice(0, 5)
-  const featured = liveCarouselItems.length > 0
-    ? liveCarouselItems
-    : initialFeaturedNews.length > 0
-      ? initialFeaturedNews
-      : news.slice(0, 5)
+  const carouselSource = hasSyncedNews && appNews.length > 0
+    ? appNews
+    : mergeUniqueNews([...initialFeaturedNews, ...news])
+  const carouselItems = getCarouselNewsArticles(carouselSource, 5)
+  const featured = carouselItems.length > 0 ? carouselItems : news.slice(0, 5)
   const latest = news.length > 0 ? news.slice(0, 6) : initialLatestNews.slice(0, 6)
 
   return (
@@ -85,4 +85,8 @@ export function HomePageClient({
       <SiteFooter />
     </div>
   )
+}
+
+function mergeUniqueNews(articles: NewsArticle[]) {
+  return Array.from(new Map(articles.map((article) => [article.id, article])).values())
 }
