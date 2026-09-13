@@ -21,10 +21,12 @@ type AggregateRow = {
 }
 
 export function ProfilePlayerRatings({ userId }: { userId: string }) {
+  const currentSeasonYear = useMemo(() => getCurrentSeasonYear(), [])
+  const currentCompetition = useMemo(() => getCurrentLeagueCompetition(), [])
   const [summary, setSummary] = useState<PlayerRatingSummary[]>([])
   const [history, setHistory] = useState<PlayerRatingHistoryRow[]>([])
-  const [selectedYear, setSelectedYear] = useState("all")
-  const [selectedCompetition, setSelectedCompetition] = useState("all")
+  const [selectedYear, setSelectedYear] = useState(currentSeasonYear)
+  const [selectedCompetition, setSelectedCompetition] = useState(currentCompetition)
   const [selectedMatchId, setSelectedMatchId] = useState("all")
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -81,8 +83,8 @@ export function ProfilePlayerRatings({ userId }: { userId: string }) {
   }, [userId])
 
   const years = useMemo(
-    () => Array.from(new Set(history.map((row) => row.seasonYear))).sort((a, b) => b - a),
-    [history],
+    () => Array.from(new Set([Number(currentSeasonYear), ...history.map((row) => row.seasonYear)])).sort((a, b) => b - a),
+    [currentSeasonYear, history],
   )
 
   const competitions = useMemo(() => {
@@ -178,7 +180,7 @@ export function ProfilePlayerRatings({ userId }: { userId: string }) {
             value={selectedYear}
             onChange={(value) => {
               setSelectedYear(value)
-              setSelectedCompetition("all")
+              setSelectedCompetition(value === currentSeasonYear ? currentCompetition : "all")
               setSelectedMatchId("all")
             }}
           >
@@ -318,18 +320,18 @@ function RatingCard({
   valueLabel: string
 }) {
   return (
-    <article className="flex items-center gap-3 rounded-2xl border border-border bg-background p-3 md:p-4">
+    <article className="flex min-w-0 items-center gap-3 rounded-2xl border border-border bg-background p-3 md:p-4">
       <PlayerAvatar name={name} image={image} />
       <div className="min-w-0 flex-1">
         <p className="truncate font-display text-lg font-extrabold text-foreground">{name}</p>
         <p className="text-xs font-medium text-muted-foreground">{supportingText}</p>
       </div>
-      <div className="shrink-0 text-right">
+      <div className="min-w-[4.25rem] shrink-0 text-right md:min-w-[5rem]">
         <div className="flex items-center justify-end gap-1 text-primary">
-          <Star className="h-4 w-4 fill-current" />
-          <span className="font-display text-2xl font-black tabular-nums">{value}</span>
+          <Star className="h-3.5 w-3.5 fill-current md:h-4 md:w-4" />
+          <span className="font-display text-xl font-black tabular-nums md:text-2xl">{value}</span>
         </div>
-        <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">{valueLabel}</p>
+        <p className="text-[9px] font-bold uppercase tracking-[0.09em] text-muted-foreground md:text-[10px] md:tracking-[0.12em]">{valueLabel}</p>
       </div>
     </article>
   )
@@ -358,4 +360,20 @@ function formatLongDate(value: string) {
     year: "numeric",
     timeZone: "America/Argentina/Buenos_Aires",
   })
+}
+
+function getCurrentSeasonYear() {
+  return new Date().toLocaleDateString("en-US", {
+    year: "numeric",
+    timeZone: "America/Argentina/Buenos_Aires",
+  })
+}
+
+function getCurrentLeagueCompetition() {
+  const month = Number(new Date().toLocaleDateString("en-US", {
+    month: "numeric",
+    timeZone: "America/Argentina/Buenos_Aires",
+  }))
+
+  return month >= 7 ? "Torneo Clausura" : "Torneo Apertura"
 }
