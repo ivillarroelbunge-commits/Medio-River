@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
-import { HomeNextMatchPanel, HomeTriviaPanel } from "@/components/home-panels"
+import { HomeNextMatchPanel, HomeNextMatchPlaceholder, HomeTriviaPanel } from "@/components/home-panels"
 import { LatestTweetsSection } from "@/components/latest-tweets-section"
 import { NewsCard } from "@/components/news-card"
 import { NewsCarousel } from "@/components/news-carousel"
@@ -41,15 +41,13 @@ export function HomePageClient({
           {featured.length > 0 ? (
             <NewsCarousel items={featured} matches={matches} />
           ) : (
-            <div className="min-h-[17rem] animate-pulse rounded-[1.5rem] bg-muted md:min-h-[28rem] md:rounded-[2rem] lg:min-h-[30rem]" />
+            <div className="h-[17rem] animate-pulse rounded-[1.5rem] bg-muted md:h-[28rem] md:rounded-[2rem] lg:h-[30rem]" />
           )}
 
-          {nextMatch && (
-            <div className="grid items-stretch gap-3 sm:gap-4 md:grid-cols-2 md:gap-6">
-              <HomeNextMatchPanel match={nextMatch} />
-              <HomeTriviaPanel />
-            </div>
-          )}
+          <div className="grid items-stretch gap-3 sm:gap-4 md:grid-cols-2 md:gap-6">
+            {nextMatch ? <HomeNextMatchPanel match={nextMatch} /> : <HomeNextMatchPlaceholder />}
+            <HomeTriviaPanel />
+          </div>
 
           <section aria-label="Últimas noticias">
             <div className="flex items-end justify-between gap-4">
