@@ -32,7 +32,6 @@ export function NoticiasPageClient({
   const [category, setCategory] = useState("Todas")
   const [competition, setCompetition] = useState("Todas")
   const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE)
-  const [featuredOffset, setFeaturedOffset] = useState(0)
 
   // The ISR snapshot is already fresh enough to render immediately. Once the
   // global Supabase sync finishes, swap it in without showing a loading grid.
@@ -55,10 +54,6 @@ export function NoticiasPageClient({
   }, [featuredSource])
 
   const featuredIds = useMemo(() => new Set(featuredStories.map((article) => article.id)), [featuredStories])
-  const rotatingFeaturedStories = useMemo(() => {
-    if (featuredStories.length <= 1) return featuredStories
-    return featuredStories.map((_, index) => featuredStories[(index + featuredOffset) % featuredStories.length])
-  }, [featuredOffset, featuredStories])
 
   const filtered = useMemo(() => listingNews.filter((article) => {
     if (featuredIds.has(article.id)) return false
@@ -72,19 +67,6 @@ export function NoticiasPageClient({
   useEffect(() => {
     setVisibleCount(INITIAL_VISIBLE)
   }, [category, competition, query, tag])
-
-  useEffect(() => {
-    if (featuredStories.length <= 1) return
-    const interval = window.setInterval(() => {
-      setFeaturedOffset((offset) => (offset + 1) % featuredStories.length)
-    }, 6500)
-
-    return () => window.clearInterval(interval)
-  }, [featuredStories.length])
-
-  useEffect(() => {
-    setFeaturedOffset(0)
-  }, [featuredStories.map((article) => article.id).join("|")])
 
   const visibleArticles = filtered.slice(0, visibleCount)
   const hasMore = visibleCount < filtered.length
@@ -100,9 +82,9 @@ export function NoticiasPageClient({
 
           {featuredStories.length > 0 && (
             <section className="grid gap-3 sm:gap-4 md:gap-6 xl:h-[34rem] xl:grid-cols-[1.9fr_0.95fr] xl:items-stretch">
-              <FeaturedLeadCard article={rotatingFeaturedStories[0]} match={findArticleMatch(rotatingFeaturedStories[0], matches)} />
+              <FeaturedLeadCard article={featuredStories[0]} match={findArticleMatch(featuredStories[0], matches)} />
               <div className="flex flex-col gap-4 md:gap-6 xl:h-full">
-                {rotatingFeaturedStories.slice(1).map((article) => (
+                {featuredStories.slice(1).map((article) => (
                   <FeaturedSideCard key={article.id} article={article} match={findArticleMatch(article, matches)} />
                 ))}
               </div>
@@ -187,7 +169,7 @@ function FilterSelect({
 function FeaturedLeadCard({ article, match }: { article: NewsArticle; match?: Match }) {
   return (
     <article className="overflow-hidden rounded-[1.5rem] border border-border shadow-[0_12px_34px_rgba(15,23,42,0.12)] md:rounded-[2rem] xl:h-full">
-      <Link href={`/noticias/${article.slug}`} className="group relative block min-h-[16rem] overflow-hidden sm:min-h-[18rem] md:min-h-[30rem] xl:h-full xl:min-h-0">
+      <Link href={`/noticias/${article.slug}`} className="group relative block h-[16rem] overflow-hidden sm:h-[18rem] md:h-[30rem] xl:h-full">
         <NewsImage
           article={article}
           match={match}
@@ -197,7 +179,7 @@ function FeaturedLeadCard({ article, match }: { article: NewsArticle; match?: Ma
           imageClassName="transition duration-500 group-hover:scale-[1.02]"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/84 via-black/26 to-transparent" />
-        <div className="absolute inset-x-0 bottom-0 pt-20 px-4 pb-4 sm:pt-24 md:px-7 md:pb-7 xl:px-8 xl:pb-8">
+        <div className="absolute inset-x-0 bottom-0 px-4 pb-4 pt-20 sm:pt-24 md:px-7 md:pb-7 xl:px-8 xl:pb-8">
           <div className="flex flex-wrap gap-1.5 sm:gap-2">
             <span className="inline-flex rounded-full bg-primary px-3 py-1 text-[0.62rem] font-extrabold uppercase tracking-[0.08em] text-primary-foreground md:px-4 md:py-1.5 md:text-[0.72rem]">
               {normalizeNewsCategory(article.category)}
@@ -208,7 +190,7 @@ function FeaturedLeadCard({ article, match }: { article: NewsArticle; match?: Ma
               </span>
             )}
           </div>
-          <h2 className="mt-3 max-w-3xl font-display text-[1.25rem] font-extrabold leading-[1.08] text-white sm:text-[1.45rem] md:mt-4 md:text-[2.6rem] xl:text-[3rem]">
+          <h2 className="mt-3 line-clamp-3 max-w-3xl font-display text-[1.25rem] font-extrabold leading-[1.08] text-white sm:text-[1.45rem] md:mt-4 md:text-[2.6rem] xl:text-[3rem]">
             {article.title}
           </h2>
           <p className="mt-2 line-clamp-2 max-w-2xl text-xs leading-5 text-white/82 md:mt-3 md:text-base md:leading-8 xl:max-w-xl">
@@ -222,7 +204,7 @@ function FeaturedLeadCard({ article, match }: { article: NewsArticle; match?: Ma
 
 function FeaturedSideCard({ article, match }: { article: NewsArticle; match?: Match }) {
   return (
-    <article className="overflow-hidden rounded-[1.5rem] border border-border bg-card shadow-sm md:rounded-[2rem] xl:flex-1">
+    <article className="min-h-[7.75rem] overflow-hidden rounded-[1.5rem] border border-border bg-card shadow-sm sm:min-h-[11.5rem] md:min-h-[12rem] md:rounded-[2rem] xl:min-h-0 xl:flex-1">
       <Link href={`/noticias/${article.slug}`} className="grid h-full grid-cols-[5.5rem_1fr] gap-3 p-3 sm:grid-cols-[9.5rem_1fr] sm:items-start md:gap-4 md:p-5 xl:h-full">
         <NewsImage
           article={article}
@@ -233,7 +215,7 @@ function FeaturedSideCard({ article, match }: { article: NewsArticle; match?: Ma
         <div className="flex h-full flex-col">
           <div>
             <p className="text-[0.72rem] font-extrabold uppercase tracking-[0.08em] text-primary">{normalizeNewsCategory(article.category)}</p>
-            <h3 className="mt-2 line-clamp-3 max-w-md text-[0.98rem] font-extrabold leading-[1.22] tracking-[-0.02em] text-foreground md:mt-3 md:line-clamp-none md:text-[1.18rem] md:leading-[1.28]">
+            <h3 className="mt-2 line-clamp-3 max-w-md text-[0.98rem] font-extrabold leading-[1.22] tracking-[-0.02em] text-foreground md:mt-3 md:text-[1.18rem] md:leading-[1.28]">
               {article.title}
             </h3>
           </div>
