@@ -6,8 +6,10 @@ import { squadPlayers as fallbackSquadPlayers } from "@/lib/data/squad"
 import { createClient as createSupabaseBrowserClient } from "@/lib/supabase/client"
 import { fetchSquadPlayers } from "@/lib/supabase/squad"
 
-export function useSquadPlayers() {
-  const [squadPlayers, setSquadPlayers] = useState<SquadPlayer[]>(fallbackSquadPlayers)
+export function useSquadPlayers(initialPlayers: SquadPlayer[] = fallbackSquadPlayers) {
+  const [squadPlayers, setSquadPlayers] = useState<SquadPlayer[]>(
+    initialPlayers.length > 0 ? initialPlayers : fallbackSquadPlayers,
+  )
   const [isSquadLoading, setIsSquadLoading] = useState(true)
 
   useEffect(() => {
@@ -19,7 +21,7 @@ export function useSquadPlayers() {
         if (!active) return
 
         if (error) {
-          console.warn("No se pudo cargar el plantel desde Supabase; se usa el respaldo local.", error)
+          console.warn("No se pudo cargar el plantel desde Supabase; se usa el respaldo disponible.", error)
           return
         }
 
