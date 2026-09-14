@@ -8,6 +8,15 @@ const CORS_HEADERS = {
   "Content-Type": "application/json",
 }
 
+class AppError extends Error {
+  status: number
+
+  constructor(message: string, status = 400) {
+    super(message)
+    this.status = status
+  }
+}
+
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: CORS_HEADERS })
 }
@@ -26,6 +35,35 @@ async function getAuthenticatedUserId(req: Request, admin: any) {
   const { data, error } = await admin.auth.getUser(token)
   if (error || !data?.user?.id) return null
   return String(data.user.id)
+}
+
+function getBuenosAiresDateParts(value: string) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: BA_TIME_ZONE,
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+  }).formatToParts(new Date(value))
+
+  const year = Number(parts.find((part) => part.type === "year")?.value)
+  const month = Number(parts.find((part) => part.type === "month")?.value)
+  const day = Number(parts.find((part) => part.type === "day")?.value)
+
+  if (!year || !month || !day) throw new Error("No se pudo calcular el cierre de la votación.")
+  return { year, month, day }
+}
+
+function getRatingClosesAt(matchDate: string) {
+  const { year, month, day } = getBuenosAiresDateParts(matchDate)
+  return new Date(Date.UTC(year, month - 1, day + 1, 15, 0, 0))
+}
+
+function getRatingWindow(matchDate: string) {
+  const closesAt = getRatingClosesAt(matchDate)
+  return {
+    closesAt: closesAt.toISOString(),
+    isOpen: Date.now() < closesAt.getTime(),
+  }
 }
 
 async function claimAnonymousRatings(admin: any, userId: string, deviceId: string) {
@@ -74,7 +112,7 @@ async function claimAnonymousRatings(admin: any, userId: string, deviceId: strin
 async function getBallot(admin: any, matchId: string, deviceId: string, userId: string | null) {
   const { data: match, error: matchError } = await admin
     .from("matches")
-    .select("id, date, opponent, competition, status, river_score, opponent_score")
+    .select("id, date, opponent, competition, status, is_home, river_score, opponent_score")
     .eq("id", matchId)
     .maybeSingle()
 
@@ -126,11 +164,13 @@ async function getBallot(admin: any, matchId: string, deviceId: string, userId: 
   const mineByPlayer = new Map(myRatings.map((row: any) => [String(row.match_player_id), Number(row.rating)]))
 
   return {
+    ...getRatingWindow(String(match.date)),
     match: {
       id: String(match.id),
       date: String(match.date),
       opponent: String(match.opponent),
       competition: String(match.competition),
+      isHome: Boolean(match.is_home),
       riverScore: Number(match.river_score ?? 0),
       opponentScore: Number(match.opponent_score ?? 0),
     },
@@ -153,7 +193,7 @@ async function getBallot(admin: any, matchId: string, deviceId: string, userId: 
         starter: Boolean(player.starter),
         enteredMinute: player.entered_minute ? String(player.entered_minute) : null,
         displayOrder: Number(player.display_order),
-        averageRating: ratingCount > 0 ? Number((ratingSum / ratingCount).toFixed(1)) : null,
+        averageRating: ratingCount > 0 ? ratingSum / ratingCount : null,
         ratingCount,
         myRating: mineByPlayer.get(String(player.id)) ?? null,
       }
@@ -170,6 +210,19 @@ async function submitRatings(
 ) {
   const entries = Object.entries(ratings)
   if (!entries.length || entries.length > 30) throw new Error("Seleccioná al menos un jugador para puntuar.")
+
+  const { data: match, error: matchError } = await admin
+    .from("matches")
+    .select("id, date, status")
+    .eq("id", matchId)
+    .maybeSingle()
+
+  if (matchError) throw matchError
+  if (!match || match.status !== "played") throw new AppError("Las puntuaciones no están disponibles para este partido.", 404)
+
+  if (!getRatingWindow(String(match.date)).isOpen) {
+    throw new AppError("La votación de este partido ya cerró.", 409)
+  }
 
   for (const [matchPlayerId, rating] of entries) {
     if (!isUuid(matchPlayerId) || !Number.isInteger(rating) || Number(rating) < 1 || Number(rating) > 10) {
@@ -356,7 +409,10 @@ export default {
       return json({ ok: false, error: "Invalid action" }, 400)
     } catch (error) {
       console.error("player-ratings failed", error)
-      return json({ ok: false, error: error instanceof Error ? error.message : "No se pudo procesar la solicitud." }, 500)
+      return json(
+        { ok: false, error: error instanceof Error ? error.message : "No se pudo procesar la solicitud." },
+        error instanceof AppError ? error.status : 500,
+      )
     }
   }),
 }

@@ -3,7 +3,8 @@
 import Link from "next/link"
 import { usePathname, useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { CheckCircle2, Eye, EyeOff, Loader2, User, UserRoundPlus } from "lucide-react"
+import { CheckCircle2, Eye, EyeOff, Loader2, Share2, User, UserRoundPlus } from "lucide-react"
+import { PlayerRatingsShareDialog } from "@/components/player-ratings-share-dialog"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -14,6 +15,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { getOrCreatePlayerRatingDeviceId } from "@/lib/player-rating-device"
+import { getShareableRatings } from "@/lib/player-ratings-share"
 import { createClient as createSupabaseBrowserClient } from "@/lib/supabase/client"
 import {
   fetchMatchRatingBallot,
@@ -23,6 +25,7 @@ import {
 import { cn } from "@/lib/utils"
 
 const PENDING_RATINGS_PREFIX = "medio-river-pending-player-ratings-v1"
+const BA_TIME_ZONE = "America/Argentina/Buenos_Aires"
 
 export function PlayerRatingsArticle({ matchId }: { matchId: string }) {
   const pathname = usePathname()
@@ -34,7 +37,34 @@ export function PlayerRatingsArticle({ matchId }: { matchId: string }) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [submitChoiceOpen, setSubmitChoiceOpen] = useState(false)
+  const [shareOpen, setShareOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const refreshBallot = useCallback(async () => {
+    const deviceId = getOrCreatePlayerRatingDeviceId()
+    if (!deviceId) return null
+
+    const supabase = createSupabaseBrowserClient()
+    const result = await fetchMatchRatingBallot(supabase, matchId, deviceId)
+
+    if (result.ballot) {
+      setBallot(result.ballot)
+      setError(result.error)
+      setRatings({})
+
+      if (!isBallotOpen(result.ballot)) {
+        clearPendingAccountRatings(matchId)
+        setSubmitChoiceOpen(false)
+        setShowResults(true)
+      } else if (result.ballot.players.length > 0 && result.ballot.players.every((player) => player.myRating !== null)) {
+        setShowResults(true)
+      }
+    } else {
+      setError(result.error)
+    }
+
+    return result.ballot
+  }, [matchId])
 
   useEffect(() => {
     let active = true
@@ -46,35 +76,6 @@ export function PlayerRatingsArticle({ matchId }: { matchId: string }) {
     setError(null)
 
     void (async () => {
-      const pendingRatings = getPendingAccountRatings(matchId)
-
-      if (pendingRatings && Object.keys(pendingRatings).length > 0) {
-        const authResult = await supabase.auth.getUser()
-        if (!active) return
-
-        const userIsAuthenticated = Boolean(authResult.data.user)
-        setIsAuthenticated(userIsAuthenticated)
-
-        if (userIsAuthenticated) {
-          setIsSubmitting(true)
-          const submitResult = await submitMatchPlayerRatings(supabase, matchId, deviceId, pendingRatings)
-          if (!active) return
-
-          setIsSubmitting(false)
-
-          if (!submitResult.error && submitResult.ballot) {
-            setBallot(submitResult.ballot)
-            setRatings({})
-            setShowResults(true)
-            clearPendingAccountRatings(matchId)
-            setIsLoading(false)
-            return
-          }
-
-          setError(submitResult.error ?? "No se pudieron guardar las puntuaciones.")
-        }
-      }
-
       const [authResult, ballotResult] = await Promise.all([
         supabase.auth.getUser(),
         fetchMatchRatingBallot(supabase, matchId, deviceId),
@@ -82,12 +83,54 @@ export function PlayerRatingsArticle({ matchId }: { matchId: string }) {
 
       if (!active) return
 
-      setIsAuthenticated(Boolean(authResult.data.user))
+      const userIsAuthenticated = Boolean(authResult.data.user)
+      setIsAuthenticated(userIsAuthenticated)
       setBallot(ballotResult.ballot)
-      setError((current) => current ?? ballotResult.error)
+      setError(ballotResult.error)
       setRatings({})
 
-      if (ballotResult.ballot?.players.some((player) => player.myRating !== null)) {
+      if (!ballotResult.ballot) {
+        setIsLoading(false)
+        return
+      }
+
+      if (!isBallotOpen(ballotResult.ballot)) {
+        clearPendingAccountRatings(matchId)
+        setShowResults(true)
+        setIsLoading(false)
+        return
+      }
+
+      const pendingRatings = getPendingAccountRatings(matchId)
+
+      if (pendingRatings && Object.keys(pendingRatings).length > 0 && userIsAuthenticated) {
+        setIsSubmitting(true)
+        const submitResult = await submitMatchPlayerRatings(supabase, matchId, deviceId, pendingRatings)
+        if (!active) return
+
+        setIsSubmitting(false)
+
+        if (!submitResult.error && submitResult.ballot) {
+          setBallot(submitResult.ballot)
+          setRatings({})
+          setShowResults(true)
+          clearPendingAccountRatings(matchId)
+          setIsLoading(false)
+          return
+        }
+
+        if (submitResult.error?.includes("cerró")) {
+          clearPendingAccountRatings(matchId)
+          await refreshBallot()
+          if (!active) return
+          setIsLoading(false)
+          return
+        }
+
+        setError(submitResult.error ?? "No se pudieron guardar las puntuaciones.")
+      }
+
+      if (ballotResult.ballot.players.every((player) => player.myRating !== null)) {
         setShowResults(true)
       }
 
@@ -97,15 +140,39 @@ export function PlayerRatingsArticle({ matchId }: { matchId: string }) {
     return () => {
       active = false
     }
-  }, [matchId])
+  }, [matchId, refreshBallot])
+
+  useEffect(() => {
+    if (!ballot || !isBallotOpen(ballot)) return
+
+    const closesAtMs = getBallotClosesAtMs(ballot)
+    if (closesAtMs === null) return
+
+    const delay = closesAtMs - Date.now()
+    const refreshAfterClose = () => {
+      void refreshBallot()
+    }
+
+    if (delay <= 0) {
+      refreshAfterClose()
+      return
+    }
+
+    const timeout = window.setTimeout(refreshAfterClose, Math.min(delay + 500, 2_147_483_647))
+    return () => window.clearTimeout(timeout)
+  }, [ballot, refreshBallot])
 
   const selectedCount = Object.keys(ratings).length
   const savedCount = ballot?.players.filter((player) => player.myRating !== null).length ?? 0
   const totalPlayers = ballot?.players.length ?? 0
   const completedCount = savedCount + selectedCount
   const missingCount = Math.max(0, totalPlayers - completedCount)
-  const canSubmit = totalPlayers > 0 && completedCount === totalPlayers && selectedCount > 0
-  const resultsMode = totalPlayers > 0 && savedCount === totalPlayers
+  const votingClosed = ballot ? !isBallotOpen(ballot) : false
+  const userCompletedBallot = totalPlayers > 0 && savedCount === totalPlayers
+  const canSubmit = Boolean(ballot && isBallotOpen(ballot)) && totalPlayers > 0 && completedCount === totalPlayers && selectedCount > 0
+  const resultsMode = votingClosed || userCompletedBallot
+  const shareableRatings = ballot ? getShareableRatings(ballot) : null
+  const canShareRatings = Boolean(shareableRatings)
   const returnTo = `${pathname}${searchParams.size ? `?${searchParams.toString()}` : ""}`
   const loginHref = `/iniciar-sesion?next=${encodeURIComponent(returnTo)}`
   const registerHref = `/registrarse?next=${encodeURIComponent(returnTo)}`
@@ -115,7 +182,28 @@ export function PlayerRatingsArticle({ matchId }: { matchId: string }) {
     return Math.max(0, ...ballot.players.map((player) => player.ratingCount))
   }, [ballot])
 
+  const figurePlayerIds = useMemo(() => {
+    const figures = new Set<string>()
+    if (!ballot || isBallotOpen(ballot)) return figures
+
+    const ratedPlayers = ballot.players.filter((player) => player.ratingCount > 0 && player.averageRating !== null)
+    if (!ratedPlayers.length) return figures
+
+    const bestAverage = Math.max(...ratedPlayers.map((player) => player.averageRating ?? Number.NEGATIVE_INFINITY))
+    for (const player of ratedPlayers) {
+      if (player.averageRating === bestAverage) figures.add(player.id)
+    }
+
+    return figures
+  }, [ballot])
+
   const submitRatings = useCallback(async (ratingsToSubmit = ratings) => {
+    if (!ballot || !isBallotOpen(ballot)) {
+      clearPendingAccountRatings(matchId)
+      await refreshBallot()
+      return
+    }
+
     const nextRatings = getSubmittableRatings(ballot, ratingsToSubmit)
     if (!nextRatings || isSubmitting) return
 
@@ -129,6 +217,10 @@ export function PlayerRatingsArticle({ matchId }: { matchId: string }) {
     setIsSubmitting(false)
 
     if (result.error || !result.ballot) {
+      if (result.error?.includes("cerró")) {
+        clearPendingAccountRatings(matchId)
+        await refreshBallot()
+      }
       setError(result.error ?? "No se pudieron guardar las puntuaciones.")
       return
     }
@@ -138,10 +230,10 @@ export function PlayerRatingsArticle({ matchId }: { matchId: string }) {
     setShowResults(true)
     setSubmitChoiceOpen(false)
     clearPendingAccountRatings(matchId)
-  }, [ballot, isSubmitting, matchId, ratings])
+  }, [ballot, isSubmitting, matchId, ratings, refreshBallot])
 
   async function handleSubmit() {
-    if (!canSubmit || isSubmitting) return
+    if (!canSubmit || isSubmitting || !ballot || !isBallotOpen(ballot)) return
 
     if (!isAuthenticated) {
       setSubmitChoiceOpen(true)
@@ -173,55 +265,95 @@ export function PlayerRatingsArticle({ matchId }: { matchId: string }) {
 
   if (resultsMode) {
     return (
-      <section className="overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
-        <div className="border-b border-border bg-[linear-gradient(135deg,rgba(220,38,38,0.1),transparent_58%)] p-5 md:p-7">
-          <div className="flex items-start gap-3">
-            <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-              <CheckCircle2 className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-primary">Puntuaciones enviadas</p>
-              <h2 className="mt-1 font-display text-2xl font-extrabold tracking-tight md:text-3xl">Así los puntuó la gente</h2>
-              <p className="mt-3 text-xs font-semibold text-muted-foreground">
-                {totalVotes === 1 ? "1 hincha participó" : `${totalVotes} hinchas participaron`} en esta votación.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="divide-y divide-border">
-          {ballot.players.map((player) => (
-            <div key={player.id} className="p-4 md:p-5">
-              <div className="flex items-center gap-3 md:gap-4">
-                <PlayerAvatar name={player.name} image={player.image} />
-
-                <div className="min-w-0 flex-1">
-                  <div className="min-w-0 md:flex md:items-baseline md:gap-2">
-                    <h3 className="truncate font-display text-lg font-extrabold text-foreground md:text-xl">{player.name}</h3>
-                    <p className="mt-0.5 text-xs font-medium text-muted-foreground md:mt-0 md:shrink-0 md:text-sm">
-                      {player.starter ? "Titular" : player.enteredMinute ? `Ingresó a los ${player.enteredMinute}'` : "Ingresó desde el banco"}
-                    </p>
-                  </div>
-
-                  <div className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/40 px-2.5 py-1">
-                    <span className="text-[0.62rem] font-bold uppercase tracking-[0.08em] text-muted-foreground md:text-xs">Tu nota</span>
-                    <span className="font-display text-base font-black tabular-nums text-foreground md:text-lg">{player.myRating}</span>
-                  </div>
-                </div>
-
-                <div className="shrink-0 text-right">
-                  <p className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-muted-foreground">Promedio</p>
-                  <p className="mt-0.5 font-display text-4xl font-black leading-none tabular-nums text-primary md:text-5xl">
-                    {player.averageRating === null
-                      ? "—"
-                      : player.averageRating.toLocaleString("es-AR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
-                  </p>
-                </div>
+      <>
+        <section className="overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
+          <div className="border-b border-border bg-[linear-gradient(135deg,rgba(220,38,38,0.1),transparent_58%)] p-5 md:p-7">
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <CheckCircle2 className="h-5 w-5" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-primary">
+                  {votingClosed ? "Puntuación de los hinchas" : "Puntuaciones enviadas"}
+                </p>
+                <h2 className="mt-1 font-display text-2xl font-extrabold tracking-tight md:text-3xl">
+                  {votingClosed ? "Así puntuó la gente a los jugadores de River" : "Así los puntuó la gente"}
+                </h2>
+                <p className="mt-3 text-xs font-semibold text-muted-foreground">
+                  {totalVotes === 1 ? "1 hincha participó" : `${totalVotes} hinchas participaron`}
+                </p>
+                {canShareRatings && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="mt-4 h-10 rounded-full bg-background/80 px-4"
+                    onClick={() => setShareOpen(true)}
+                  >
+                    <Share2 className="h-4 w-4" />
+                    Compartir mis puntuaciones
+                  </Button>
+                )}
               </div>
             </div>
-          ))}
-        </div>
-      </section>
+          </div>
+
+          <div className="divide-y divide-border">
+            {ballot.players.map((player) => {
+              const isFigure = figurePlayerIds.has(player.id)
+
+              return (
+                <div
+                  key={player.id}
+                  className={cn(
+                    "p-4 md:p-5",
+                    isFigure && "bg-primary/5 ring-1 ring-inset ring-primary/15",
+                  )}
+                >
+                  <div className="flex items-center gap-3 md:gap-4">
+                    <PlayerAvatar name={player.name} image={player.image} />
+
+                    <div className="min-w-0 flex-1">
+                      <div className="min-w-0">
+                        {isFigure && (
+                          <span className="mb-1 inline-flex w-fit rounded-full bg-primary px-2 py-0.5 text-[0.6rem] font-extrabold uppercase tracking-[0.08em] text-primary-foreground">
+                            Figura del partido
+                          </span>
+                        )}
+                        <div className="min-w-0 md:flex md:items-baseline md:gap-2">
+                          <h3 className="truncate font-display text-lg font-extrabold text-foreground md:text-xl">{player.name}</h3>
+                          <p className="mt-0.5 text-xs font-medium text-muted-foreground md:mt-0 md:shrink-0 md:text-sm">
+                            {player.starter ? "Titular" : player.enteredMinute ? `Ingresó a los ${player.enteredMinute}'` : "Ingresó desde el banco"}
+                          </p>
+                        </div>
+                      </div>
+
+                      {player.myRating !== null && (
+                        <div className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/40 px-2.5 py-1">
+                          <span className="text-[0.62rem] font-bold uppercase tracking-[0.08em] text-muted-foreground md:text-xs">Tu nota</span>
+                          <span className="font-display text-base font-black tabular-nums text-foreground md:text-lg">{player.myRating}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="shrink-0 text-right">
+                      <p className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-muted-foreground">Promedio</p>
+                      <p className="mt-0.5 font-display text-4xl font-black leading-none tabular-nums text-primary md:text-5xl">
+                        {player.averageRating === null
+                          ? "—"
+                          : player.averageRating.toLocaleString("es-AR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </section>
+
+        {canShareRatings && (
+          <PlayerRatingsShareDialog ballot={ballot} open={shareOpen} onOpenChange={setShareOpen} />
+        )}
+      </>
     )
   }
 
@@ -342,7 +474,7 @@ export function PlayerRatingsArticle({ matchId }: { matchId: string }) {
         </div>
       </section>
 
-      <Dialog open={submitChoiceOpen} onOpenChange={setSubmitChoiceOpen}>
+      <Dialog open={submitChoiceOpen && Boolean(ballot && isBallotOpen(ballot))} onOpenChange={setSubmitChoiceOpen}>
         <DialogContent className="rounded-3xl p-5 sm:max-w-md md:p-6">
           <DialogHeader>
             <DialogTitle className="font-display text-2xl font-extrabold">¿Cómo querés puntuar?</DialogTitle>
@@ -382,6 +514,42 @@ function PlayerAvatar({ name, image }: { name: string; image: string | null }) {
       {image ? <img src={image} alt={name} className="h-full w-full object-cover" /> : name.charAt(0)}
     </div>
   )
+}
+
+function isBallotOpen(ballot: MatchRatingBallot) {
+  if (ballot.isOpen === false) return false
+
+  const closesAtMs = getBallotClosesAtMs(ballot)
+  if (closesAtMs === null) return ballot.isOpen !== false
+
+  return Date.now() < closesAtMs
+}
+
+function getBallotClosesAtMs(ballot: MatchRatingBallot) {
+  const providedClosesAt = ballot.closesAt ? new Date(ballot.closesAt).getTime() : Number.NaN
+  if (Number.isFinite(providedClosesAt)) return providedClosesAt
+
+  const fallbackClosesAt = getRatingClosesAt(ballot.match.date)?.getTime()
+  return Number.isFinite(fallbackClosesAt) ? fallbackClosesAt : null
+}
+
+function getRatingClosesAt(matchDate: string) {
+  const match = new Date(matchDate)
+  if (Number.isNaN(match.getTime())) return null
+
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: BA_TIME_ZONE,
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+  }).formatToParts(match)
+
+  const year = Number(parts.find((part) => part.type === "year")?.value)
+  const month = Number(parts.find((part) => part.type === "month")?.value)
+  const day = Number(parts.find((part) => part.type === "day")?.value)
+  if (!year || !month || !day) return null
+
+  return new Date(Date.UTC(year, month - 1, day + 1, 15, 0, 0))
 }
 
 function pendingRatingsKey(matchId: string) {

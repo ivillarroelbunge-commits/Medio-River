@@ -23,11 +23,14 @@ export interface MatchRatingPlayer {
 }
 
 export interface MatchRatingBallot {
+  isOpen: boolean
+  closesAt: string
   match: {
     id: string
     date: string
     opponent: string
     competition: string
+    isHome: boolean
     riverScore: number
     opponentScore: number
   }
