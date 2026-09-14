@@ -44,7 +44,7 @@ export function NewsCarousel({ items, matches = [] }: { items: NewsArticle[]; ma
   }
 
   return (
-    <section className="relative overflow-hidden rounded-[1.5rem] bg-secondary text-secondary-foreground shadow-lg md:rounded-[2rem]">
+    <section className="relative h-[17rem] overflow-hidden rounded-[1.5rem] bg-secondary text-secondary-foreground shadow-lg md:h-[28rem] md:rounded-[2rem] lg:h-[30rem]">
       <NewsImage
         key={`image-${article.id}`}
         article={article}
@@ -79,15 +79,15 @@ export function NewsCarousel({ items, matches = [] }: { items: NewsArticle[]; ma
 
       <Link
         href={`/noticias/${article.slug}`}
-        className="relative block min-h-[17rem] px-5 pb-12 pt-14 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 md:min-h-[28rem] md:px-10 md:pb-12 md:pl-24 md:pt-10 lg:min-h-[30rem] lg:px-12 lg:pb-14 lg:pl-28"
+        className="relative block h-full px-5 pb-12 pt-14 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 md:px-10 md:pb-12 md:pl-24 md:pt-10 lg:px-12 lg:pb-14 lg:pl-28"
       >
         <div className="absolute inset-x-0 bottom-0 h-[42%] bg-gradient-to-t from-black/78 via-black/30 to-transparent md:h-[40%]" />
-        <div key={`content-${article.id}`} className={`relative flex min-h-[inherit] items-end ${direction === "next" ? "carousel-content-enter-next" : "carousel-content-enter-previous"}`}>
+        <div key={`content-${article.id}`} className={`relative flex h-full items-end ${direction === "next" ? "carousel-content-enter-next" : "carousel-content-enter-previous"}`}>
           <div className="max-w-3xl pb-1 md:max-w-3xl lg:max-w-4xl">
             <span className="inline-flex rounded-full bg-primary px-3 py-1 text-[0.58rem] font-extrabold uppercase tracking-[0.12em] text-primary-foreground shadow-sm md:px-4.5 md:py-1.5 md:text-[0.65rem]">
               {article.category}
             </span>
-            <h1 className="mt-3 max-w-3xl font-display text-[1.35rem] font-extrabold leading-[1.08] text-white md:mt-4 md:text-[2.35rem] lg:text-[2.85rem]">
+            <h1 className="mt-3 line-clamp-3 max-w-3xl font-display text-[1.35rem] font-extrabold leading-[1.08] text-white md:mt-4 md:text-[2.35rem] lg:text-[2.85rem]">
               {article.title}
             </h1>
             <p className="mt-2 line-clamp-2 max-w-xl text-xs leading-5 text-white/82 md:mt-3 md:max-w-2xl md:text-sm md:leading-7">
