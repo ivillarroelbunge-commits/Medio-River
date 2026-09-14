@@ -65,7 +65,6 @@ export function PlayerRatingsShareDialog({ ballot, open, onOpenChange }: PlayerR
       const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`
       const popup = window.open(shareUrl, "_blank", "noopener,noreferrer")
       if (!popup) {
-        setError("El navegador bloqueó la ventana de X. Permití pop-ups o copiá el texto.")
         return
       }
       onOpenChange(false)
@@ -81,7 +80,6 @@ export function PlayerRatingsShareDialog({ ballot, open, onOpenChange }: PlayerR
       const shareUrl = `https://wa.me/?text=${encodeURIComponent(text)}`
       const popup = window.open(shareUrl, "_blank", "noopener,noreferrer")
       if (!popup) {
-        setError("El navegador bloqueó WhatsApp. Permití pop-ups o copiá el texto.")
         return
       }
       onOpenChange(false)
