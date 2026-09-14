@@ -43,14 +43,17 @@ function saveCachedUpcomingMatches(matches: Match[]) {
 
 export function useFastUpcomingMatches(initialMatches: Match[] = []) {
   const supabase = useMemo(() => createSupabaseBrowserClient(), [])
-  const [matches, setMatches] = useState<Match[]>(() => keepFutureUpcoming(initialMatches))
+  // The server already filtered the ISR snapshot. Re-running a time-dependent
+  // filter during hydration can produce different markup a few milliseconds
+  // later and move the complete fixture list.
+  const [matches, setMatches] = useState<Match[]>(initialMatches)
 
   useEffect(() => {
     let active = true
     let refreshInFlight = false
     let expiryTimer: number | undefined
 
-    const serverMatches = keepFutureUpcoming(initialMatches)
+    const serverMatches = initialMatches
     const cached = serverMatches.length === 0 ? readCachedUpcomingMatches() : []
     if (cached.length > 0) {
       setMatches(cached)
@@ -63,7 +66,6 @@ export function useFastUpcomingMatches(initialMatches: Match[] = []) {
 
       if (delay > 0 && delay < 2_147_483_647) {
         expiryTimer = window.setTimeout(() => {
-          setMatches((current) => keepFutureUpcoming(current))
           void refresh()
         }, delay)
       }
@@ -104,7 +106,6 @@ export function useFastUpcomingMatches(initialMatches: Match[] = []) {
 
     const refreshOnFocus = () => {
       if (document.visibilityState === "visible") {
-        setMatches((current) => keepFutureUpcoming(current))
         void refresh()
       }
     }

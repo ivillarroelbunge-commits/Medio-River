@@ -17,7 +17,7 @@ export default function TriviaPage() {
             </div>
           </header>
 
-          <div id="trivia-game-compact">
+          <div id="trivia-game-compact" className="min-h-[52rem] md:min-h-[46rem]">
             <DeviceTriviaGame />
           </div>
         </div>

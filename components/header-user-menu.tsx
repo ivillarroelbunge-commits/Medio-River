@@ -17,12 +17,12 @@ export function HeaderUserMenu() {
   }, [])
 
   if (!mounted || !isHydrated) {
-    return null
+    return <div aria-hidden="true" className="hidden h-10 w-48 shrink-0 md:block" />
   }
 
   if (!currentUser) {
     return (
-      <div className="hidden items-center md:flex">
+      <div className="hidden h-10 w-48 shrink-0 items-center justify-end md:flex">
         <Link
           href="/iniciar-sesion"
           className="inline-flex h-10 items-center gap-2 rounded-full px-4 text-sm font-semibold text-foreground transition hover:bg-muted"
@@ -35,21 +35,21 @@ export function HeaderUserMenu() {
   }
 
   return (
-    <div className="relative hidden md:block">
+    <div className="relative hidden h-10 w-48 shrink-0 justify-end md:flex">
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
-        className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-2 text-sm font-semibold text-foreground"
+        className="inline-flex h-10 max-w-48 items-center gap-2 rounded-full border border-border bg-card px-3 text-sm font-semibold text-foreground"
       >
-        <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
+        <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
           {currentUser.avatar ? (
             <img src={currentUser.avatar} alt={currentUser.name} className="h-full w-full rounded-full object-cover" />
           ) : (
             currentUser.name.charAt(0)
           )}
         </span>
-        <span className="max-w-28 truncate">{currentUser.name}</span>
-        <ChevronDown className="h-4 w-4 text-muted-foreground" />
+        <span className="min-w-0 max-w-24 truncate">{currentUser.name}</span>
+        <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
       </button>
 
       {open && (

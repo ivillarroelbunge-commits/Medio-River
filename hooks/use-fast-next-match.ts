@@ -46,7 +46,10 @@ function saveCachedNextMatch(match: Match | null) {
 
 export function useFastNextMatch(initialMatch: Match | null = null) {
   const supabase = useMemo(() => createSupabaseBrowserClient(), [])
-  const [match, setMatch] = useState<Match | null>(() => isFutureUpcomingMatch(initialMatch) ? initialMatch : null)
+  // Keep the exact server snapshot for the first render. Re-evaluating Date.now()
+  // inside the state initializer can make the client render different markup from
+  // the prerendered HTML when a kickoff is close, which creates a large CLS jump.
+  const [match, setMatch] = useState<Match | null>(initialMatch)
 
   useEffect(() => {
     let active = true

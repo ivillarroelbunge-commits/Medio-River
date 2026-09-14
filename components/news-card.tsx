@@ -18,7 +18,7 @@ export function NewsCard({ article, match }: { article: NewsArticle; match?: Mat
         </div>
 
         <div className="flex flex-1 flex-col p-4 md:p-5">
-          <div className="flex flex-wrap gap-2">
+          <div className="flex min-h-6 flex-wrap gap-2">
             <span className="inline-flex rounded-full bg-primary/8 px-3 py-1 text-[0.7rem] font-bold uppercase tracking-[0.08em] text-primary">
               {normalizeNewsCategory(article.category)}
             </span>
@@ -29,11 +29,11 @@ export function NewsCard({ article, match }: { article: NewsArticle; match?: Mat
             )}
           </div>
 
-          <h3 className="mt-3 text-[1.16rem] font-extrabold leading-[1.18] tracking-[-0.025em] text-foreground md:mt-4 md:text-[1.45rem]">
+          <h3 className="mt-3 line-clamp-3 min-h-[4.1rem] text-[1.16rem] font-extrabold leading-[1.18] tracking-[-0.025em] text-foreground md:mt-4 md:min-h-[5.1rem] md:text-[1.45rem]">
             {article.title}
           </h3>
 
-          <p className="mt-2 line-clamp-2 flex-1 text-sm leading-6 text-muted-foreground md:mt-3 md:text-[0.95rem] md:leading-7">
+          <p className="mt-2 line-clamp-2 min-h-12 flex-1 text-sm leading-6 text-muted-foreground md:mt-3 md:min-h-14 md:text-[0.95rem] md:leading-7">
             {article.excerpt}
           </p>
 

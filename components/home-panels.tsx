@@ -37,13 +37,37 @@ export function HomeNextMatchPanel({ match }: { match: Match }) {
           </span>
         </div>
         <div>
-          <h2 className="font-display text-[1.05rem] font-extrabold leading-tight text-white sm:text-xl md:text-3xl">{homeTeam} vs. {awayTeam}</h2>
-          <p className="mt-1 text-xs uppercase tracking-wider text-white/55">{match.competition} · {match.isHome ? "Local" : "Visitante"}</p>
+          <h2 className="line-clamp-2 font-display text-[1.05rem] font-extrabold leading-tight text-white sm:text-xl md:text-3xl">{homeTeam} vs. {awayTeam}</h2>
+          <p className="mt-1 line-clamp-1 text-xs uppercase tracking-wider text-white/55">{match.competition} · {match.isHome ? "Local" : "Visitante"}</p>
         </div>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-white/86 md:gap-x-4 md:gap-y-2 md:text-sm">
           <span className="inline-flex items-center gap-1.5"><Calendar className="h-4 w-4 text-primary" /> <span className="font-semibold">{formatWeekdayDate(match.date)}</span></span>
           <span className="inline-flex items-center gap-1.5"><Clock className="h-4 w-4 text-primary" /> <span className="font-semibold">{match.timeTbd ? "--:--" : `${formatTime(match.date)} hs`}</span></span>
         </div>
+      </div>
+    </section>
+  )
+}
+
+export function HomeNextMatchPlaceholder() {
+  return (
+    <section aria-label="Próximo partido" className={`${PANEL_BASE} border-black bg-[#08080a] text-white shadow-black/20`}>
+      <div className="absolute -right-16 -top-20 h-48 w-48 rounded-full bg-primary/20 blur-3xl" />
+      <div className="absolute inset-0 opacity-10 [background-image:linear-gradient(115deg,transparent_0%,transparent_44%,white_45%,white_48%,transparent_49%,transparent_100%)]" />
+      <div className="relative flex items-start justify-between gap-3">
+        <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-white/70">
+          <Trophy className="h-3.5 w-3.5" />
+          Próximo partido
+        </div>
+        <Link href="/fixture" className="group inline-flex items-center gap-1 rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold text-white ring-1 ring-white/15 transition hover:bg-white/15 md:text-sm">
+          Ver fixture
+          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+        </Link>
+      </div>
+      <div className="relative flex flex-1 flex-col justify-center">
+        <div className="h-10 w-10 rounded-full bg-white/8 ring-1 ring-white/10 md:h-14 md:w-14" />
+        <h2 className="mt-3 font-display text-[1.05rem] font-extrabold leading-tight text-white sm:text-xl md:text-3xl">Próximo partido por confirmar</h2>
+        <p className="mt-1 text-xs text-white/55 md:text-sm">El fixture se actualiza automáticamente.</p>
       </div>
     </section>
   )
@@ -71,7 +95,7 @@ export function HomeTriviaPanel() {
         </div>
         <div>
           <h2 className="font-display text-[1.05rem] font-extrabold leading-tight text-white sm:text-xl md:text-3xl">¿Cuánto sabés de River?</h2>
-          <p className="mt-1 text-xs leading-5 text-white/78 md:text-sm md:leading-6">Trivia semanal de 5 preguntas, disponible toda la semana, un intento por usuario y ranking actualizado.</p>
+          <p className="mt-1 line-clamp-2 text-xs leading-5 text-white/78 md:text-sm md:leading-6">Trivia semanal de 5 preguntas, disponible toda la semana, un intento por usuario y ranking actualizado.</p>
         </div>
       </div>
     </section>

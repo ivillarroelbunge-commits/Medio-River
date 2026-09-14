@@ -22,6 +22,12 @@ function getTabFromUrl(): FixtureTab | null {
   return requested === "resultados" || requested === "tablas" || requested === "proximos" ? requested : null
 }
 
+function getCanonicalTabPath(tab: FixtureTab) {
+  if (tab === "resultados") return "/fixture/resultados"
+  if (tab === "tablas") return "/fixture/tablas"
+  return "/fixture"
+}
+
 export function FixtureTabs({
   upcoming,
   previous,
@@ -38,12 +44,16 @@ export function FixtureTabs({
   const [active, setActive] = useState<FixtureTab>(initialTab)
   const upcomingRest = nextMatch ? upcoming.filter((match) => match.id !== nextMatch.id) : upcoming
 
-  // Read the optional tab query only after hydration. Keeping request-specific
-  // searchParams out of the server page allows /fixture to remain ISR/static.
+  // Legacy ?tab= links used to swap a complete panel after hydration, which
+  // produced a large CLS. Preserve those URLs with a full-document redirect to
+  // static tab-specific routes so the first HTML already contains the right panel.
   useEffect(() => {
     const requestedTab = getTabFromUrl()
-    if (requestedTab) setActive(requestedTab)
-  }, [])
+    if (!requestedTab || requestedTab === initialTab) return
+
+    const hash = window.location.hash
+    window.location.replace(`${getCanonicalTabPath(requestedTab)}${hash}`)
+  }, [initialTab])
 
   return (
     <div id="resultados-previos" className="space-y-4 scroll-mt-24 md:space-y-6">

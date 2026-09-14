@@ -110,8 +110,12 @@ export function NoticiaDetalleClient({ initialArticle }: { initialArticle: NewsA
             <p className="pt-3 text-base leading-7 text-muted-foreground md:pt-4 md:text-lg md:leading-8">{article.intro}</p>
           </header>
 
+          {isRatingsArticle && <ShareButtons title={article.title} slug={article.slug} />}
+
           {isRatingsArticle ? (
-            <PlayerRatingsArticle matchId={article.matchId!} />
+            <div className="min-h-[60dvh]">
+              <PlayerRatingsArticle matchId={article.matchId!} />
+            </div>
           ) : (
             <NewsImage article={article} match={match} className="h-[16rem] w-full rounded-2xl md:h-[30rem] md:rounded-3xl" sizes="(min-width: 1024px) 896px, calc(100vw - 2rem)" />
           )}
@@ -125,7 +129,7 @@ export function NoticiaDetalleClient({ initialArticle }: { initialArticle: NewsA
               )}
             </div>
           )}
-          <ShareButtons title={article.title} slug={article.slug} />
+          {!isRatingsArticle && <ShareButtons title={article.title} slug={article.slug} />}
         </article>
         {relatedArticles.length > 0 && (
           <section className="container-prose max-w-6xl pb-8 md:pb-12">
